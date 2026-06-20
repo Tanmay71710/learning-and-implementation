@@ -16,6 +16,7 @@ A web-based interface for executing scripts and monitoring jobs using Jenkins. T
 - **Statistics Dashboard**: Execution analytics and success rates
 - **Artifact Repository**: Integration with JFrog Artifactory for Docker image storage
 - **GitHub Actions**: Automated code quality checks with email notifications
+- **GitOps with ArgoCD**: Git as source of truth for deployment
 
 ## Prerequisites
 
@@ -23,6 +24,8 @@ A web-based interface for executing scripts and monitoring jobs using Jenkins. T
 - Jenkins server (optional, can run in local mode)
 - JFrog Artifactory server (optional, for Docker image storage)
 - Docker (optional, for Docker image building and pushing)
+- Kubernetes cluster (optional, for GitOps deployment)
+- ArgoCD (optional, for GitOps deployment)
 - pip package manager
 
 ## Installation
@@ -228,6 +231,13 @@ learning/
 │           ├── hpa.yaml
 │           ├── _helpers.tpl
 │           └── NOTES.txt
+├── argocd/                   # ArgoCD configuration
+│   ├── namespace.yaml
+│   ├── project.yaml
+│   ├── application.yaml
+│   ├── app-of-apps.yaml
+│   ├── argocd-cm.yaml
+│   └── argocd-rbac-cm.yaml
 ├── k8s/                             # Kubernetes manifests
 │   ├── deployment.yaml
 │   ├── service.yaml
@@ -249,7 +259,7 @@ learning/
 ├── DATABASE_ARTIFACTORY_SETUP.md  # Database and Artifactory guide
 ├── GITHUB_ACTIONS_SETUP.md    # GitHub Actions setup guide
 ├── KUBERNETES_SETUP.md         # Kubernetes deployment guide
-└── README.md                  # This file
+└── GITOPS_ARGOCD_SETUP.md         # GitOps with ArgoCD guide
 ```
 
 ## Features in Detail
