@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins-dev
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: dev
+    app: jenkins
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: develop
+    path: environments/dev/jenkins-deployment.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jenkins-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

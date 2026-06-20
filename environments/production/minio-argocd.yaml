@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-production
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: production
+    app: minio
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: master
+    path: environments/production/minio-deployment.yaml
+  destination:
+    server: https://production.kubernetes.example.com
+    namespace: minio-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

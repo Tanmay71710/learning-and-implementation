@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: artifactory-pub-dev
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: pub-dev
+    app: artifactory
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: pub/dev
+    path: environments/pub-dev/artifactory-deployment.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: artifactory-pub-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

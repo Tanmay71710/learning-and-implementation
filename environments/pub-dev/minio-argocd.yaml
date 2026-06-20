@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-pub-dev
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: pub-dev
+    app: minio
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: pub/dev
+    path: environments/pub-dev/minio-deployment.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio-pub-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

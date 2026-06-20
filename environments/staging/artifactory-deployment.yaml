@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactory
+  namespace: artifactory-staging
+  labels:
+    app: artifactory
+    environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: artifactory
+  template:
+    metadata:
+      labels:
+        app: artifactory
+        environment: staging
+    spec:
+      containers:
+      - name: artifactory
+        image: mattgruter/artifactory:latest
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: ARTIFACTORY_ADMIN_USERNAME
+          value: "admin"
+        - name: ARTIFACTORY_ADMIN_PASSWORD
+          value: "staging-password"
+        volumeMounts:
+        - name: artifactory-data
+          mountPath: /var/opt/jfrog/artifactory
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+      volumes:
+      - name: artifactory-data
+        persistentVolumeClaim:
+          claimName: artifactory-pvc-staging
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artifactory-pvc-staging
+  namespace: artifactory-staging
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifactory
+  namespace: artifactory-staging
+  labels:
+    app: artifactory
+    environment: staging
+spec:
+  type: LoadBalancer
+  selector:
+    app: artifactory
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

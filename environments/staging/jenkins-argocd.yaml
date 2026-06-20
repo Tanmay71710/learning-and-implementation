@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins-staging
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: staging
+    app: jenkins
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: staging
+    path: environments/staging/jenkins-deployment.yaml
+  destination:
+    server: https://staging.kubernetes.example.com
+    namespace: jenkins-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

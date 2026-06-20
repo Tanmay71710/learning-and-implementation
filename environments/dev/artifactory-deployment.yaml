@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactory
+  namespace: artifactory-dev
+  labels:
+    app: artifactory
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: artifactory
+  template:
+    metadata:
+      labels:
+        app: artifactory
+        environment: dev
+    spec:
+      containers:
+      - name: artifactory
+        image: mattgruter/artifactory:latest
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: ARTIFACTORY_ADMIN_USERNAME
+          value: "admin"
+        - name: ARTIFACTORY_ADMIN_PASSWORD
+          value: "dev-password"
+        volumeMounts:
+        - name: artifactory-data
+          mountPath: /var/opt/jfrog/artifactory
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: artifactory-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifactory
+  namespace: artifactory-dev
+  labels:
+    app: artifactory
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: artifactory
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080

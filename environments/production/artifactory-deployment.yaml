@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactory
+  namespace: artifactory-prod
+  labels:
+    app: artifactory
+    environment: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: artifactory
+  template:
+    metadata:
+      labels:
+        app: artifactory
+        environment: production
+    spec:
+      containers:
+      - name: artifactory
+        image: mattgruter/artifactory:latest
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: ARTIFACTORY_ADMIN_USERNAME
+          value: "admin"
+        - name: ARTIFACTORY_ADMIN_PASSWORD
+          value: "prod-secure-password"
+        volumeMounts:
+        - name: artifactory-data
+          mountPath: /var/opt/jfrog/artifactory
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+      volumes:
+      - name: artifactory-data
+        persistentVolumeClaim:
+          claimName: artifactory-pvc-prod
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artifactory-pvc-prod
+  namespace: artifactory-prod
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 200Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifactory
+  namespace: artifactory-prod
+  labels:
+    app: artifactory
+    environment: production
+spec:
+  type: LoadBalancer
+  selector:
+    app: artifactory
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
