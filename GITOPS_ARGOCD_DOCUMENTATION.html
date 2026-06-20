@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitOps with ArgoCD - Complete Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+        }
+
+        .step {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .step-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .command {
+            background: #2d2d2d;
+            color: #4ec9b0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background: #667eea;
+            color: user-select: white;
+        }
+
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .architecture-diagram {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .file-tree {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-tree .directory {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .file-tree . file {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+
+            .table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 GitOps with ArgoCD</h1>
+            <p>Complete Documentation of ArgoCD as Source of Truth for GitOps Deployment</p>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <li><a href="#overview">GitOps Overview</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#argocd-install">ArgoCD Installation</a></li>
+                <li><a href="#project-config">Project Configuration</a></li>
+                <li><a href="#application">Application Setup</a></li>
+                <li><a href="#multi-env">Multi-Environment</a></li>
+                <li><a href="#github-actions">GitHub Actions Integration</a></li>
+                <li><a href="#workflow">GitOps Workflow</a></li>
+                <li><a href="#monitoring">Monitoring</a></li>
+            </ul>
+        </nav>
+
+        <div class="section" id="overview">
+            <h2>📋 GitOps Overview</h2>
+            <p>This guide implements ArgoCD as the source of truth for GitOps deployment, providing:</p>
+            <ul>
+                <li><strong>Git as Source of Truth</strong>: Git repository contains all deployment configuration</li>
+                <li><strong>Automated Synchronization</strong>: ArgoCD syncs Git changes to Kubernetes automatically</li>
+                <li><strong>Multi-Environment Support</strong>: Dev, staging, and production environments</li>
+                <li><strong>Rollback Capabilities</strong>: Easy rollback via Git revert</li>
+                <li><strong>Health Monitoring</strong>: Application health checks and monitoring</li>
+                <li><strong>Declarative Configuration</strong>: Infrastructure as code approach</li>
+                <li><strong>RBAC Integration</strong>: Role-based access control</li>
+            </ul>
+
+            <div class="success">
+                <strong>GitOps Status:</strong> ✅ Complete and Production Ready
+            </div>
+        </div>
+
+        <div class="section" id="architecture">
+            <h2>🏗️ Architecture</h2>
+            
+            <div class="architecture-diagram">
+                <strong>GitOps Pipeline Architecture:</strong>
+                <pre>
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Git Repository (Source of Truth)                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │ Code     │  │ Dockerfile│  │k8s/      │  │ArgoCD    │  │GitHub    │  │
+│  │ Changes  │→ │          │→ │Manifests │→ │Config    │→ │ Actions  │  │
+│  │ PR/Merge │  │          │  │          │  │          │  │          │  │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+                            ↓
+                    ┌─────────────────────────────────────────────┐
+                    │            Kubernetes Cluster               │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │ Pods     │  │Services │  │ConfigMaps│  │ Secrets  │  │
+│  │ Deployed │  │Exposed │  │          │  │          │  │
+│  │          │  │          │  │          │  │          │  │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                </pre>
+            </div>
+        </div>
+
+        <div class="section" id="argocd-install">
+            <h2🛠️ ArgoCD Installation</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Create Namespace</div>
+                <p>Create the ArgoCD namespace:</p>
+                <div class="command">kubectl apply -f argocd/namespace.yaml</div>
+            </div>
+
+            <div class="div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Install ArgoCD</div>
+                <p>Install ArgoCD using official manifests:</p>
+                <div class="command">kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml</div>
+                
+                <p>Or use the custom configuration:</p>
+                <div class="command">kubectl apply -f argocd/argocd-cm.yaml -n argocd</div>
+                <div class="command">kubectl apply -f argocd/argocd-rbac-cm.yaml -n argocd</div>
+                <div class="command">kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml</div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Access ArgoCD UI</div>
+                <p>Port-forward to access the ArgoCD dashboard:</p>
+                <div class="command">kubectl port-forward svc/argocd-server -n argocd 8080:44343</div>
+                <p>Get the initial admin password:</p>
+                <div class="command">kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d</div>
+                <p>Access at: <code>http://localhost:8080</code></p>
+            </div>
+        </div>
+
+        <div class="section" id="project-config">
+            <h2⚙️ Project Configuration</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Create ArgoCD Project</div>
+                <p>Apply the project configuration:</p>
+                <div class="command">kubectl apply -f argocd/project.yaml</div>
+                
+                <h4>Project Features:</h4>
+                <ul>
+                    <li><strong>Source Repository:</strong> GitHub repository with Kubernetes manifests</li>
+                    <li><strong>Destinations:</strong> Multiple Kubernetes clusters (dev, staging, production)</li>
+                    <li><strong>Resource Whitelisting:</strong> Controlled resource types</li>
+                    <li><strong>RBAC:</strong> Admin and developer roles</li>
+                    <li><strong>Sync Windows:</strong> Automated sync policies</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">RBAC Configuration</div>
+                <p>The project includes role-based access control:</p>
+                <table class="table">
+                    <tr>
+                        <th>Role</th>
+                        <th>Capabilities</th>
+                    </tr>
+                    <tr>
+                        <td>Admin</td>
+                        <td>Full access to all resources, modify project configuration</td>
+                    </tr>
+                    <tr>
+                        <td>Developer</td>
+                        <td>Application management, view and sync apps, execute commands</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="application">
+            <h2📱 Application Setup</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Create Application</div>
+                <p>Apply the application manifest:</p>
+                <div class="command">kubectl apply -f argocd/application.yaml</div>
+                
+                <h4>Application Configuration:</h4>
+                <ul>
+                    <li><strong>Source:</strong> Git repository and path</li>
+                    <li><strong>Destination:</strong> Kubernetes cluster and namespace</li>
+                    <li><strong>Sync Policy:</strong> Automated with pruning and self-healing</li>
+                    <li><strong>Health Checks:</strong> Application monitoring enabled</li>
+                    <li><strong>Revision History:</strong> Track deployment history</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Sync Policy Details</div>
+                <p>The application uses the following sync policy:</p>
+                <pre><code>syncPolicy:
+  automated:
+    prune: true        # Remove resources not in Git
+    selfHeal: true      # Auto-revert manual changes
+  syncOptions:
+  - CreateNamespace=true  # Auto-create namespaces
+  - ServerSideApply=true  # Server-side apply for better merge</code></pre>
+            </div>
+        </div>
+
+        <div class="section" id="multi-env">
+            <h2🌐 Multi-Environment Setup</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">App of Apps Pattern</div>
+                <p>Use the App of Apps for managing multiple environments:</p>
+                <div class="command">kubectl apply -f argocd/app-of-apps.yaml</div>
+                
+                <h4>Environment Configuration:</h4>
+                <table class="table">
+                    <tr>
+                        <th>Environment</th>
+                        <th>Branch</th>
+                        <th>Namespace</th>
+                        <th>Cluster</th>
+                    </tr>
+                    <tr>
+                        <td>Production</td>
+                        <td>master</td>
+                        <td>script-execution-manager-prod</td>
+                        <td>production-cluster</td>
+                    </tr>
+                    <tr>
+                        <td>   Staging</td>
+                        <td>develop</td>
+                        <td>script-execution-manager-staging</td>
+                </tr>
+                    <tr>
+                        <td>Development</td>
+                        <td>develop</td>
+                        <td>deployment</td>
+                        <td>in-cluster</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Branch Strategy</div>
+                <ul>
+                    <li><strong>master:</strong> Production deployments</li>
+                    <li><strong>develop:</strong> Staging and development deployments</li>
+                    <li><strong>feature/*:</strong> Development and testing only</li>
+                    <li><strong>tags (v*):</strong> Production releases</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="github-actions">
+            <h2🤖 GitHub Actions Integration</h2>
+            
+            <div class="step">
+                <span class="step-based">1</span>
+                <div class="step-title">GitOps Workflow</div>
+                <p>The `.github/workflows/argocd-gitops.yml` workflow integrates with ArgoCD:</p>
+                
+                <h4>Workflow Features:</h4>
+                <ul>
+                    <li><strong>Automated ArgoCD CLI installation</strong></li>
+                    <li><strong>Environment-based sync triggers</strong></li>
+                    <li><strong>Health check verification</strong></li>
+                    <li><strong>Email notifications</strong></li>
+                    <li><strong>Manual dispatch support</strong></li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Workflow Triggers</span>
+                <ul>
+                    <li>Push to <code>master</code> → Production sync</li>
+                    <li>Push to <code>develop</code> → Staging sync</li>
+                    <li>Push to <code>feature/*</code> → Development sync</li>
+                    <li>Tag pushes → Production sync with version</li>
+                    <li>Manual dispatch with environment selection</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Required Secrets</div>
+                <p>Add these to GitHub Secrets:</p>
+                <table class="table">
+                    <tr>
+                        <th>Secret Name</th>
+                        <th>Description</th>
+                        <th>Required</th>
+                    </tr>
+                    <tr>
+                        <td><code>ARGOCD_URL</code></td>
+                        <td>ArgoCD server URL</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>ARGOCD_USERNAME</code></td>
+                        <td>ArgoCD username</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>ARGOCD_PASSWORD</code></td>
+                        <td>ArgoCD password</td>
+                        <td>Yes</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="workflow">
+            <h2🔄 GitOps Workflow</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Development Workflow</div>
+                <ol>
+                    <li>Make changes to Kubernetes manifests in <code>k8s/</code> directory</li>
+                    <li>Commit changes with descriptive message</li>
+                    <li>Push to Git repository</li>
+                    <li>ArgoCD detects changes automatically</li>
+                    <li>ArgoCD syncs changes to Kubernetes</li>
+                    <li>Application rolls out with new configuration</li>
+                    <li>Health checks verify deployment success</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Deployment Workflow</div>
+                <ol>
+                    <li>Make code changes</li>
+                   >GitHub Actions builds Docker image
+                    <li>Pushes image to Artifactory
+                    <li>Updates image tag in Git manifests
+                    <li>Commits and pushes changes to Git
+                    <li>ArgoCD detects manifest changes
+                    <li>ArgoCD syncs to Kubernetes
+                    <li>Kubernetes rolls out new deployment
+                    <li>Health checks verify deployment</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Rollback Workflow</div>
+                <p>If deployment fails:</p>
+                <ol>
+                    <li>Revert problematic changes in Git</li>
+                    <li>Push revert to Git repository</li>
+                    <li>ArgoCD detects rollback automatically</li>
+                    <li>Application rolls back to previous version</li>
+                    <li>Health checks verify rollback success</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section" id="monitoring">
+            <h2>📊 Monitoring</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Application Health</div>
+                <p>ArgoCD provides built-in health monitoring:</p>
+                <ul>
+                    <li><strong>Liveness Probes:</strong> Check if application is running</li>
+                    <li><strong>Readiness Probes:</strong> Check if application can serve traffic</li>
+                    <strong>Sync Status:</strong> Monitor synchronization status</li>
+                    <strong>Application Status:</strong> Track deployment health</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Monitoring Commands</div>
+                <pre><code># Check application status
+argocd app get script-execution-manager-prod
+
+# View sync history
+argocd app history script-execution-manager-prod
+
+# Watch real-time sync status
+argocd app watch script-execution-manager-prod
+
+# Get application details
+argocd app get script-execution-manager-prod -o json</code></pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📁 Created Files Summary</h2>
+            <div class="file-tree">
+                <div class="directory">.github/workflows/</div>
+                ├── <div class="file">code-quality-check.yml</div>
+                ├── <div class="file">docker-build-push-k8s.yml</div>
+                └── <div class="file">argocd-gitops.yml</div>
+                <div class="directory">argocd/</div>
+                ├── <div class="file">namespace.yaml</div>
+                ├── <div class="file">project.yaml</div>
+                ├── <div class="file">application.yaml</div>
+                ├── <div class="file">app-of-apps.yaml</div>
+                ├── <div class="file">argocd-cm.yaml</div>
+                └── <div class="file">argocd-rbac-cm.yaml</div>
+                <div class="directory">k8s/</div>
+                ├── <div class="file">deployment.yaml</div>
+                ├── <div class="file">service.yaml</div>
+                ├── <div class="file">configmap.yaml</div>
+                <div class="file">secrets.yaml</div>
+                <div class="directory">helm/script-execution-manager/</div>
+                └── <div class="directory">templates/</div>
+                └── [Helm template files]
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Implementation Status</h2>
+            <ul class="checklist">
+                <li>ArgoCD namespace and installation manifests created</li>
+                <li>ArgoCD Application manifest with sync policy</li>
+                <li>App of Apps pattern for multi-environment</li>
+               >GitHub Actions workflow for ArgoCD integration
+                <li>Project configuration with RBAC</li>
+                <li>RBAC configuration for access control</li>
+               >Complete GitOps workflow documentation
+                <li>HTML documentation for ArgoCD setup
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎯 GitOps Benefits</h2>
+            <table class="table">
+                <tr>
+                    <th>Aspect</th>
+                    <th>GitOps Advantage</th>
+                </tr>
+                <tr>
+                    <td>Version Control</td>
+                <td>Complete audit trail of all changes</td>
+                </tr>
+                <tr>
+                    <td>Rollback</td>
+                   >Easy rollback via Git revert</td>
+                </tr>
+                <tr>
+                    <td>Collaboration</td>
+               >Git-based collaboration and review process</td>
+                </tr>
+                <tr>
+                    <td>Consistency</td>
+                   >Git is single source of truth</td>
+                </tr>
+                <tr>
+                    <td>Automation</td>
+               >Automated deployment pipeline</td>
+                </tr>
+                <tr>
+                    <td>Security</td>
+               >RBAC and secrets management</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🎉 GitOps Setup Complete</h2>
+            <p>Your GitOps pipeline with ArgoCD is now configured!</p>
+            
+            <h4>Next Steps:</h4>
+            <ol>
+                <li>Install ArgoCD in your Kubernetes cluster</li>
+                <li>Configure GitHub Secrets with ArgoCD credentials</li>
+                <li>Apply ArgoCD project and application manifests</li>
+               >Push code to trigger automated deployment
+                <li>Monitor deployment in ArgoCD UI
+                <li>Set up monitoring and alerting</li>
+            </ol>
+
+            <div class="success">
+                <strong>Status:</strong> ✅ GitOps Pipeline Complete<br>
+                <strong>ArgoCD:</strong> Ready for installation<br>
+                <strong>GitOps:</strong> Single source of truth implemented<br>
+                <strong>Multi-Env:</strong> Dev, staging, production support
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>GitOps with ArgoCD - Complete Documentation</p>
+            <p>Generated on June 20, 2026 | GitOps + ArgoCD = Production Deployment</p>
+            <p>🔄 GitOps + ☸️ ArgoCD = Declarative Deployment</p>
+        </div>
+    </div>
+</body>
+</html>

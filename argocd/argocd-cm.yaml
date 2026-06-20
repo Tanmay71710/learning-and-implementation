@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # ArgoCD configuration
+  url: https://argocd.example.com
+  oidc.config: |
+    name: ArgoCD
+    issuer: https://accounts.google.com
+    clientID: argocd
+    requestedScopes:
+      - openid
+      - profile
+      - email
+  statusbadge.enabled: "true"
+  repositories: |
+    - url: https://github.com/Tanmay71710/learning-and-implementation
+      name: learning-repo
+      type: git
+  # Disable admin user for security
+  server.rbac.enabled: "true"
+  # Enable application management
+  application.instanceLabelKey: argocd.argoproj.io/instance

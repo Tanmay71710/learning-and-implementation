@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: script-execution-manager
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Script Execution Manager Project
+  sourceRepos:
+  - type: git
+    url: https://github.com/Tanmay71710/learning-and-implementation
+  destinations:
+  - name: in-cluster
+    server: https://kubernetes.default.svc
+    namespace: script-execution-manager
+  - name: staging-cluster
+    server: https://staging.kubernetes.example.com
+    namespace: script-execution-manager-staging
+  - name: production-cluster
+    server: https://production.kubernetes.example.com
+    namespace: script-execution-manager-prod
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: apps
+    kind: Deployment
+  - group: ''
+    kind: Service
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: ''
+    kind: ServiceAccount
+  roles:
+  - name: admin
+    description: Admin access to the project
+    policies:
+    - p, proj, script-execution-manager, *, *, */*
+    - p, proj, script-execution-manager, *, */*, allow
+  - name: developer
+    description: Developer access to the project
+    policies:
+    - p, proj, script-execution-manager, applications, *, */*
+    - p, proj, script-execution-manager, applications, */*/*, allow
+    - p, proj, script-execution-manager, exec, *, */*, allow
+  syncWindows:
+    applications:
+    - kind: Applications
+      sync:
+        prune: true
+        selfHeal: true

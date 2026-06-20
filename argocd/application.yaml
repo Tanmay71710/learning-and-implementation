@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: script-execution-manager
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: master
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: script-execution-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+      - /spec/replicas
+  revisionHistoryLimit: 3
+  info:
+    - name: Application
+      value: Script Execution Manager
+    - name: Environment
+      value: Production
+    - name: Owner
+      value: DevOps Team
+  healthStatus:
+    live:
+      enabled: true
+  syncPolicyRetry:
+    limit: 5
+    backoff:
+      duration: 5s
+      factor: 2
+    maxDuration: 3m

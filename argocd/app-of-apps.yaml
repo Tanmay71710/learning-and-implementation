@@ -1,0 +1,88 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: script-execution-manager-envs
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      template:
+        name: '{{name}}-{{branch}}'
+        namespace: '{{namespace}}'
+  goTemplate: |
+    {{range .items}}
+    ---
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: {{.name}}-{{.branch}}-{{.environment}}
+      namespace: argocd
+      labels:
+        app.kubernetes.io/name: script-execution-manager
+        environment: {{.environment}}
+    spec:
+      project: script-execution-manager
+      source:
+        repoURL: {{.repoURL}}
+        targetRevision: {{.targetRevision}}
+        path: k8s
+      destination:
+        server: {{.server}}
+        namespace: {{.namespace}}
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+      info:
+        - name: Environment
+          value: {{.environment}}
+        - name: Branch
+          value: {{.branch}}
+    {{end}}
+  syncPolicy:
+    preserveResourcesOnDeletion: false
+  applications:
+    - name: script-execution-manager-prod
+      namespace: script-execution-manager-prod
+      repoURL: https://github.com/Tanmay71710/learning-and-implementation
+      targetRevision: master
+      path: k8s
+      destination:
+        server: https://production.kubernetes.example.com
+        namespace: script-execution-manager-prod
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+    - name: script-execution-manager-staging
+      namespace: script-execution-manager-staging
+      repoURL: https://github.com/Tanmay71710/learning-and-implementation
+      targetRevision: develop
+      path: k8s
+      destination:
+        server: https://staging.kubernetes.example.com
+        namespace: script-execution-manager-staging
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+    - name: script-execution-manager-dev
+      namespace: script-execution-manager-dev
+      repoURL: https://github.com/Tanmay71710/learning-and-implementation
+      targetRevision: develop
+      path: k8s
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: script-execution-manager-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
