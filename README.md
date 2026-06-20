@@ -15,6 +15,7 @@ A web-based interface for executing scripts and monitoring jobs using Jenkins. T
 - **Job History**: Complete audit trail of all script executions
 - **Statistics Dashboard**: Execution analytics and success rates
 - **Artifact Repository**: Integration with JFrog Artifactory for Docker image storage
+- **GitHub Actions**: Automated code quality checks with email notifications
 
 ## Prerequisites
 
@@ -211,16 +212,23 @@ chmod +x scripts/*.sh
 
 ```
 learning/
+├── .github/
+│   └── workflows/
+│       └── code-quality-check.yml  # GitHub Actions workflow
 ├── app.py                      # Main Flask application
 ├── models.py                   # Database models
 ├── requirements.txt            # Python dependencies
+├── requirements-dev.txt        # Development dependencies
 ├── .env.example               # Environment variables template
+├── .pylintrc                  # Pylint configuration
 ├── Dockerfile                 # Container definition
 ├── docker-compose.yml         # Multi-container setup with Artifactory
 ├── templates/
 │   └── index.html             # Web interface
 ├── scripts/                   # Directory for executable scripts
+│   └── send_email_notification.py  # Email notification script
 ├── DATABASE_ARTIFACTORY_SETUP.md  # Database and Artifactory guide
+├── GITHUB_ACTIONS_SETUP.md    # GitHub Actions setup guide
 └── README.md                  # This file
 ```
 
@@ -283,6 +291,43 @@ docker run -p 5000:5000 \
   script-execution-manager
 ```
 
+## CI/CD with GitHub Actions
+
+### Automated Code Quality Checks
+
+The project includes a comprehensive GitHub Actions workflow that automatically:
+- Runs code quality checks (Pylint, Flake8, Black, isort)
+- Performs security scanning with Bandit
+- Sends email notifications to configured recipients
+- Comments on pull requests with analysis results
+
+### Setup Instructions
+
+1. **Configure GitHub Secrets** in your repository settings:
+   - `EMAIL_SERVER`: SMTP server address
+   - `EMAIL_PORT`: SMTP server port
+   - `EMAIL_USERNAME`: SMTP username
+   - `EMAIL_PASSWORD`: SMTP password/app password
+   - `EMAIL_RECIPIENTS`: Comma-separated email addresses
+
+2. **Email Provider Setup**:
+   - For Gmail: Enable 2FA and generate app password
+   - For Outlook: Use SMTP server `smtp.office365.com`
+   - For other providers: Use their SMTP details
+
+3. **Customize Configuration**:
+   - Edit `.github/workflows/code-quality-check.yml`
+   - Adjust `.pylintrc` for Pylint rules
+   - Modify email script for custom notifications
+
+### Workflow Triggers
+
+- Push to `master`, `main`, or `develop` branches
+- Pull requests to main branches
+- Manual workflow dispatch
+
+For detailed setup instructions, see [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md).
+
 ## Troubleshooting
 
 ### Jenkins Connection Issues
@@ -323,6 +368,14 @@ Change the port in `app.py`:
 ```python
 app.run(debug=True, host='0.0.0.0', port=5001)  # Use port 5001
 ```
+
+### GitHub Actions Issues
+- Verify GitHub Secrets are properly configured
+- Check SMTP server credentials and permissions
+- Ensure email provider allows SMTP access
+- Review workflow logs for specific error messages
+- Test email configuration independently
+- Check for rate limiting from email provider
 
 ## Security Considerations
 

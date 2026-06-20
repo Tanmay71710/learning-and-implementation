@@ -1,0 +1,367 @@
+[MASTER]
+# Specify a configuration file.
+rcfile=
+
+# Python code to execute, usually for sys.path manipulation such as
+# pygtk.require().
+#init-hook=
+
+# Add files or directories to the blacklist.
+ignore=CVS,.git,__pycache__,.pytest_cache,instance,.venv,venv
+
+# Pickle collected data for later comparisons.
+persistent=yes
+
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E1101 when accessed.
+dynamic-members=()
+
+# List of fake C extensions which do not exist but are used by pylint
+# for various reasons (e.g. to avoid errors in projects that use C extensions).
+extension-pkg-white-list=
+
+# Python code to execute, usually for sys.path manipulation such as
+# pygtk.require().
+init-hook='import sys; sys.path.append(".")'
+
+# Use multiple processes to speed up Pylint.
+jobs=1
+
+# Allow loading of arbitrary C extensions.
+unsafe-load-any-extension=no
+
+# A comma-separated list of package or module names from where C extensions may
+# be loaded. Extensions are loading into the active Python interpreter and may
+# run arbitrary code
+extension-pkg-allow-list=
+
+# Enable pickle when using jobs.
+pickled-data-file=.pylint.dat
+
+# Control the amount of potential inferred values when inferring
+# the type of an assignment target with `assignInference`. This can help
+# reducing the memory impact when dealing with large functions or complex,
+# nested data structures.
+limit-inference-results=100
+
+# Allow import of modules with __init__.py missing.
+allow-missing-init-ans
+
+# Return non-zero exit code if any messages are reported.
+errors-only=no
+
+# Return non-zero exit code if there are any messages whose category is
+# stored in the specified list.
+errors-only-fatal=
+
+# Return non-zero exit code if any messages are reported, but exclude those
+# that match the specified list.
+disable=C0114,C0115,C0116,W0212
+
+# When using multiple processes, combine pickled data files into a single
+# file. This can improve performance when using many processes.
+combine-async=no
+
+# Files or directories to be skipped.
+ignore-paths=
+
+# In Python 3, str and bytes are not implicitly compatible.
+# When this option is True, pylint will not emit E1101 when iterating over
+# str or bytes.
+skip-string-normalization=no
+
+# Use multiple processes to speed up Pylint.
+subprocesses=
+
+# Use a pickled data file to store results of previous runs.
+pickle-data-file=
+
+# Use a pickled data file to store results of previous runs.
+#pickle-data-file=.pylint.dat
+
+[MESSAGES CONTROL]
+# Disable the message, report, category or checker with the given id(s).
+disable=C0114,C0115,C0116,W0212,R0903,R0913,R0914
+
+# Enable the message, report, category or checker with the given id(s).
+enable=
+
+# Disable the message, report, category or checker with the given id(s).
+#disable=
+
+# Enable the message, report, category or checker with the given id(s).
+#enable=
+
+[REPORTS]
+# Python expression which should return a note less than 10 (default: 5) to
+# trigger new messages.
+evaluation=10.0 - ((float(5.0) * number_of_statements) / sum_of_module_complexity)
+
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details.
+#msg-template=
+
+# Set the output format. Available formats are text, parseable, colorized, json
+# and msvs (visual studio).You can also give a reporter class, e.g.
+# mypackage.MyReporterClass.
+output-format=text
+
+# Tells whether to display a full report or only the messages
+reports=yes
+
+# Activate the evaluation score.
+score=yes
+
+[REFACTORING]
+# Maximum number of nested blocks for function / method body
+max-nested-blocks=5
+
+# Complete name of function that must never yield (None by default)
+never-returning-functions=sys.exit
+
+[FORMAT]
+# Expected format of line ending.
+expected-line-ending-format=
+
+# Regexp for a line that is not to be considered deprecated.
+no-docstring-rgx=^_
+
+# String used to describe the default indentation.
+indent-string='    '
+
+# Number of spaces of indent required.
+indent-after-paren=4
+
+# String used to describe the expected indentation.
+indent-after-paren=4
+
+# Maximum number of characters on a single line.
+max-line-length=127
+
+# Regexp for a line that is not to be considered deprecated.
+#no-docstring-rgx=^_
+
+# Number of spaces of indent required.
+indent-after-paren=4
+
+# Maximum number of characters on a single line.
+max-line-length=127
+
+# Regexp for a line with a function or class definition.
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regexp for a line with a class definition.
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+
+# Regexp for a line with a variable or attribute definition.
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regexp for a line with a constant definition.
+const-rgx=([A-Z_][A-Z0-9_]{2,30}|__[a-z0-9_]+__)$
+
+# Regexp for a line with an attribute definition.
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regexp for a line with a function definition.
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regexp for a line with a class definition.
+class-rgx=[A-Z_][a-z0-9]+$
+
+# Good variable names which should always be accepted, separated by a comma
+good-names=i,j,k,ex,Run,_
+
+# Bad variable names which should always be refused, separated by a comma
+bad-names=foo,bar,baz,toto,tutu,tata
+
+[LOGGING]
+# Logging modules to check that the string format arguments are in logging
+# function call format
+logging-modules=logging
+
+[TYPECHECK]
+# List of decorators that produce context managers from functions, such as
+# contextlib.contextmanager.
+contextmanager-decorators=contextlib.contextmanager
+
+# List of members which are set dynamically and missed by pylint inference
+# system, and so shouldn't trigger E1101 when accessed.
+dynamic-members=
+
+# List of module names for which member attributes should not be checked
+# (useful for modules/projects where namespaces are manipulated during
+# runtime and thus existing member attributes cannot be deduced by static
+# analysis. It supports qualified module names, as well as patterns.
+ignored-modules=
+
+# List of class names for which member attributes should not be checked
+# (useful for classes with dynamically set attributes). This supports
+# qualified names.
+ignored-classes=
+
+# List of function names for which member attributes should not be checked
+# (useful for classes with dynamically set attributes). This supports
+# qualified names.
+ignored-functions=
+
+[VARIABLES]
+# Tells whether we should check for unused import in __init__ files.
+init-import=no
+
+# A regular expression indicating the paths that can be ignored for unused
+# variable checks.
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
+
+# List of variable names that should not be used.
+#bad-names=
+
+# List of variable names that should always be accepted.
+#good-names=
+
+[SIMILARITIES]
+# Minimum lines number of a similarity.
+min-similarity-lines=4
+
+# Ignore comments when computing similarities.
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities.
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities.
+ignore-imports=no
+
+[MISCELLANEOUS]
+# List of note tags to take in consideration, separated by a comma.
+notes=FIXME,XXX,TODO
+
+[BASIC]
+# Regular expression which should only match correct function names
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression which should only match correct method names
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression which should only match correct attribute names
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression which should only match correct class names
+class-rgx=[A-Z_][a-z0-9]+$
+
+# Regular expression which should only match correct module names
+module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9_]+))$
+
+# Regular expression which should only match correct variable names
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression which should only match correct constant names
+const-rgx=([A-Z_][A-Z0-9_]{2,30}|__[a-z0-9_]+__)$
+
+# Good variable names which should always be accepted, separated by a comma
+good-names=i,j,k,ex,Run,_
+
+# Bad variable names which should always be refused, separated by a comma
+bad-names=foo,bar,baz,toto,tutu,tata
+
+# List of builtins function names that should not be used, such as "map"
+# or "filter", when the work can be done with list comprehensions.
+#bad-functions=map,filter,input
+
+# Regular expression which should only match function or class names that do
+# not require a docstring.
+no-docstring-rgx=^_
+
+# Minimum number of public methods for a class
+min-public-methods=2
+
+# Maximum number of arguments for function / method
+max-args=7
+
+# Maximum number of locals for function / method body
+max-locals=15
+
+# Maximum number of return / yield for function / method body
+max-returns=6
+
+# Maximum number of branch for function / method body
+max-branches=12
+
+# Maximum number of statements in function / method body
+max-statements=50
+
+# Maximum number of parents for a class (see R0901).
+max-parents=7
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes=7
+
+# Minimum number of public methods for a class (see R0903).
+min-public-methods=2
+
+# Maximum number of public methods for a class (see R0904).
+max-public-methods=20
+
+# Check for __all__ in module (see R0902)
+required-module-attributes=__all__
+
+[IMPORTS]
+# Deprecated modules which should not be used, separated by a comma
+deprecated-modules=regsub,Terminfo,rexec,Bastion,robotparser
+
+# Create a graph of external dependencies in the given file (report R0402 must
+# not be disabled)
+import-graph=
+
+# Create a graph of internal dependencies in the given file (report R0402 must
+# not be disabled)
+ext-import-graph=
+
+# Create a graph of internal dependencies in the given file (report R0402 must
+# not be disabled)
+int-import-graph=
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=7
+
+# Maximum number of locals for function / method body
+max-locals=15
+
+# Maximum number of return / yield for function / method body
+max-returns=6
+
+# Maximum number of branch for function / method body
+max-branches=12
+
+# Maximum number of statements in function / method body
+max-statements=50
+
+# Maximum number of parents for a class (see R0901).
+max-parents=7
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes=7
+
+# Minimum number of public methods for a class (see R0903).
+min-public-methods=2
+
+# Maximum number of public methods for a class (see R0904).
+max-public-methods=20
+
+# Maximum number of characters for function / method name
+max-name-length=30
+
+# Maximum number of characters for module name
+max-module-name=30
+
+# Maximum number of characters for variable name
+max-variable-name=30
+
+# Maximum number of characters for constant name
+max-const-name=30
+
+# Maximum number of characters for attribute name
+max-attr-name=30
+
+# Maximum number of characters for argument name
+max-arg-name=30
