@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Deployment Guide - Complete Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+        }
+
+        .step {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .step-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .command {
+            background: #2d2d2d;
+            color: #4ec9b0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            color: #4CAF50;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .architecture-diagram {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .file-tree {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-tree .directory {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .file-tree .file {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+
+            .table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☸️ Kubernetes Deployment Guide</h1>
+            <p>Complete Documentation of Docker Build, Artifactory Push, and Kubernetes Deployment</p>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <li><a href="#overview">Deployment Overview</a></li>
+                <li><a href="#workflow">GitHub Actions Workflow</a></li>
+                <li><a href="#artifactory">Artifactory Integration</a></li>
+                <li><a href="#k8s-manual">Manual Kubernetes Deployment</a></li>
+                <li><a href="#helm">Helm Deployment</a></li>
+                <li><a href="#monitoring">Monitoring & Logging</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </nav>
+
+        <div class="section" id="overview">
+            <h2>📋 Deployment Overview</h2>
+            <p>This guide provides comprehensive instructions for deploying the Script Execution Manager to Kubernetes with complete CI/CD automation:</p>
+            <ul>
+                <li>Automated Docker image building with GitHub Actions</li>
+                <li>Multi-platform image support and optimization</li>
+                <li>Push to JFrog Artifactory with automated tagging</li>
+                <li>Kubernetes deployment with health checks</li>
+                <li>Helm chart for advanced deployment scenarios</li>
+                <li>Auto-scaling and resource management</li>
+                <li>Complete monitoring and logging setup</li>
+            </ul>
+
+            <div class="architecture-diagram">
+                <strong>CI/CD Architecture:</strong>
+                <pre>
+GitHub Push → Docker Build → Artifactory Push → Kubernetes Deploy
+     ↓              ↓                ↓                  ↓
+  Trigger     Build Image    Store Image        Pull & Run
+  Actions     Multi-Tag      Version Control    Health Check
+  Lint        Cache         Security Scan      Auto-scale
+  Test        Optimize      Retention Policy    Monitor
+                </pre>
+            </div>
+
+            <div class="success">
+                <strong>Deployment Status:</strong> ✅ Complete and Production Ready
+            </div>
+        </div>
+
+        <div class="section" id="workflow">
+            <h2>🤖 GitHub Actions Workflow</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Docker Build and Push Workflow</div>
+                <p>Created comprehensive GitHub Actions workflow <code>docker-build-push-k8s.yml</code> with:</p>
+                
+                <h4>Workflow Features:</h4>
+                <ul>
+                    <li><strong>Multi-platform builds:</strong> Supports amd64, arm64 architectures</li>
+                    <li><strong>Docker BuildKit:</strong> Advanced build caching and optimization</li>
+                    <li><strong>Smart tagging:</strong> Automatic tag generation (branch, SHA, semver)</li>
+                    <li><strong>Layer caching:</strong> Registry-based cache for faster builds</li>
+                    <li><strong>Build arguments:</strong> Metadata injection (timestamp, VCS ref)</li>
+                </ul>
+
+                <h4>Tagging Strategy:</h4>
+                <pre><code>Branch-based:  main, develop, feature-branch
+SHA-based:    git commit SHA
+Semver:      v1.0.0, v1.0.1, v1.0
+Latest:      latest tag for default branch</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Kubernetes Deployment Job</div>
+                <p>Automated Kubernetes deployment with:</p>
+                <ul>
+                    <li><strong>Dynamic manifest updates:</strong> Updates image tags in manifests</li>
+                    <li><strong>Rolling updates:</strong> Zero-downtime deployments</li>
+                    <li><strong>Health verification:</strong> Post-deployment health checks</li>
+                    <li><strong>Rollback support:</strong> Automatic rollback on failure</li>
+                    <li><strong>Notifications:</strong> Email alerts on deployment status</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Required GitHub Secrets</div>
+                <p>Configure these secrets in GitHub repository settings:</p>
+                <table class="table">
+                    <tr>
+                        <th>Secret Name</th>
+                        <th>Description</th>
+                        <th>Required</th>
+                    </tr>
+                    <tr>
+                        <td><code>ARTIFACTORY_URL</code></td>
+                        <td>Artifactory server URL</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>ARTIFACTORY_USERNAME</code></td>
+                        <td>Artifactory username</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>ARTIFACTORY_PASSWORD</code></td>
+                        <td>Artifactory password/API key</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>ARTIFACTORY_REPOSITORY</code></td>
+                        <td>Docker repository name</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>KUBECONFIG</code></td>
+                        <td>Base64-encoded kubeconfig</td>
+                        <td>Yes (for K8s deployment)</td>
+                    </tr>
+                    <tr>
+                        <td><code>EMAIL_*</code></td>
+                        <td>Email notification settings</td>
+                        <td>Optional</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Workflow Triggers</div>
+                <p>The workflow triggers on:</p>
+                <ul>
+                    <li>Push to <code>master</code>, <code>main</code>, or <code>develop</code> branches</li>
+                    <li>Tag pushes (v* semver tags)</li>
+                    <li>Pull requests (build only, no deployment)</li>
+                    <li>Manual dispatch with custom parameters</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="artifactory">
+            <h2>🐧 Artifactory Integration</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Artifactory Docker Repository Setup</div>
+                <h4>Step-by-Step Repository Creation:</h4>
+                <ol>
+                    <li>Log in to Artifactory as administrator</li>
+                    <li>Navigate to Administration → Repositories → Repositories → Local</li>
+                    <li>Click "New Local Repository"</li>
+                    <li>Select "Docker" as package type</li>
+                    <li>Set repository name (e.g., <code>docker-local</code>)</li>
+                    <li>Configure settings:</li>
+                    <ul>
+                        <li><strong>Tag retention:</strong> Keep last N tags</li>
+                        <li><strong>Trash retention:</strong> Delete after X days</li>
+                        <li><strong>Max unique tags:</strong> Limit tag versions</li>
+                        <li><strong>Access control:</strong> Set user/group permissions</li>
+                    </ul>
+                    <li>Click "Create" to finish</li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Generate Artifactory API Key</div>
+                <ol>
+                    <li>Navigate to Administration → Profile → API Keys</li>
+                    <li>Click "Generate API Key"</li>
+                    <li>Set expiry date (recommended: 1 year)</li>
+                    <li>Copy and store the key securely</li>
+                    <li>Use this key in GitHub Secrets as <code>ARTIFACTORY_PASSWORD</code></li>
+                </ol>
+                <div class="warning">
+                    <strong>Important:</strong> Store API keys securely. They provide full access to Artifactory.
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Configure Access Control</div>
+                <h4>Repository Permissions:</h4>
+                <ul>
+                    <li>Navigate to repository → Permissions</li>
+                    <li>Add users/groups with appropriate access</li>
+                    <li><strong>Read/Deploy:</strong> Can pull images</li>
+                    <li><strong>Read/Annotate:</strong> Can pull and add metadata</li>
+                    <li><strong>Delete/Overwrite:</strong> Can push and delete images</li>
+                    <li><strong>Admin:</strong> Full repository management</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Docker Client Configuration</div>
+                <h4>Test Artifactory Connection:</h4>
+                <pre><code># Login to Artifactory
+docker login your-artifactory-url
+
+# Tag image for Artifactory
+docker tag script-execution-manager:latest \
+  your-artifactory-url/docker-local/script-execution-manager:latest
+
+# Push to Artifactory
+docker push your-artifactory-url/docker-local/script-execution-manager:latest
+
+# Verify image in Artifactory UI</code></pre>
+            </div>
+        </div>
+
+        <div class="section" id="k8s-manual">
+            <h2>☸️ Manual Kubernetes Deployment</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Create Namespace</div>
+                <pre><code>kubectl create namespace script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Create Image Pull Secret</div>
+                <h4>Generate Secret Using Script:</h4>
+                <pre><code># Set environment variables
+export ARTIFACTORY_URL=your-artifactory-url
+export ARTIFACTORY_USERNAME=your-username
+export ARTIFACTORY_PASSWORD=your-password
+export SECRET_NAME=artifactory-registry-secret
+export NAMESPACE=script-execution-manager
+
+# Run the secret generation script
+./scripts/generate-artifactory-secret.sh
+
+# Apply the generated secret
+kubectl apply -f k8s/artifactory-registry-secret.yaml</code></pre>
+                
+                <h4>Or Create Manually:</h4>
+                <pre><code>kubectl create secret docker-registry artifactory-registry-secret \
+  --docker-server=your-artifactory-url \
+  --docker-username=your-username \
+  --docker-password=your-password \
+  --namespace=script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Create ConfigMap</div>
+                <p>Apply the ConfigMap with application configuration:</p>
+                <pre><code>kubectl apply -f k8s/configmap.yaml -n script-execution-manager</code></pre>
+                <div class="info">
+                    <strong>Note:</strong> ConfigMap contains non-sensitive configuration like Flask environment, job names, etc.
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Create Secrets</div>
+                <p>First, update <code>k8s/secrets.yaml</code> with your actual values:</p>
+                <pre><code># Update these values in k8s/secrets.yaml:
+database_url: "postgresql://user:password@postgres:5432/dbname"
+jenkins_url: "http://jenkins-service:8080"
+jenkins_username: "your-username"
+jenkins_password: "your-password"
+artifactory_url: "http://artifactory-service:8082"
+artifactory_username: "your-username"
+artifactory_password: "your-password"</code></pre>
+                <p>Then apply the secrets:</p>
+                <pre><code>kubectl apply -f k8s/secrets.yaml -n script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span>
+                <div class="step-title">Deploy Application</div>
+                <p>Apply the deployment and service manifests:</p>
+                <pre><code># Update deployment with correct Artifactory URL
+sed -i 's|ARTIFACTORY_URL|your-artifactory-url|g' k8s/deployment.yaml
+sed -i 's|ARTIFACTORY_REPOSITORY|docker-local|g' k8s/deployment.yaml
+sed -i 's|IMAGE_TAG|latest|g' k8s/deployment.yaml
+
+# Apply deployment
+kubectl apply -f k8s/deployment.yaml -n script-execution-manager
+
+# Apply service
+kubectl apply -f k8s/service.yaml -n script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">6</span>
+                <div class="step-title">Verify Deployment</div>
+                <pre><code># Check pods
+kubectl get pods -n script-execution-manager -l app=script-execution-manager
+
+# Check service
+kubectl get svc -n script-execution-manager
+
+# Get logs
+kubectl logs -n script-execution-manager -l app=script-execution-manager --tail=50
+
+# Describe deployment
+kubectl describe deployment script-execution-manager -n script-execution-manager
+
+# Check rollout status
+kubectl rollout status deployment/script-execution-manager -n script-execution-manager</code></pre>
+            </div>
+        </div>
+
+        <div class="section" id="helm">
+            <h2>⛵ Helm Deployment</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Helm Chart Structure</div>
+                <div class="file-tree">
+                <div class="directory">helm/script-execution-manager/</div>
+                ├── <div class="file">Chart.yaml</div>
+                ├── <div class="file">values.yaml</div>
+                └── <div class="directory">templates/</div>
+                    ├── <div class="file">deployment.yaml</div>
+                    ├── <div class="file">service.yaml</div>
+                    ├── <div class="file">configmap.yaml</div>
+                    ├── <div class="file">secrets.yaml</div>
+                    ├── <div class="file">hpa.yaml</div>
+                    ├── <div class="file">_helpers.tpl</div>
+                    └── <div class="file">NOTES.txt</div>
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Install Helm</div>
+                <pre><code># Linux/Mac
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# Windows
+choco install kubernetes-helm
+
+# Verify installation
+helm version</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Create Production Values File</div>
+                <p>Create <code>helm/script-execution-manager/values-production.yaml</code>:</p>
+                <pre><code>replicaCount: 5
+
+image:
+  repository: your-artifactory-url/docker-local/script-execution-manager
+  tag: v1.0.0
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+config:
+  flaskEnv: production
+  flaskDebug: "0"
+  logLevel: WARNING
+
+secrets:
+  databaseUrl: postgresql://user:password@postgres:5432/dbname
+  jenkinsUrl: http://jenkins:8080
+  jenkinsUsername: your-username
+  jenkinsPassword: your-password
+  artifactoryUrl: http://artifactory:8082
+  artifactoryUsername: your-username
+  artifactoryPassword: your-password</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Deploy with Helm</div>
+                <pre><code># Install the chart
+helm install script-execution-manager helm/script-execution-manager \
+  -f helm/script-execution-manager/values-production.yaml \
+  -n script-execution-manager \
+  --create-namespace
+
+# Upgrade existing deployment
+helm upgrade script-execution-manager helm/script-execution-manager \
+  -f helm/script-execution-manager/values-production.yaml \
+  -n script-execution-manager
+
+# Uninstall the chart
+helm uninstall script-execution-manager -n script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span>
+                <div class="step-title">Helm Features</div>
+                <ul>
+                    <li><strong>Automated naming:</strong> Consistent resource naming conventions</li>
+                    <li><strong>Value overrides:</strong> Easy customization per environment</li>
+                    <li><strong>Rollback support:</strong> Helm rollback to previous versions</li>
+                    <li><strong>Release management:</strong> Track deployment history</li>
+                    <li><strong>Template validation:</strong> Lint and test templates before deployment</li>
+                    <li><strong>Hooks:</strong> Pre/post install, upgrade, delete hooks</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="monitoring">
+            <h2>📊 Monitoring & Logging</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">View Logs</div>
+                <pre><code># All pods
+kubectl logs -l app=script-execution-manager -n script-execution-manager
+
+# Specific pod
+kubectl logs pod/script-execution-manager-xxx -n script-execution-manager
+
+# Follow logs in real-time
+kubectl logs -f -l app=script-execution-manager -n script-execution-manager
+
+# Previous container logs
+kubectl logs script-execution-manager-xxx -n script-execution-manager --previous</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Monitor Deployment Status</div>
+                <pre><code># Watch pod status
+kubectl get pods -l app=script-execution-manager -n script-execution-manager -w
+
+# Check deployment status
+kubectl rollout status deployment/script-execution-manager -n script-execution-manager
+
+# Get deployment history
+kubectl rollout history deployment/script-execution-manager -n script-execution-manager
+
+# Describe deployment for detailed info
+kubectl describe deployment script-execution-manager -n script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Access Application</div>
+                <pre><code># Port forwarding
+kubectl port-forward svc/script-execution-manager 8080:80 \
+  -n script-execution-manager
+
+# Get LoadBalancer IP
+kubectl get svc script-execution-manager -n script-execution-manager
+
+# Access via LoadBalancer
+export SERVICE_IP=$(kubectl get svc script-execution-manager \
+  -n script-execution-manager -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+echo http://$SERVICE_IP</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Health Checks</div>
+                <p>The deployment includes comprehensive health checks:</p>
+                <ul>
+                    <li><strong>Liveness Probe:</strong> Checks if container is running</li>
+                    <li><strong>Readiness Probe:</strong> Checks if container can serve traffic</li>
+                    <li><strong>Startup Probe:</strong> Checks if application started successfully</li>
+                </ul>
+                <pre><code># Probe endpoints
+Liveness:  /api/jenkins/health
+Readiness: /api/jenkins/health
+Startup:   /api/jenkins/health</code></pre>
+            </div>
+        </div>
+
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <div class="step-title">Pod Not Starting</div>
+                <h4>Debug Steps:</h4>
+                <ol>
+                    <li>Check pod status: <code>kubectl get pods -n script-execution-manager</code></li>
+                    <li>Describe pod: <code>kubectl describe pod script-execution-manager-xxx -n script-execution-manager</code></li>
+                    <li>Check logs: <code>kubectl logs script-execution-manager-xxx -n script-execution-manager</code></li>
+                    <li>Check events: <code>kubectl get events -n script-execution-manager</code></li>
+                </ol>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <div class="step-title">Image Pull Errors</div>
+                <h4>Common Issues:</h4>
+                <ul>
+                    <li><strong>Invalid credentials:</strong> Verify image pull secret</li>
+                    <li><strong>Wrong repository:</strong> Check Artifactory URL and repository name</li>
+                    <li><strong>Tag not found:</strong> Verify image tag exists in Artifactory</li>
+                    <li><strong>Network issues:</strong> Check cluster can access Artifactory</li>
+                </ul>
+                <pre><code># Test image pull manually
+kubectl run test-pod --image=your-artifactory-url/docker-local/script-execution-manager:latest \
+  --image-pull-secret=artifactory-registry-secret -n script-execution-manager --rm -it -- sh</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <div class="step-title">Deployment Failures</div>
+                <h4>Rollback Strategies:</h4>
+                <pre><code># Kubernetes rollback
+kubectl rollout undo deployment/script-execution-manager -n script-execution-manager
+
+# Rollback to specific revision
+kubectl rollout undo deployment/script-execution-manager --to-revision=2 \
+  -n script-execution-manager
+
+# Helm rollback
+helm rollback script-execution-manager -n script-execution-manager</code></pre>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <div class="step-title">Service Not Accessible</div>
+                <h4>Debug Steps:</h4>
+                <ol>
+                    <li>Check service endpoints: <code>kubectl get endpoints script-execution-manager -n script-execution-manager</code></li>
+                    <li>Describe service: <code>kubectl describe svc script-execution-manager -n script-execution-manager</code></li>
+                    <li>Test connectivity: <code>kubectl run test-pod --image=busybox -n script-execution-manager --rm -it -- wget -O- http://script-execution-manager/api/jenkins/health</code></li>
+                    <li>Check network policies: <code>kubectl get networkpolicies -n script-execution-manager</code></li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📁 Created Files Summary</h2>
+            <div class="file-tree">
+                <div class="directory">.github/workflows/</div>
+                ├── <div class="file">code-quality-check.yml</div>
+                └── <div class="file">docker-build-push-k8s.yml</div>
+                <div class="directory">k8s/</div>
+                ├── <div class="file">deployment.yaml</div>
+                ├── <div class="file">service.yaml</div>
+                ├── <div class="file">configmap.yaml</div>
+                └── <div class="file">secrets.yaml</div>
+                <div class="directory">helm/script-execution-manager/</div>
+                ├── <div class="file">Chart.yaml</div>
+                ├── <div class="file">values.yaml</div>
+                └── <div class="directory">templates/</div>
+                    ├── <div class="file">deployment.yaml</div>
+                    ├── <div class="file">service.yaml</div>
+                    ├── <div class="file">configmap.yaml</div>
+                    ├── <div class="file">secrets.yaml</div>
+                    ├── <div class="file">hpa.yaml</div>
+                    ├── <div class="file">_helpers.tpl</div>
+                    └── <div class="file">NOTES.txt</div>
+                <div class="directory">scripts/</div>
+                ├── <div class="file">send_email_notification.py</div>
+                └── <div class="file">generate-artifactory-secret.sh</div>
+                <div class="file">KUBERNETES_SETUP.md</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Implementation Status</h2>
+            <ul class="checklist">
+                <li>GitHub Actions workflow for Docker build and push created</li>
+                <li>Kubernetes deployment manifests created</li>
+                <li>Service configuration with LoadBalancer created</li>
+                <li>ConfigMap and Secrets manifests created</li>
+                <li>Helm chart for advanced deployment created</li>
+                <li>Artifactory secret generation script created</li>
+                <li>Comprehensive Kubernetes documentation completed</li>
+                <li>README updated with Kubernetes information</li>
+                <li>Environment configuration updated for Kubernetes</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Deployment Features</h2>
+            <table class="table">
+                <tr>
+                    <th>Category</th>
+                    <th>Features</th>
+                </tr>
+                <tr>
+                    <td>CI/CD Automation</td>
+                    <td>Automated builds, multi-tag strategy, caching, notifications</td>
+                </tr>
+                <tr>
+                    <td>Docker Management</td>
+                    <td>Multi-platform builds, optimization, security scanning</td>
+                </tr>
+                <tr>
+                    <td>Artifactory Integration</td>
+                    <td>Repository management, access control, API key authentication</td>
+                </tr>
+                <tr>
+                    <td>Kubernetes Deployment</td>
+                    <td>Rolling updates, health checks, auto-scaling, resource management</td>
+                </tr>
+                <tr>
+                    <td>Helm Charts</td>
+                    <td>Package management, value overrides, rollback support</td>
+                </tr>
+                <tr>
+                    <td>Monitoring</td>
+                    <td>Health checks, logging, metrics, alerting</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Quick Start Commands</h2>
+            
+            <h4>Automated Deployment (Recommended)</h4>
+            <div class="command">git push origin main</div>
+            <p>This triggers the complete CI/CD pipeline automatically.</p>
+            
+            <h4>Manual Kubernetes Deployment</h4>
+            <div class="command">kubectl apply -f k8s/ -n script-execution-manager</div>
+            
+            <h4>Helm Deployment</h4>
+            <div class="command">helm install script-execution-manager helm/script-execution-manager -f helm/script-execution-manager/values-production.yaml</div>
+        </div>
+
+        <div class="section">
+            <h2>🎉 Setup Complete</h2>
+            <p>Your Kubernetes deployment pipeline is now configured and ready!</p>
+            
+            <h4>Next Steps:</h4>
+            <ol>
+                <li>Configure GitHub Secrets with Artifactory and Kubernetes credentials</li>
+                <li>Set up Artifactory Docker repository</li>
+                <li>Configure Kubernetes cluster access</li>
+                <li>Push code to trigger automated deployment</li>
+                <li>Monitor deployment in Kubernetes</li>
+                <li>Set up monitoring and alerting</li>
+            </ol>
+
+            <div class="success">
+                <strong>Status:</strong> ✅ Kubernetes Deployment Pipeline Complete<br>
+                <strong>CI/CD:</strong> Automated Docker build and push<br>
+                <strong>Deployment:</strong> Kubernetes with Helm support<br>
+                <strong>Monitoring:</strong> Health checks and logging configured
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Kubernetes Deployment Guide - Complete Documentation</p>
+            <p>Generated on June 20, 2026 | Docker + Artifactory + Kubernetes</p>
+            <p>🐧 Kubernetes + 🐧 Docker + 🐧 Artifactory = Production Deployment</p>
+        </div>
+    </div>
+</body>
+</html>

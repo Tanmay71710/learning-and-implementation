@@ -1,0 +1,15 @@
+apiVersion: v2
+name: script-execution-manager
+description: A Helm chart for Script Execution Manager with Jenkins and Artifactory integration
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - script-execution
+  - jenkins
+  - artifactory
+  - flask
+  - docker
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com

@@ -214,7 +214,25 @@ chmod +x scripts/*.sh
 learning/
 ├── .github/
 │   └── workflows/
-│       └── code-quality-check.yml  # GitHub Actions workflow
+│       ├── code-quality-check.yml     # GitHub Actions workflow (linting)
+│       └── docker-build-push-k8s.yml  # Docker build and K8s deployment
+├── helm/
+│   └── script-execution-manager/     # Helm chart for K8s deployment
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│           ├── deployment.yaml
+│           ├── service.yaml
+│           ├── configmap.yaml
+│           ├── secrets.yaml
+│           ├── hpa.yaml
+│           ├── _helpers.tpl
+│           └── NOTES.txt
+├── k8s/                             # Kubernetes manifests
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── configmap.yaml
+│   └── secrets.yaml
 ├── app.py                      # Main Flask application
 ├── models.py                   # Database models
 ├── requirements.txt            # Python dependencies
@@ -226,9 +244,11 @@ learning/
 ├── templates/
 │   └── index.html             # Web interface
 ├── scripts/                   # Directory for executable scripts
-│   └── send_email_notification.py  # Email notification script
+│   ├── send_email_notification.py  # Email notification script
+│   └── generate-artifactory-secret.sh  # K8s secret generator
 ├── DATABASE_ARTIFACTORY_SETUP.md  # Database and Artifactory guide
 ├── GITHUB_ACTIONS_SETUP.md    # GitHub Actions setup guide
+├── KUBERNETES_SETUP.md         # Kubernetes deployment guide
 └── README.md                  # This file
 ```
 
@@ -327,6 +347,25 @@ The project includes a comprehensive GitHub Actions workflow that automatically:
 - Manual workflow dispatch
 
 For detailed setup instructions, see [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md).
+
+### Docker Image Build and Kubernetes Deployment
+
+The project includes a comprehensive GitHub Actions workflow for:
+- Building Docker images with multi-platform support
+- Pushing images to JFrog Artifactory
+- Deploying to Kubernetes clusters
+- Automated image tagging and versioning
+- Health checks and rollback support
+
+#### Required Additional Secrets
+
+Configure these for Kubernetes deployment:
+
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `KUBECONFIG` | Kubernetes kubeconfig (base64) | `base64-encoded-kubeconfig` |
+
+For detailed Kubernetes setup instructions, see [KUBERNETES_SETUP.md](KUBERNETES_SETUP.md).
 
 ## Troubleshooting
 

@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-execution-manager
+  labels:
+    app: script-execution-manager
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: script-execution-manager
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: script-execution-manager
+        version: v1
+    spec:
+      containers:
+      - name: script-execution-manager
+        image: ARTIFACTORY_URL/ARTIFACTORY_REPOSITORY/script-execution-manager:IMAGE_TAG
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        env:
+        - name: FLASK_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: flask_env
+        - name: FLASK_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: flask_debug
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: database_url
+        - name: JENKINS_URL
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: jenkins_url
+        - name: JENKINS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: jenkins_username
+        - name: JENKINS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: jenkins_password
+        - name: JENKINS_JOB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: jenkins_job_name
+        - name: ARTIFACTORY_URL
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: artifactory_url
+        - name: ARTIFACTORY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: artifactory_username
+        - name: ARTIFACTORY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: artifactory_password
+        - name: ARTIFACTORY_REPOSITORY
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: artifactory_repository
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/jenkins/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/jenkins/health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      imagePullSecrets:
+      - name: artifactory-registry-secret
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

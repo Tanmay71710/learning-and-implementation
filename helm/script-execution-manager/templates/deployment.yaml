@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "script-execution-manager.fullname" . }}
+  labels:
+    {{- include "script-execution-manager.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "script-execution-manager.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        {{- include "script-execution-manager.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: TCP
+        env:
+        - name: FLASK_ENV
+          value: {{ .Values.config.flaskEnv | quote }}
+        - name: FLASK_DEBUG
+          value: {{ .Values.config.flaskDebug | quote }}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: databaseUrl
+        - name: JENKINS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: jenkinsUrl
+        - name: JENKINS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: jenkinsUsername
+        - name: JENKINS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: jenkinsPassword
+        - name: JENKINS_JOB_NAME
+          value: {{ .Values.config.jenkinsJobName | quote }}
+        - name: ARTIFACTORY_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: artifactoryUrl
+        - name: ARTIFACTORY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: artifactoryUsername
+        - name: ARTIFACTORY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "script-execution-manager.fullname" . }}-secrets
+              key: artifactoryPassword
+        - name: ARTIFACTORY_REPOSITORY
+          value: {{ .Values.config.artifactoryRepository | quote }}
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 12 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 12 }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      restartPolicy: Always
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,91 @@
+# Default values for script-execution-manager
+replicaCount: 3
+
+image:
+  repository: script-execution-manager
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: artifactory-registry-secret
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+  annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Configuration
+config:
+  flaskEnv: production
+  flaskDebug: "0"
+  jenkinsJobName: script-execution-job
+  artifactoryRepository: docker-local
+  logLevel: INFO
+  maxWorkers: 4
+  timeout: "300"
+
+# Secrets (these should be overridden via --set or values file)
+secrets:
+  databaseUrl: sqlite:///script_manager.db
+  jenkinsUrl: http://jenkins-service:8080
+  jenkinsUsername: your-jenkins-username
+  jenkinsPassword: your-jenkins-password
+  artifactoryUrl: http://artifactory-service:8082
+  artifactoryUsername: your-artifactory-username
+  artifactoryPassword: your-artifactory-password
+  artifactoryApiKey: your-artifactory-api-key
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /api/jenkins/health
+    port: 5000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/jenkins/health
+    port: 5000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL

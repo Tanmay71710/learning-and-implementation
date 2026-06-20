@@ -1,0 +1,35 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+To get the application URL:
+
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "script-execution-manager.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo http://$SERVICE_IP:{{ .Values.service.port }}
+
+Or use port-forwarding:
+
+  kubectl port-forward svc/{{ include "script-execution-manager.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.targetPort }} --namespace {{ .Release.Namespace }}
+
+Then access the application at: http://localhost:{{ .Values.service.port }}
+
+To check the pods:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "script-execution-manager.name" }}
+
+To view logs:
+
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "script-execution-manager.name }} } --tail=100
+
+To scale the deployment:
+
+  kubectl scale deployment {{ include "script-execution-manager.fullname . }} --replicas=5 -n {{ .Release.Namespace }}
+
+To uninstall the chart:
+
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}

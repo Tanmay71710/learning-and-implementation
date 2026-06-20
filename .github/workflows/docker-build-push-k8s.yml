@@ -1,0 +1,214 @@
+name: Build and Push Docker Image to Artifactory
+
+on:
+  push:
+    branches: [ master, main, develop ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ master, main, develop ]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag'
+        required: false
+        default: 'latest'
+      deploy_to_kubernetes:
+        description: 'Deploy to Kubernetes after push'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+  ARTIFACTORY_REPOSITORY: ${{ secrets.ARTIFACTORY_REPOSITORY }}
+  IMAGE_NAME: script-execution-manager
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Log in to Artifactory
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.ARTIFACTORY_URL }}
+        username: ${{ env.ARTIFACTORY_USERNAME }}
+        password: ${{ env.ARTIFACTORY_PASSWORD }}
+    
+    - name: Extract metadata for Docker
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPOSITORY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=registry,ref=${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPOSITORY }}/${{ env.IMAGE_NAME }}:buildcache
+        cache-to: type=registry,ref=${{ env.ARTIFACTORY_URL }}/${{ env.ARTIFACTORY_REPOSITORY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+        build-args: |
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          VCS_REF=${{ github.sha }}
+    
+    - name: Image digest
+      run: echo "Image digest is ${{ steps.meta.outputs.digest }}"
+    
+    - name: Update database with image information
+      if: success()
+      run: |
+        # This would typically call your API to update the database
+        # For now, we'll just echo the information
+        echo "Image pushed to Artifactory"
+        echo "Repository: ${{ env.ARTIFACTORY_REPOSITORY }}"
+        echo "Image: ${{ env.IMAGE_NAME }}"
+        echo "Tags: ${{ steps.meta.outputs.tags }}"
+        echo "Digest: ${{ steps.meta.outputs.digest }}"
+    
+    - name: Notify deployment team
+      if: success()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.EMAIL_SERVER }}
+        server_port: ${{ secrets.EMAIL_PORT }}
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Docker Image Built and Pushed - ${{ github.repository }}"
+        to: ${{ secrets.EMAIL_RECIPIENTS }}
+        from: GitHub Actions
+        body: |
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          
+          Docker Image: ${{ env.IMAGE_NAME }}
+          Repository: ${{ env.ARTIFACTORY_REPOSITORY }}
+          Tags: ${{ steps.meta.outputs.tags }}
+          Digest: ${{ steps.meta.outputs.digest }}
+          
+          Artifactory URL: ${{ env.ARTIFACTORY_URL }}
+          
+          View Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        priority: high
+
+  deploy-to-kubernetes:
+    needs: build-and-push
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.event.inputs.deploy_to_kubernetes == 'true')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Configure kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        kubectl version --client
+    
+    - name: Set up Kubernetes cluster connection
+      run: |
+        # Configure kubectl to connect to your Kubernetes cluster
+        # This can be done via:
+        # 1. KUBECONFIG secret
+        # 2. Service account with sufficient permissions
+        # 3. Cloud provider-specific setup
+        
+        echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+        kubectl cluster-info
+    
+    - name: Update Kubernetes manifests with new image
+      run: |
+        # Get the image tag from the previous job
+        IMAGE_TAG="${{ github.ref_name }}"
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          IMAGE_TAG="${GITHUB_REF#refs/tags/}"
+        fi
+        
+        # Update deployment with new image
+        sed -i "s|IMAGE_TAG|${IMAGE_TAG}|g" k8s/deployment.yaml
+        
+        # Update Artifactory URL in manifests
+        sed -i "s|ARTIFACTORY_URL|${{ env.ARTIFACTORY_URL }}|g" k8s/deployment.yaml
+        sed -i "s|ARTIFACTORY_REPOSITORY|${{ env.ARTIFACTORY_REPOSITORY }}|g" k8s/deployment.yaml
+    
+    - name: Apply Kubernetes ConfigMap
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl apply -f k8s/configmap.yaml
+    
+    - name: Apply Kubernetes Secrets
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl apply -f k8s/secrets.yaml
+    
+    - name: Apply Kubernetes Deployment
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl apply -f k8s/deployment.yaml
+        kubectl rollout status deployment/script-execution-manager
+    
+    - name: Apply Kubernetes Service
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl apply -f k8s/service.yaml
+    
+    - name: Verify deployment
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl get pods -l app=script-execution-manager
+        kubectl get services script-execution-manager
+        kubectl describe deployment script-execution-manager
+    
+    - name: Get pod logs
+      if: failure()
+      run: |
+        export KUBECONFIG=kubeconfig
+        kubectl logs -l app=script-execution-manager --tail=50
+    
+    - name: Notify deployment status
+      if: always()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.EMAIL_SERVER }}
+        server_port: ${{ secrets.EMAIL_PORT }}
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Kubernetes Deployment - ${{ job.status }}"
+        to: ${{ secrets.EMAIL_RECIPIENTS }}
+        from: GitHub Actions
+        body: |
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          Deployment Status: ${{ job.status }}
+          
+          Kubernetes Cluster: Configured
+          Deployment: script-execution-manager
+          
+          View Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        priority: high
