@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Environment Support Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            margin-top: 25px;
+            font-size: 1.4em;
+        }
+
+        .section h4 {
+            color: #333;
+            margin-bottom: 10px;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-bottom: 20px;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block code {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .scenario-box {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .scenario-box h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .error-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            background: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-dev {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-staging {
+            background: #ffc107;
+            color: black;
+        }
+
+        .badge-pubdev {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .badge-prod {
+            background: #dc3545;
+            color: white;
+        }
+
+        .workflow-diagram {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .workflow-step {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .workflow-arrow {
+            display: inline-block;
+            color: #667eea;
+            font-size: 1.5em;
+            margin: 0 10px;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Multi-Environment Support Documentation</h1>
+            <p>Complete Guide to Multi-Environment Setup, Deployment, and Workflow Management</p>
+        </div>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#environments">Environments</a></li>
+                <li><a href="#setup">Setup</a></li>
+                <li><a href="#scenarios">Scenarios</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <!-- Table of Contents -->
+            <div class="toc">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#overview">1. Overview</a></li>
+                    <li><a href="#environments">2. Environment Specifications</a></li>
+                    <li><a href="#setup">3. Setup and Configuration</a></li>
+                    <li><a href="#scenarios">4. Deployment Scenarios</a></li>
+                    <li><a href="#workflow-scenarios">5. Workflow Scenarios</a></li>
+                    <li><a href="#troubleshooting-scenarios">6. Troubleshooting Scenarios</a></li>
+                    <li><a href="#best-practices">7. Best Practices</a></li>
+                </ul>
+            </div>
+
+            <!-- Overview Section -->
+            <div class="section" id="overview">
+                <h2>1. Overview</h2>
+                <p>The Script Execution Manager project now supports multiple environments to enable proper development workflow, testing, and production deployment. This multi-environment setup provides isolation, scalability, and environment-specific configurations for different stages of the development lifecycle.</p>
+
+                <div class="info-box">
+                    <strong>Key Benefits:</strong>
+                    <ul>
+                        <li>Environment isolation for development, testing, and production</li>
+                        <li>Resource optimization with environment-specific configurations</li>
+                        <li>Automated deployment pipelines based on git branches</li>
+                        <li>GitOps integration with ArgoCD</li>
+                        <li>Flexible deployment methods (Kustomize, Helm, ArgoCD)</li>
+                    </ul>
+                </div>
+
+                <h3>Supported Environments</h3>
+                <ul>
+                    <li><strong>dev</strong> <span class="badge badge-dev">Development</span> - Development environment with debug enabled</li>
+                    <li><strong>staging</strong> <span class="badge badge-staging">Staging</span> - Pre-production testing environment</li>
+                    <li><strong>pub/dev</strong> <span class="badge badge-pubdev">Public Dev</span> - Public development environment for external testing</li>
+                    <li><strong>production</strong> <span class="badge badge-prod">Production</span> - Production environment for live traffic</li>
+                </ul>
+            </div>
+
+            <!-- Environment Specifications Section -->
+            <div class="section" id="environments">
+                <h2>2. Environment Specifications</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>dev <span class="badge badge-dev">Development</span></th>
+                            <th>staging <span class="badge badge-staging">Staging</span></th>
+                            <th>pub/dev <span class="badge badge-pubdev">Public Dev</span></th>
+                            <th>production <span class="badge badge-prod">Production</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Purpose</strong></td>
+                            <td>Internal development and testing</td>
+                            <td>Pre-production testing</td>
+                            <td>Public development and external testing</td>
+                            <td>Production environment for live traffic</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Replicas</strong></td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>RAM</strong></td>
+                            <td>128-256Mi</td>
+                            <td>256-512Mi</td>
+                            <td>384-768Mi</td>
+                            <td>512Mi-1Gi</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CPU</strong></td>
+                            <td>100-250m</td>
+                            <td>250-500m</td>
+                            <td>350-750m</td>
+                            <td>500-1000m</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Service Type</strong></td>
+                            <td>ClusterIP</td>
+                            <td>LoadBalancer</td>
+                            <td>LoadBalancer</td>
+                            <td>LoadBalancer</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Debug Mode</strong></td>
+                            <td>Enabled</td>
+                            <td>Disabled</td>
+                            <td>Disabled</td>
+                            <td>Disabled</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Database</strong></td>
+                            <td>SQLite</td>
+                            <td>PostgreSQL</td>
+                            <td>PostgreSQL</td>
+                            <td>PostgreSQL</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Autoscaling</strong></td>
+                            <td>No</td>
+                            <td>Yes (2-5 replicas)</td>
+                            <td>Yes (3-8 replicas)</td>
+                            <td>Yes (5-15 replicas)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Git Branch</strong></td>
+                            <td>develop</td>
+                            <td>staging</td>
+                            <td>pub/dev</td>
+                            <td>master</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Namespace</strong></td>
+                            <td>script-execution-manager-dev</td>
+                            <td>script-execution-manager-staging</td>
+                            <td>script-execution-manager-pub-dev</td>
+                            <td>script-execution-manager-prod</td>
+                        </tr>
+                        <tr>
+                            <td><strong>External Access</strong></td>
+                            <td>Internal only</td>
+                            <td>Yes</td>
+                            <td>Yes</td>
+                            <td>Yes</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Git Branch Mapping</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Git Branch</th>
+                            <th>Environment</th>
+                            <th>Deployment Trigger</th>
+                            <th>ArgoCD Application</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>develop</code></td>
+                            <td>dev</td>
+                            <td>Push to develop</td>
+                            <td>script-execution-manager-dev</td>
+                        </tr>
+                        <tr>
+                            <td><code>staging</code></td>
+                            <td>staging</td>
+                            <td>Push to staging</td>
+                            <td>script-execution-manager-staging</td>
+                        </tr>
+                        <tr>
+                            <td><code>pub/dev</code></td>
+                            <td>pub-dev</td>
+                            <td>Push to pub/dev</td>
+                            <td>script-execution-manager-pub-dev</td>
+                        </tr>
+                        <tr>
+                            <td><code>master</code></td>
+                            <td>production</td>
+                            <td>Push to master</td>
+                            <td>script-execution-manager-production</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Setup Section -->
+            <div class="section" id="setup">
+                <h2>3. Setup and Configuration</h2>
+
+                <h3>3.1 Directory Structure</h3>
+                <div class="code-block">
+                    <code>
+learning/
+├── environments/
+│   ├── dev/
+│   │   ├── k8s/                    # Kubernetes overlays
+│   │   ├── helm-values.yaml         # Helm values
+│   │   ├── .env                     # Environment variables
+│   │   └── argocd-application.yaml  # ArgoCD application
+│   ├── staging/
+│   │   ├── k8s/
+│   │   ├── helm-values.yaml
+│   │   ├── .env
+│   │   └── argocd-application.yaml
+│   ├── pub-dev/
+│   │   ├── k8s/
+│   │   ├── helm-values.yaml
+│   │   ├── .env
+│   │   └── argocd-application.yaml
+│   └── production/
+│       ├── k8s/
+│       ├── helm-values.yaml
+│       ├── .env
+│       └── argocd-application.yaml
+├── k8s-base/                        # Base Kubernetes manifests
+├── argocd/                          # ArgoCD configurations
+└── helm/script-execution-manager/   # Base Helm chart
+                    </code>
+                </div>
+
+                <h3>3.2 Deployment Methods</h3>
+
+                <h4>Kustomize Deployment</h4>
+                <div class="code-block">
+                    <code>
+# Deploy to specific environment
+kubectl apply -k environments/dev/k8s
+kubectl apply -k environments/staging/k8s
+kubectl apply -k environments/pub-dev/k8s
+kubectl apply -k environments/production/k8s
+                    </code>
+                </div>
+
+                <h4>Helm Deployment</h4>
+                <div class="code-block">
+                    <code>
+# Deploy to specific environment
+helm install script-execution-manager ./helm/script-execution-manager \
+  -f environments/dev/helm-values.yaml \
+  --namespace script-execution-manager-dev --create-namespace
+                    </code>
+                </div>
+
+                <h4>ArgoCD Deployment</h4>
+                <div class="code-block">
+                    <code>
+# Apply environment-specific ArgoCD application
+kubectl apply -f environments/dev/argocd-application.yaml
+
+# Or use app-of-apps for all environments
+kubectl apply -f argocd/app-of-apps.yaml
+                    </code>
+                </div>
+
+                <h3>3.3 GitHub Actions CI/CD</h3>
+                <p>The GitHub Actions workflow automatically deploys to environments based on the branch that receives changes:</p>
+                <ul>
+                    <li>Push to <code>develop</code> branch → dev environment deployment</li>
+                    <li>Push to <code>staging</code> branch → staging environment deployment</li>
+                    <li>Push to <code>pub/dev</code> branch → pub-dev environment deployment</li>
+                    <li>Push to <code>master</code> branch → production environment deployment</li>
+                </ul>
+
+                <div class="info-box">
+                    <strong>Manual Deployment:</strong> You can also trigger manual deployments using the workflow dispatch feature in GitHub Actions, selecting the specific target environment.
+                </div>
+            </div>
+
+            <!-- Scenarios Section -->
+            <div class="section" id="scenarios">
+                <h2>4. Deployment Scenarios</h2>
+
+                <div class="scenario-box">
+                    <h4>Scenario 1: New Feature Development</h4>
+                    <p><strong>Description:</strong> A developer wants to implement a new feature and test it in the development environment before promoting to other environments.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Create a feature branch from develop: <code>git checkout -b feature/new-feature develop</code></li>
+                        <li>Implement the feature and commit changes</li>
+                        <li>Push to feature branch: <code>git push origin feature/new-feature</code></li>
+                        <li>Create pull request to develop branch</li>
+                        <li>Get team approval and ensure CI/CD checks pass</li>
+                        <li>Merge to develop branch</li>
+                        <li>GitHub Actions automatically deploys to dev environment</li>
+                        <li>Test the feature in dev environment</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Feature is deployed to dev environment and available for testing.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 2: Promoting Feature to Staging</h4>
+                    <p><strong>Description:</strong> A feature has been tested in dev and is ready for staging environment testing.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Ensure feature is working correctly in dev environment</li>
+                        <li>Checkout staging branch: <code>git checkout staging</code></li>
+                        <li>Merge develop into staging: <code>git merge develop</code></li>
+                        <li>Push to staging: <code>git push origin staging</code></li>
+                        <li>GitHub Actions automatically deploys to staging environment</li>
+                        <li>Perform comprehensive testing in staging environment</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Feature is deployed to staging environment for pre-production testing.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 3: Public Development Testing</h4>
+                    <p><strong>Description:</strong> A feature needs external testing by stakeholders or beta testers in the pub-dev environment.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Ensure feature is tested in staging environment</li>
+                        <li>Checkout pub/dev branch: <code>git checkout pub/dev</code></li>
+                        <li>Merge staging into pub/dev: <code>git merge staging</code></li>
+                        <li>Push to pub/dev: <code>git push origin pub/dev</code></li>
+                        <li>GitHub Actions automatically deploys to pub-dev environment</li>
+                        <li>Share external access URL with stakeholders</li>
+                        <li>Collect feedback and perform testing</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Feature is deployed to pub-dev environment and accessible for external testing.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 4: Production Deployment</h4>
+                    <p><strong>Description:</strong> A feature has completed all testing phases and is ready for production deployment.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Ensure feature is tested in staging and pub-dev environments</li>
+                        <li>Get final approval from stakeholders</li>
+                        <li>Create release tag: <code>git tag -a v1.0.0 -m "Release version 1.0.0"</code></li>
+                        <li>Checkout master branch: <code>git checkout master</code></li>
+                        <li>Merge staging into master: <code>git merge staging</code></li>
+                        <li>Push to master: <code>git push origin master</code></li>
+                        <li>Push tag: <code>git push origin v1.0.0</code></li>
+                        <li>GitHub Actions automatically deploys to production environment</li>
+                        <li>Verify production deployment</li>
+                        <li>Monitor production metrics and logs</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Feature is deployed to production environment and live for users.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 5: Emergency Hotfix</h4>
+                    <p><strong>Description:</strong> A critical bug is discovered in production that needs immediate fixing.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Identify the critical issue and impact</li>
+                        <li>Checkout master branch: <code>git checkout master</code></li>
+                        <li>Create hotfix branch: <code>git checkout -b hotfix/critical-bug-fix</code></li>
+                        <li>Implement the emergency fix</li>
+                        <li>Test the fix locally</li>
+                        <li>Commit and push hotfix branch</li>
+                        <li>Create pull request to master</li>
+                        <li>Get expedited approval and merge to master</li>
+                        <li>GitHub Actions immediately deploys to production</li>
+                        <li>Verify fix in production environment</li>
+                        <li>Back-merge hotfix to develop branch: <code>git checkout develop && git merge hotfix/critical-bug-fix</code></li>
+                        <li>Delete hotfix branch</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Critical bug is fixed and deployed to production environment quickly, with the fix also available in development for future releases.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 6: Manual Deployment to Specific Environment</h4>
+                    <p><strong>Description:</strong> Need to deploy to a specific environment without changing branches or for testing purposes.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Go to repository's Actions tab in GitHub</li>
+                        <li>Select "Build and Push Docker Image to Artifactory" workflow</li>
+                        <li>Click "Run workflow" button</li>
+                        <li>Select target environment from dropdown (dev, staging, pub-dev, production)</li>
+                        <li>Optionally specify custom image tag</li>
+                        <li>Enable/disable Kubernetes deployment as needed</li>
+                        <li>Click "Run workflow" to start the process</li>
+                        <li>Monitor workflow execution in Actions tab</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Docker image is built and deployed to the specified environment without requiring branch changes.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 7: Rollback Deployment</h4>
+                    <p><strong>Description:</strong> A deployment causes issues and needs to be rolled back to the previous version.</p>
+                    <p><strong>Steps:</strong></p>
+                    <ol>
+                        <li>Identify the problematic deployment</li>
+                        <li>Check ArgoCD application history for previous versions</li>
+                        <li>In ArgoCD UI, navigate to the application</li>
+                        <li>Click "History and Rollback"</li>
+                        <li>Select the previous stable version</li>
+                        <li>Click "Rollback" to revert to that version</li>
+                        <li>Verify the rollback was successful</li>
+                        <li>Monitor application health</li>
+                        <li>Investigate the issue with the problematic version</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Application is rolled back to the previous stable version, minimizing downtime and impact.</p>
+                </div>
+            </div>
+
+            <!-- Workflow Scenarios Section -->
+            <div class="section" id="workflow-scenarios">
+                <h2>5. Workflow Scenarios</h2>
+
+                <h3>5.1 Complete Feature Lifecycle</h3>
+                <div class="workflow-diagram">
+                    <div class="workflow-step">Feature Branch</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">Dev Environment</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">Staging Environment</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">Pub/Dev Environment</div>
+                    <div class="workflow-arrow">→</div>
+                    <div class="workflow-step">Production Environment</div>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Complete Feature Development Workflow</h4>
+                    <p><strong>Description:</strong> End-to-end workflow from feature conception to production deployment.</p>
+                    <p><strong>Phase 1: Development</strong></p>
+                    <ol>
+                        <li>Create feature branch from develop</li>
+                        <li>Implement feature with proper testing</li>
+                        <li>Create pull request to develop</li>
+                        <li>Get code review approval</li>
+                        <li>Merge to develop (auto-deploys to dev)</li>
+                        <li>Test in dev environment</li>
+                    </ol>
+                    <p><strong>Phase 2: Staging</strong></p>
+                    <ol>
+                        <li>Promote feature to staging branch</li>
+                        <li>Deploy to staging environment</li>
+                        <li>Perform comprehensive testing</li>
+                        <li>Get QA approval</li>
+                    </ol>
+                    <p><strong>Phase 3: Public Testing</strong></p>
+                    <ol>
+                        <li>Promote to pub-dev branch (if external testing needed)</li>
+                        <li>Deploy to pub-dev environment</li>
+                        <li>Conduct beta testing</li>
+                        <li>Collect feedback and make adjustments</li>
+                    </ol>
+                    <p><strong>Phase 4: Production</strong></p>
+                    <ol>
+                        <li>Final approval and release planning</li>
+                        <li>Create release tag</li>
+                        <li>Merge to master branch</li>
+                        <li>Deploy to production environment</li>
+                        <li>Monitor production metrics</li>
+                        <li>Post-deployment verification</li>
+                    </ol>
+                </div>
+
+                <h3>5.2 Git Workflow Scenarios</h3>
+
+                <div class="scenario-box">
+                    <h4>Scenario: Parallel Feature Development</h4>
+                    <p><strong>Description:</strong> Multiple developers working on different features simultaneously.</p>
+                    <p><strong>Workflow:</strong></p>
+                    <ol>
+                        <li>Developer A creates feature/auth from develop</li>
+                        <li>Developer B creates feature/dashboard from develop</li>
+                        <li>Both developers work independently</li>
+                        <li>Developer A completes and merges to develop</li>
+                        <li>Developer B pulls latest develop changes</li>
+                        <li>Developer B resolves any conflicts</li>
+                        <li>Developer B completes and merges to develop</li>
+                        <li>Both features are available in dev environment</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Multiple features developed in parallel with proper conflict resolution.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario: Release Management</h4>
+                    <p><strong>Description:</strong> Managing releases and versioning across environments.</p>
+                    <p><strong>Workflow:</strong></p>
+                    <ol>
+                        <li>Plan release with feature freeze date</li>
+                        <li>Complete all feature development</li>
+                        <li>Perform testing in staging environment</li>
+                        <li>Create release branch: <code>git checkout -b release/v1.0.0 staging</code></li>
+                        <li>Perform final testing and bug fixes</li>
+                        <li>Merge release to master</li>
+                        <li>Create release tag: <code>git tag -a v1.0.0</code></li>
+                        <li>Deploy to production</li>
+                        <li>Merge release back to develop</li>
+                        <li>Delete release branch</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Structured release process with proper versioning and testing.</p>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario: Environment-Specific Configuration</h4>
+                    <p><strong>Description:</strong> Managing different configurations for different environments.</p>
+                    <p><strong>Workflow:</strong></p>
+                    <ol>
+                        <li>Update base configuration in k8s-base/</li>
+                        <li>Modify environment-specific overlays as needed</li>
+                        <li>Update environment .env files with appropriate values</li>
+                        <li>Update Helm values files for environment-specific settings</li>
+                        <li>Test changes in dev environment first</li>
+                        <li>Promote configuration changes through environments</li>
+                        <li>Document any configuration differences</li>
+                    </ol>
+                    <p><strong>Expected Outcome:</strong> Proper configuration management across all environments.</p>
+                </div>
+            </div>
+
+            <!-- Troubleshooting Scenarios Section -->
+            <div class="section" id="troubleshooting-scenarios">
+                <h2>6. Troubleshooting Scenarios</h2>
+
+                <div class="scenario-box">
+                    <h4>Scenario 1: Deployment Failure in Specific Environment</h4>
+                    <p><strong>Description:</strong> Deployment fails in staging environment but works in dev.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Check GitHub Actions workflow logs for staging deployment</li>
+                        <li>Compare environment configurations between dev and staging</li>
+                        <li>Check resource limits and requests in staging</li>
+                        <li>Verify database connection strings for staging</li>
+                        <li>Check secrets and credentials for staging environment</li>
+                        <li>Review Kubernetes events in staging namespace</li>
+                        <li>Examine pod logs in staging environment</li>
+                    </ol>
+                    <p><strong>Common Solutions:</strong></p>
+                    <ul>
+                        <li>Adjust resource limits for staging environment</li>
+                        <li>Fix environment-specific configuration issues</li>
+                        <li>Update secrets and credentials</li>
+                        <li>Resolve database connectivity issues</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 2: Wrong Environment Deployed</h4>
+                    <p><strong>Description:</strong> Code was deployed to the wrong environment.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Check which branch was pushed</li>
+                        <li>Verify GitHub Actions environment detection logic</li>
+                        <li>Review ArgoCD application target branches</li>
+                        <li>Check if manual deployment was triggered incorrectly</li>
+                    </ol>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Roll back the incorrect deployment</li>
+                        <li>Deploy to the correct environment</li>
+                        <li>Review and fix branch naming conventions</li>
+                        <li>Update workflow environment detection if needed</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 3: Resource Constraints in Production</h4>
+                    <p><strong>Description:</strong> Production environment is experiencing resource constraints.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Monitor resource usage in production namespace</li>
+                        <li>Check pod resource requests vs limits</li>
+                        <li>Review autoscaling configuration</li>
+                        <li>Analyze application performance metrics</li>
+                        <li>Check cluster capacity</li>
+                    </ol>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Adjust resource limits in production configuration</li>
+                        <li>Modify autoscaling parameters</li>
+                        <li>Optimize application performance</li>
+                        <li>Request additional cluster capacity</li>
+                        <li>Implement resource quotas if needed</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 4: Database Connection Issues</h4>
+                    <p><strong>Description:</strong> Application cannot connect to database in specific environment.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Check database connection string in environment .env file</li>
+                        <li>Verify database is running and accessible</li>
+                        <li>Check network policies and security groups</li>
+                        <li>Review database credentials and secrets</li>
+                        <li>Test database connectivity from pod</li>
+                    </ol>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Update connection strings with correct values</li>
+                        <li>Fix database credentials in secrets</li>
+                        <li>Configure network policies to allow database access</li>
+                        <li>Ensure database is running and healthy</li>
+                        <li>Update DNS configuration if needed</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 5: ArgoCD Sync Failures</h4>
+                    <p><strong>Description:</strong> ArgoCD applications are failing to sync with git repository.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Check ArgoCD application sync status</li>
+                        <li>Review sync operation logs in ArgoCD</li>
+                        <li>Verify git repository accessibility</li>
+                        <li>Check branch and path configurations</li>
+                        <li>Review Kubernetes cluster connectivity</li>
+                        <li>Check for resource conflicts</li>
+                    </ol>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Fix git repository connection issues</li>
+                        <li>Update branch references if changed</li>
+                        <li>Resolve resource conflicts in cluster</li>
+                        <li>Check ArgoCD server health</li>
+                        <li>Verify RBAC permissions</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 6: Git Merge Conflicts</h4>
+                    <p><strong>Description:</strong> Merge conflicts occur when promoting code between environments.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Identify conflicting files</li>
+                        <li>Review changes in both branches</li>
+                        <li>Understand the context of conflicts</li>
+                        <li>Communicate with team if needed</li>
+                    </ol>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Resolve conflicts manually</li>
+                        <li>Use git merge tools for assistance</li>
+                        <li>Consult with team for conflicting changes</li>
+                        <li>Test resolution thoroughly</li>
+                        <li>Document conflict resolution patterns</li>
+                    </ul>
+                </div>
+
+                <div class="scenario-box">
+                    <h4>Scenario 7: CI/CD Pipeline Failures</h4>
+                    <p><strong>Description:</strong> GitHub Actions workflow is failing for specific environments.</p>
+                    <p><strong>Investigation Steps:</strong></p>
+                    <ol>
+                        <li>Check workflow logs in GitHub Actions</li>
+                        <li>Identify which step is failing</li>
+                        <li>Review error messages and stack traces</li>
+                        <li>Check for environment-specific issues</li>
+                        <li>Verify secrets and credentials</li>
+                        <li>Review workflow configuration</li>
+                    </ol>
+                    <p><strong>Solutions:</strong></p>
+                    <ul>
+                        <li>Fix code issues causing test failures</li>
+                        <li>Update workflow configuration</li>
+                        <li>Add missing secrets and credentials</li>
+                        <li>Fix Docker build issues</li>
+                        <li>Resolve Kubernetes deployment problems</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Best Practices Section -->
+            <div class="section" id="best-practices">
+                <h2>7. Best Practices</h2>
+
+                <h3>7.1 Development Practices</h3>
+                <div class="success-box">
+                    <ul>
+                        <li><strong>Always test in dev first</strong> before promoting to other environments</li>
+                        <li><strong>Use feature branches</strong> for development work</li>
+                        <li><strong>Create pull requests</strong> for all merges</li>
+                        <li><strong>Get code reviews</strong> before merging</li>
+                        <li><strong>Write tests</strong> for new features</li>
+                        <li><strong>Update documentation</strong> with changes</li>
+                        <li><strong>Follow commit message conventions</strong></li>
+                    </ul>
+                </div>
+
+                <h3>7.2 Deployment Practices</h3>
+                <div class="success-box">
+                    <ul>
+                        <li><strong>Follow environment promotion order</strong>: dev → staging → pub/dev → production</li>
+                        <li><strong>Test thoroughly in each environment</strong> before promotion</li>
+                        <li><strong>Use semantic versioning</strong> for releases</li>
+                        <li><strong>Create release tags</strong> on master branch</li>
+                        <li><strong>Monitor deployments</strong> after each promotion</li>
+                        <li><strong>Have rollback plans</strong> ready for production deployments</li>
+                        <li><strong>Use hotfix branches</strong> for production emergencies</li>
+                    </ul>
+                </div>
+
+                <h3>7.3 Configuration Management</h3>
+                <div class="success-box">
+                    <ul>
+                        <li><strong>Never commit secrets</strong> to the repository</li>
+                        <li><strong>Use environment variables</strong> for sensitive data</li>
+                        <li><strong>Maintain separate databases</strong> for each environment</li>
+                        <li><strong>Document configuration differences</strong> between environments</li>
+                        <li><strong>Use Kustomize overlays</strong> for environment-specific changes</li>
+                        <li><strong>Regular security audits</strong> for all environments</li>
+                        <li><strong>Rotate credentials regularly</strong></li>
+                    </ul>
+                </div>
+
+                <h3>7.4 Monitoring and Logging</h3>
+                <div class="success-box">
+                    <ul>
+                        <li><strong>Monitor all environments</strong> continuously</li>
+                        <li><strong>Set up alerts</strong> for critical metrics</li>
+                        <li><strong>Review logs regularly</strong> across all environments</li>
+                        <li><strong>Use centralized logging</strong> for better analysis</li>
+                        <li><strong>Track deployment metrics</strong> and success rates</li>
+                        <li><strong>Monitor resource usage</strong> and optimize as needed</li>
+                        <li><strong>Set up health checks</strong> for all applications</li>
+                    </ul>
+                </div>
+
+                <h3>7.5 Security Practices</h3>
+                <div class="warning-box">
+                    <ul>
+                        <li><strong>Implement network policies</strong> for environment isolation</li>
+                        <li><strong>Use RBAC</strong> for access control</li>
+                        <li><strong>Enable branch protection</strong> for main branches</li>
+                        <li><strong>Require approvals</strong> for production deployments</li>
+                        <li><strong>Use secrets management</strong> for sensitive data</li>
+                        <li><strong>Regular security scanning</strong> of containers and code</li>
+                        <li><strong>Implement audit logging</strong> for sensitive operations</li>
+                    </ul>
+                </div>
+
+                <h3>7.6 Git Workflow Best Practices</h3>
+                <div class="success-box">
+                    <ul>
+                        <li><strong>Keep branches up to date</strong> before merging</li>
+                        <li><strong>Use descriptive branch names</strong></li>
+                        <li><strong>Delete merged branches</strong> to keep repository clean</li>
+                        <li><strong>Use squash merge</strong> for feature branches</li>
+                        <li><strong>Use merge commits</strong> for environment promotions</li>
+                        <li><strong>Never force push</strong> to shared branches</li>
+                        <li><strong>Resolve conflicts locally</strong> before pushing</li>
+                    </ul>
+                </div>
+
+                <h3>7.7 Emergency Procedures</h3>
+                <div class="warning-box">
+                    <ul>
+                        <li><strong>Have rollback procedures</strong> documented and tested</li>
+                        <li><strong>Establish communication channels</strong> for incidents</li>
+                        <li><strong>Create on-call rotation</strong> for production issues</li>
+                        <li><strong>Document incident response</strong> procedures</li>
+                        <li><strong>Practice incident drills</strong> regularly</li>
+                        <li><strong>Maintain service status page</strong> for stakeholders</li>
+                        <li><strong>Post-incident analysis</strong> for continuous improvement</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Quick Reference Section -->
+            <div class="section">
+                <h2>8. Quick Reference Commands</h2>
+
+                <h3>Environment Deployment</h3>
+                <div class="code-block">
+                    <code>
+# Kustomize deployments
+kubectl apply -k environments/dev/k8s
+kubectl apply -k environments/staging/k8s
+kubectl apply -k environments/pub-dev/k8s
+kubectl apply -k environments/production/k8s
+
+# Helm deployments
+helm install script-execution-manager ./helm/script-execution-manager \
+  -f environments/dev/helm-values.yaml \
+  --namespace script-execution-manager-dev --create-namespace
+
+# ArgoCD deployments
+kubectl apply -f environments/dev/argocd-application.yaml
+                    </code>
+                </div>
+
+                <h3>Git Workflow Commands</h3>
+                <div class="code-block">
+                    <code>
+# Feature development
+git checkout develop
+git checkout -b feature/new-feature
+git push origin feature/new-feature
+
+# Environment promotion
+git checkout staging
+git merge develop
+git push origin staging
+
+# Hotfix
+git checkout master
+git checkout -b hotfix/emergency-fix
+git checkout master
+git merge hotfix/emergency-fix
+git push origin master
+                    </code>
+                </div>
+
+                <h3>Monitoring Commands</h3>
+                <div class="code-block">
+                    <code>
+# Check deployment status
+kubectl get pods -n script-execution-manager-dev
+kubectl get services -n script-execution-manager-staging
+kubectl rollout status deployment/script-execution-manager -n script-execution-manager-prod
+
+# View logs
+kubectl logs -l app=script-execution-manager -n script-execution-manager-dev --tail=50
+
+# ArgoCD sync
+argocd app sync script-execution-manager-dev
+                    </code>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p>Multi-Environment Support Documentation | Script Execution Manager Project</p>
+            <p>For detailed information, refer to: MULTI_ENVIRONMENT_SETUP.md, GIT_BRANCH_STRATEGY.md, GIT_CONFIGURATION_SUMMARY.md</p>
+        </div>
+    </div>
+</body>
+</html>
