@@ -19,6 +19,9 @@ spec:
   - name: production-cluster
     server: https://production.kubernetes.example.com
     namespace: script-execution-manager-prod
+  - name: demo-cluster
+    server: https://kubernetes.default.svc
+    namespace: nginx-demo
   clusterResourceWhitelist:
   - group: ''
     kind: Namespace
