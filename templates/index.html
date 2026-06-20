@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ccc;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background-color: #4CAF50;
+        }
+
+        .status-dot.offline {
+            background-color: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .job-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .job-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .job-item.success {
+            border-left-color: #4CAF50;
+        }
+
+        .job-item.error {
+            border-left-color: #f44336;
+        }
+
+        .job-item.running {
+            border-left-color: #2196F3;
+        }
+
+        .job-item.queued {
+            border-left-color: #FF9800;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .job-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .job-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .job-status.success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .job-status.error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .job-status.running {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .job-status.queued {
+            background-color: #FF9800;
+            color: white;
+        }
+
+        .job-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .job-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .job-actions button {
+            padding: 5px 10px;
+            font-size: 0.85em;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .job-actions button:hover {
+            background: #764ba2;
+        }
+
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: #4CAF50;
+        }
+
+        .notification.error {
+            background-color: #f44336;
+        }
+
+        .notification.info {
+            background-color: #2196F3;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Script Execution Manager</h1>
+            <p>Execute and monitor scripts with Jenkins integration</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="jenkinsStatusDot"></div>
+                <span id="jenkinsStatusText">Checking Jenkins status...</span>
+            </div>
+            <div>
+                <button onclick="checkJenkinsStatus()" style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Refresh Status
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>Execute Script</h2>
+                <form id="executeForm">
+                    <div class="form-group">
+                        <label for="scriptSelect">Select Script</label>
+                        <select id="scriptSelect" required>
+                            <option value="">Loading scripts...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="parameters">Parameters (JSON format)</label>
+                        <textarea id="parameters" rows="4" placeholder='{"key": "value"}'></textarea>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="useJenkins" checked>
+                        <label for="useJenkins">Use Jenkins for execution</label>
+                    </div>
+
+                    <button type="submit" class="btn" id="executeBtn">Execute Script</button>
+                </form>
+
+                <div id="executionResult" style="margin-top: 20px; display: none;">
+                    <h3>Execution Result</h3>
+                    <div class="console-output" id="consoleOutput"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Job Monitor</h2>
+                <div id="jobList" class="job-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span>Loading jobs...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let jobs = [];
+        let statusCheckInterval;
+
+        // Load scripts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadScripts();
+            checkJenkinsStatus();
+            startStatusChecking();
+        });
+
+        function loadScripts() {
+            fetch('/api/scripts')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('scriptSelect');
+                    select.innerHTML = '<option value="">Select a script...</option>';
+                    
+                    if (data.success && data.scripts.length > 0) {
+                        data.scripts.forEach(script => {
+                            const option = document.createElement('option');
+                            option.value = script;
+                            option.textContent = script;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        select.innerHTML = '<option value="">No scripts available</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading scripts:', error);
+                    showNotification('Error loading scripts', 'error');
+                });
+        }
+
+        function checkJenkinsStatus() {
+            const statusDot = document.getElementById('jenkinsStatusDot');
+            const statusText = document.getElementById('jenkinsStatusText');
+            
+            statusText.textContent = 'Checking...';
+            
+            fetch('/api/jenkins/health')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        statusDot.classList.remove('offline');
+                        statusDot.classList.add('online');
+                        statusText.textContent = 'Jenkins Online';
+                    } else {
+                        statusDot.classList.remove('online');
+                        statusDot.classList.add('offline');
+                        statusText.textContent = 'Jenkins Offline: ' + (data.error || 'Unknown error');
+                    }
+                })
+                .catch(error => {
+                    statusDot.classList.remove('online');
+                    statusDot.classList.add('offline');
+                    statusText.textContent = 'Jenkins Offline: Connection failed';
+                });
+        }
+
+        function startStatusChecking() {
+            // Check Jenkins status every 30 seconds
+            statusCheckInterval = setInterval(checkJenkinsStatus, 30000);
+        }
+
+        document.getElementById('executeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const scriptName = document.getElementById('scriptSelect').value;
+            const parametersText = document.getElementById('parameters').value;
+            const useJenkins = document.getElementById('useJenkins').checked;
+            
+            if (!scriptName) {
+                showNotification('Please select a script', 'error');
+                return;
+            }
+            
+            let parameters = {};
+            if (parametersText.trim()) {
+                try {
+                    parameters = JSON.parse(parametersText);
+                } catch (error) {
+                    showNotification('Invalid JSON parameters', 'error');
+                    return;
+                }
+            }
+            
+            const executeBtn = document.getElementById('executeBtn');
+            executeBtn.disabled = true;
+            executeBtn.textContent = 'Executing...';
+            
+            fetch('/api/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    script_name: scriptName,
+                    parameters: parameters,
+                    use_jenkins: useJenkins
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                executeBtn.disabled = false;
+                executeBtn.textContent = 'Execute Script';
+                
+                if (data.success) {
+                    showNotification('Script execution started successfully', 'success');
+                    
+                    if (useJenkins && data.queue_id) {
+                        // Add to job monitor
+                        addJobToList(scriptName, data.queue_id);
+                    } else {
+                        // Show local execution result
+                        document.getElementById('executionResult').style.display = 'block';
+                        document.getElementById('consoleOutput').textContent = 
+                            data.output || 'Execution completed successfully';
+                    }
+                } else {
+                    showNotification('Execution failed: ' + (data.error || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                executeBtn.disabled = false;
+                executeBtn.textContent = 'Execute Script';
+                showNotification('Error executing script: ' + error.message, 'error');
+            });
+        });
+
+        function addJobToList(scriptName, queueId) {
+            const job = {
+                id: queueId,
+                scriptName: scriptName,
+                status: 'queued',
+                timestamp: new Date().toISOString()
+            };
+            
+            jobs.unshift(job);
+            renderJobs();
+            
+            // Start polling for this job
+            pollJobStatus(queueId);
+        }
+
+        function pollJobStatus(queueId) {
+            const pollInterval = setInterval(() => {
+                fetch(`/api/status/${queueId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const job = jobs.find(j => j.id === queueId);
+                        if (job) {
+                            job.status = data.status.toLowerCase();
+                            job.details = data;
+                            
+                            if (data.status === 'SUCCESS' || data.status === 'FAILURE' || data.status === 'ERROR') {
+                                clearInterval(pollInterval);
+                            }
+                            
+                            renderJobs();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error polling job status:', error);
+                    });
+            }, 5000); // Poll every 5 seconds
+        }
+
+        function renderJobs() {
+            const jobList = document.getElementById('jobList');
+            
+            if (jobs.length === 0) {
+                jobList.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No jobs running</p>';
+                return;
+            }
+            
+            jobList.innerHTML = jobs.map(job => `
+                <div class="job-item ${job.status}">
+                    <div class="job-header">
+                        <span class="job-name">${job.scriptName}</span>
+                        <span class="job-status ${job.status}">${job.status.toUpperCase()}</span>
+                    </div>
+                    <div class="job-details">
+                        <strong>Queue ID:</strong> ${job.id}<br>
+                        <strong>Started:</strong> ${new Date(job.timestamp).toLocaleString()}
+                    </div>
+                    ${job.details ? `
+                        <div class="job-details" style="margin-top: 10px;">
+                            ${job.details.url ? `<strong>Build:</strong> <a href="${job.details.url}" target="_blank">#${job.details.build_number}</a><br>` : ''}
+                            ${job.details.console ? `<a href="${job.details.console}" target="_blank" style="color: #667eea;">View Console Output</a>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initial render
+        renderJobs();
+    </script>
+</body>
+</html>

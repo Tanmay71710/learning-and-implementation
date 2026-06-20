@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  flask-app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - JENKINS_URL=http://jenkins:8080
+      - JENKINS_USERNAME=${JENKINS_USERNAME}
+      - JENKINS_PASSWORD=${JENKINS_PASSWORD}
+      - JENKINS_JOB_NAME=${JENKINS_JOB_NAME:-script-execution-job}
+      - ARTIFACTORY_URL=http://artifactory:8082
+      - ARTIFACTORY_USERNAME=${ARTIFACTORY_USERNAME}
+      - ARTIFACTORY_PASSWORD=${ARTIFACTORY_PASSWORD}
+      - ARTIFACTORY_REPOSITORY=${ARTIFACTORY_REPOSITORY:-docker-local}
+      - ARTIFACTORY_API_KEY=${ARTIFACTORY_API_KEY}
+      - DATABASE_URL=sqlite:///script_manager.db
+    volumes:
+      - ./scripts:/app/scripts
+      - ./script_manager.db:/app/script_manager.db
+    depends_on:
+      - jenkins
+      - artifactory
+    networks:
+      - app-network
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_ADMIN_ID=${JENKINS_ADMIN_ID:-admin}
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD:-admin}
+    volumes:
+      - jenkins_data:/var/jenkins_home
+    networks:
+      - app-network
+
+  artifactory:
+    image: releases-docker.jfrog.io/jfrog/artifactory-oss:latest
+    ports:
+      - "8082:8082"
+      - "8081:8081"
+    environment:
+      - ARTIFACTORY_ADMIN_USERNAME=${ARTIFACTORY_ADMIN_USERNAME:-admin}
+      - ARTIFACTORY_ADMIN_PASSWORD=${ARTIFACTORY_ADMIN_PASSWORD:-password}
+    volumes:
+      - artifactory_data:/var/opt/jfrog/artifactory
+    networks:
+      - app-network
+
+volumes:
+  jenkins_data:
+  artifactory_data:
+
+networks:
+  app-network:
+    driver: bridge
