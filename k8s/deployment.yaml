@@ -23,10 +23,10 @@ spec:
     spec:
       containers:
       - name: script-execution-manager
-        image: ARTIFACTORY_URL/ARTIFACTORY_REPOSITORY/script-execution-manager:IMAGE_TAG
+        image: nginx:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 5000
+        - containerPort: 80
           name: http
           protocol: TCP
         env:
@@ -94,21 +94,19 @@ spec:
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /api/jenkins/health
-            port: 5000
+            path: /
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /api/jenkins/health
-            port: 5000
+            path: /
+            port: 80
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
-      imagePullSecrets:
-      - name: artifactory-registry-secret
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

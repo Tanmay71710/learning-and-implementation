@@ -16,7 +16,7 @@ data:
     p, role:admin, exec, *, *, allow
     p, role:admin, configmaps, *, *, allow
     p, role:admin, certificates, *, *, allow
-    p, role:admin: accounts, *, *, allow
+    p, role:admin, accounts, *, *, allow
     p, role:admin, gpgkeys, *, *, allow
     p, role:developer, applications, *, */*, allow
     p, role:developer, exec, *, */*, allow

@@ -9,14 +9,6 @@ metadata:
 data:
   # ArgoCD configuration
   url: https://argocd.example.com
-  oidc.config: |
-    name: ArgoCD
-    issuer: https://accounts.google.com
-    clientID: argocd
-    requestedScopes:
-      - openid
-      - profile
-      - email
   statusbadge.enabled: "true"
   repositories: |
     - url: https://github.com/Tanmay71710/learning-and-implementation

@@ -6,7 +6,7 @@ metadata:
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
-  project: default
+  project: script-execution-manager
   source:
     repoURL: https://github.com/Tanmay71710/learning-and-implementation
     targetRevision: master
@@ -33,12 +33,3 @@ spec:
       value: Production
     - name: Owner
       value: DevOps Team
-  healthStatus:
-    live:
-      enabled: true
-  syncPolicyRetry:
-    limit: 5
-    backoff:
-      duration: 5s
-      factor: 2
-    maxDuration: 3m

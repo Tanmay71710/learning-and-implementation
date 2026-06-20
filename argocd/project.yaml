@@ -8,8 +8,7 @@ metadata:
 spec:
   description: Script Execution Manager Project
   sourceRepos:
-  - type: git
-    url: https://github.com/Tanmay71710/learning-and-implementation
+  - https://github.com/Tanmay71710/learning-and-implementation
   destinations:
   - name: in-cluster
     server: https://kubernetes.default.svc
@@ -23,10 +22,6 @@ spec:
   clusterResourceWhitelist:
   - group: ''
     kind: Namespace
-  - group: apps
-    kind: Deployment
-  - group: ''
-    kind: Service
   namespaceResourceWhitelist:
   - group: ''
     kind: ConfigMap
@@ -34,6 +29,10 @@ spec:
     kind: Secret
   - group: ''
     kind: ServiceAccount
+  - group: ''
+    kind: Service
+  - group: apps
+    kind: Deployment
   roles:
   - name: admin
     description: Admin access to the project
@@ -46,9 +45,3 @@ spec:
     - p, proj, script-execution-manager, applications, *, */*
     - p, proj, script-execution-manager, applications, */*/*, allow
     - p, proj, script-execution-manager, exec, *, */*, allow
-  syncWindows:
-    applications:
-    - kind: Applications
-      sync:
-        prune: true
-        selfHeal: true
