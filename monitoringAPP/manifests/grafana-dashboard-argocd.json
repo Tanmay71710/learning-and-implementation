@@ -1,0 +1,305 @@
+{
+  "dashboard": {
+    "title": "ArgoCD GitOps Monitoring",
+    "uid": "argocd-gitops-monitoring",
+    "tags": ["argocd", "gitops", "kubernetes"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "ArgoCD API Server Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "up{job=\"argocd-server\"}",
+            "legendFormat": "API Server"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Application Controller Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
+        "targets": [
+          {
+            "expr": "up{job=\"argocd-application-controller\"}",
+            "legendFormat": "Controller"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Repository Server Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
+        "targets": [
+          {
+            "expr": "up{job=\"argocd-repo-server\"}",
+            "legendFormat": "Repo Server"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Synced Applications",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "count(argocd_app_sync_status{sync_status=\"Synced\"})",
+            "legendFormat": "Synced Apps"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Out of Sync Applications",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+        "targets": [
+          {
+            "expr": "count(argocd_app_sync_status{sync_status!=\"Synced\"})",
+            "legendFormat": "Out of Sync"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Healthy Applications",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+        "targets": [
+          {
+            "expr": "count(argocd_app_health_status{health_status=\"Healthy\"})",
+            "legendFormat": "Healthy Apps"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Application Sync Status",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "targets": [
+          {
+            "expr": "count(argocd_app_sync_status{sync_status=\"Synced\"}) by (namespace)",
+            "legendFormat": "{{namespace}} - Synced"
+          },
+          {
+            "expr": "count(argocd_app_sync_status{sync_status!=\"Synced\"}) by (namespace)",
+            "legendFormat": "{{namespace}} - Out of Sync"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Application Health Status",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "targets": [
+          {
+            "expr": "count(argocd_app_health_status{health_status=\"Healthy\"}) by (namespace)",
+            "legendFormat": "{{namespace}} - Healthy"
+          },
+          {
+            "expr": "count(argocd_app_health_status{health_status!=\"Healthy\"}) by (namespace)",
+            "legendFormat": "{{namespace}} - Unhealthy"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Sync Duration",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(argocd_application_controller_sync_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 Sync Duration"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Repository Sync Status",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "targets": [
+          {
+            "expr": "sum(rate(argocd_repo_sync_total[5m])) by (repo)",
+            "legendFormat": "{{repo}} - Success"
+          },
+          {
+            "expr": "sum(rate(argocd_repo_sync_failed_total[5m])) by (repo)",
+            "legendFormat": "{{repo}} - Failed"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "API Server Latency",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(argocd_server_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 API Latency"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Kubernetes API Errors",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20},
+        "targets": [
+          {
+            "expr": "sum(rate(argocd_k8s_request_errors_total[5m])) by (namespace)",
+            "legendFormat": "{{namespace}}"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Application Sync History",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+        "targets": [
+          {
+            "expr": "sum(rate(argocd_app_sync_total[1h])) by (app_name)",
+            "legendFormat": "{{app_name}}"
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Repository Sync Failures",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+        "targets": [
+          {
+            "expr": "sum(rate(argocd_repo_sync_failed_total[1h])) by (repo)",
+            "legendFormat": "{{repo}}"
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Application Overview",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 36},
+        "targets": [
+          {
+            "expr": "argocd_app_sync_status",
+            "format": "table",
+            "instant": true
+          },
+          {
+            "expr": "argocd_app_health_status",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "transformations": [
+          {
+            "id": "merge",
+            "options": {}
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"Time": true},
+              "indexByName": {},
+              "renameByName": {
+                "app_name": "Application",
+                "namespace": "Namespace",
+                "sync_status": "Sync Status",
+                "health_status": "Health Status"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

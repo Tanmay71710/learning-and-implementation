@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-stack
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: monitoring-stack
+    component: prometheus
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: master
+    path: monitoringAPP/manifests
+    helm:
+      valueFiles:
+      - prometheus-stack-values.yaml
+      parameters:
+      - name: namespaceOverride
+        value: monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+      - /spec/replicas
+  revisionHistoryLimit: 3
+  info:
+    - name: Application
+      value: Prometheus Monitoring Stack
+    - name: Component
+      value: Monitoring
+    - name: Owner
+      value: DevOps Team

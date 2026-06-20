@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki-stack
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: monitoring-stack
+    component: loki
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: master
+    path: monitoringAPP/manifests
+    helm:
+      valueFiles:
+      - loki-stack-values.yaml
+      parameters:
+      - name: loki.persistence.enabled
+        value: "true"
+      - name: loki.persistence.size
+        value: "20Gi"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+      - /spec/replicas
+  revisionHistoryLimit: 3
+  info:
+    - name: Application
+      value: Loki Log Aggregation Stack
+    - name: Component
+      value: Logging
+    - name: Owner
+      value: DevOps Team

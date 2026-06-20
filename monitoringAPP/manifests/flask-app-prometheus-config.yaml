@@ -1,0 +1,296 @@
+# Flask Application Deployment with Prometheus Monitoring
+# Add these annotations and configuration to your Flask application deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-execution-manager
+  namespace: script-execution-manager-dev
+  labels:
+    app: script-execution-manager
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: script-execution-manager
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: script-execution-manager
+        version: v1
+      annotations:
+        # Prometheus scraping annotations
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: script-execution-manager
+        image: script-execution-manager:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+          protocol: TCP
+        env:
+        - name: FLASK_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: flask_env
+        - name: FLASK_DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: flask_debug
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: database_url
+        - name: JENKINS_URL
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: jenkins_url
+        - name: JENKINS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: jenkins_username
+        - name: JENKINS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: jenkins_password
+        - name: JENKINS_JOB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: jenkins_job_name
+        - name: ARTIFACTORY_URL
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: artifactory_url
+        - name: ARTIFACTORY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: artifactory_username
+        - name: ARTIFACTORY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: script-execution-manager-secrets
+              key: artifactory_password
+        - name: ARTIFACTORY_REPOSITORY
+          valueFrom:
+            configMapKeyRef:
+              name: script-execution-manager-config
+              key: artifactory_repository
+        # Enable Prometheus metrics
+        - name: PROMETHEUS_ENABLED
+          value: "true"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+
+---
+# Service for Flask Application
+apiVersion: v1
+kind: Service
+metadata:
+  name: script-execution-manager
+  namespace: script-execution-manager-dev
+  labels:
+    app: script-execution-manager
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5000"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+    protocol: TCP
+  selector:
+    app: script-execution-manager
+
+---
+# ServiceMonitor for Flask Application
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: script-execution-manager
+  namespace: script-execution-manager-dev
+  labels:
+    app: script-execution-manager
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: script-execution-manager
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - script-execution-manager-dev
+
+---
+# PrometheusRule for Flask Application alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: flask-app-alerts
+  namespace: script-execution-manager-dev
+  labels:
+    app: script-execution-manager
+    release: prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: flask-app.rules
+    interval: 30s
+    rules:
+    - alert: FlaskAppDown
+      expr: up{job="flask-app"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: flask-app
+      annotations:
+        summary: Flask application is down
+        description: "Flask application {{ $labels.instance }} has been down for more than 5 minutes."
+    
+    - alert: FlaskAppHighErrorRate
+      expr: rate(flask_http_request_exceptions_total[5m]) > 0.01
+      for: 5m
+      labels:
+        severity: critical
+        component: flask-app
+      annotations:
+        summary: Flask application high error rate
+        description: "Flask application {{ $labels.instance }} has error rate {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: FlaskAppHighLatency
+      expr: histogram_quantile(0.95, rate(flask_http_request_duration_seconds_bucket[5m])) > 2
+      for: 10m
+      labels:
+        severity: warning
+        component: flask-app
+      annotations:
+        summary: Flask application high latency
+        description: "Flask application {{ $labels.instance }} has 95th percentile latency of {{ $value }}s."
+    
+    - alert: FlaskAppHighLatencyCritical
+      expr: histogram_quantile(0.99, rate(flask_http_request_duration_seconds_bucket[5m])) > 5
+      for: 5m
+      labels:
+        severity: critical
+        component: flask-app
+      annotations:
+        summary: Flask application critical latency
+        description: "Flask application {{ $labels.instance }} has 99th percentile latency of {{ $value }}s."
+    
+    - alert: FlaskAppHigh5xxRate
+      expr: rate(flask_http_response_status_codes_total{status=~"5.."}[5m]) > 0.01
+      for: 5m
+      labels:
+        severity: critical
+        component: flask-app
+      annotations:
+        summary: Flask application high 5xx rate
+        description: "Flask application {{ $labels.instance }} has 5xx error rate {{ $value | humanizePercentage }}."
+    
+    - alert: FlaskAppDatabaseHighErrorRate
+      expr: rate(flask_db_query_errors_total[5m]) > 0.001
+      for: 5m
+      labels:
+        severity: critical
+        component: flask-app
+      annotations:
+        summary: Flask application database high error rate
+        description: "Flask application database error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: FlaskAppDatabaseSlowQueries
+      expr: histogram_quantile(0.95, rate(flask_db_query_duration_seconds_bucket[5m])) > 1
+      for: 10m
+      labels:
+        severity: warning
+        component: flask-app
+      annotations:
+        summary: Flask application database slow queries
+        description: "Flask application database 95th percentile query latency is {{ $value }}s."
+    
+    - alert: FlaskAppJenkinsAPIHighErrorRate
+      expr: rate(flask_jenkins_request_errors_total[5m]) > 0.05
+      for: 10m
+      labels:
+        severity: warning
+        component: flask-app
+      annotations:
+        summary: Flask application Jenkins API high error rate
+        description: "Flask application Jenkins API error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: FlaskAppArtifactoryAPIHighErrorRate
+      expr: rate(flask_artifactory_request_errors_total[5m]) > 0.05
+      for: 10m
+      labels:
+        severity: warning
+        component: flask-app
+      annotations:
+        summary: Flask application Artifactory API high error rate
+        description: "Flask application Artifactory API error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: FlaskAppScriptExecutionHighFailureRate
+      expr: rate(flask_script_execution_errors_total[10m]) > 0.1
+      for: 15m
+      labels:
+        severity: warning
+        component: flask-app
+      annotations:
+        summary: Flask application script execution high failure rate
+        description: "Flask application script execution failure rate is {{ $value | humanizePercentage }} for the last 10 minutes."
+    
+    - alert: FlaskAppDockerBuildHighFailureRate
+      expr: rate(flask_docker_builds_total{status="failure"}[1h]) > 0.15
+      for: 30m
+      labels:
+        severity: warning
+        component: flask-app
+      annotations:
+        summary: Flask application Docker build high failure rate
+        description: "Flask application Docker build failure rate is {{ $value | humanizePercentage }} for the last hour."

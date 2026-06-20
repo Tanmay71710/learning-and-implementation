@@ -1,0 +1,266 @@
+# Artifactory Prometheus Monitoring Configuration
+# This configuration enables Artifactory metrics collection
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: artifactory-prometheus-config
+  namespace: artifactory-dev
+data:
+  # Artifactory Prometheus Exporter Configuration
+  artifactory-exporter.yaml: |
+    # Artifactory Prometheus Exporter Configuration
+    # This exporter collects metrics from Artifactory
+    
+    # Artifactory server configuration
+    artifactory:
+      url: "http://artifactory.artifactory-dev.svc.cluster.local:8080"
+      username: "admin"
+      password: "dev-password"
+      timeout: 10s
+    
+    # Metrics configuration
+    metrics:
+      # Enable storage metrics
+      storage:
+        enabled: true
+        interval: 60s
+      
+      # Enable repository metrics
+      repository:
+        enabled: true
+        interval: 60s
+        include:
+          - docker-local
+          - generic-local
+          - maven-local
+      
+      # Enable API metrics
+      api:
+        enabled: true
+        interval: 30s
+      
+      # Enable artifact metrics
+      artifact:
+        enabled: true
+        interval: 60s
+      
+      # Enable user metrics
+      user:
+        enabled: true
+        interval: 300s
+      
+      # Enable permission metrics
+      permission:
+        enabled: true
+        interval: 300s
+    
+    # Exporter configuration
+    exporter:
+      port: 9521
+      path: /metrics
+      log_level: info
+
+---
+# Deployment for Artifactory Prometheus Exporter
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactory-prometheus-exporter
+  namespace: artifactory-dev
+  labels:
+    app: artifactory-prometheus-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: artifactory-prometheus-exporter
+  template:
+    metadata:
+      labels:
+        app: artifactory-prometheus-exporter
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9521"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: exporter
+        image: docker.io/solsson/artifactory-exporter:latest
+        ports:
+        - containerPort: 9521
+          name: metrics
+          protocol: TCP
+        env:
+        - name: ARTIFACTORY_URL
+          value: "http://artifactory.artifactory-dev.svc.cluster.local:8080"
+        - name: ARTIFACTORY_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: artifactory-credentials
+              key: username
+        - name: ARTIFACTORY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: artifactory-credentials
+              key: password
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 9521
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 9521
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+---
+# Service for Artifactory Prometheus Exporter
+apiVersion: v1
+kind: Service
+metadata:
+  name: artifactory-prometheus-exporter
+  namespace: artifactory-dev
+  labels:
+    app: artifactory-prometheus-exporter
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9521
+    targetPort: 9521
+    name: metrics
+  selector:
+    app: artifactory-prometheus-exporter
+
+---
+# ServiceMonitor for Artifactory
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: artifactory
+  namespace: artifactory-dev
+  labels:
+    app: artifactory
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: artifactory-prometheus-exporter
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - artifactory-dev
+
+---
+# PrometheusRule for Artifactory alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: artifactory-alerts
+  namespace: artifactory-dev
+  labels:
+    app: artifactory
+    release: prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: artifactory.rules
+    interval: 30s
+    rules:
+    - alert: ArtifactoryDown
+      expr: artifactory_up == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: artifactory
+      annotations:
+        summary: Artifactory is down
+        description: "Artifactory instance {{ $labels.instance }} has been down for more than 5 minutes."
+    
+    - alert: ArtifactoryStorageHigh
+      expr: artifactory_storage_used_bytes / artifactory_storage_total_bytes > 0.8
+      for: 15m
+      labels:
+        severity: warning
+        component: artifactory
+      annotations:
+        summary: Artifactory storage usage high
+        description: "Artifactory storage usage is {{ $value | humanizePercentage }}."
+    
+    - alert: ArtifactoryStorageCritical
+      expr: artifactory_storage_used_bytes / artifactory_storage_total_bytes > 0.9
+      for: 5m
+      labels:
+        severity: critical
+        component: artifactory
+      annotations:
+        summary: Artifactory storage usage critical
+        description: "Artifactory storage usage is {{ $value | humanizePercentage }}."
+    
+    - alert: ArtifactoryHighErrorRate
+      expr: rate(artifactory_request_errors_total[5m]) > 0.05
+      for: 10m
+      labels:
+        severity: critical
+        component: artifactory
+      annotations:
+        summary: Artifactory high error rate
+        description: "Artifactory error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: ArtifactoryHighLatency
+      expr: histogram_quantile(0.95, rate(artifactory_request_duration_seconds_bucket[5m])) > 3
+      for: 10m
+      labels:
+        severity: warning
+        component: artifactory
+      annotations:
+        summary: Artifactory high latency
+        description: "Artifactory 95th percentile latency is {{ $value }}s."
+    
+    - alert: ArtifactoryLowCacheHitRatio
+      expr: artifactory_cache_hit_ratio < 0.7
+      for: 15m
+      labels:
+        severity: warning
+        component: artifactory
+      annotations:
+        summary: Artifactory low cache hit ratio
+        description: "Artifactory cache hit ratio is {{ $value | humanizePercentage }}."
+    
+    - alert: ArtifactoryHighConnectionCount
+      expr: artifactory_concurrent_connections > 1000
+      for: 10m
+      labels:
+        severity: warning
+        component: artifactory
+      annotations:
+        summary: Artifactory high connection count
+        description: "Artifactory has {{ $value }} concurrent connections."
+    
+    - alert: ArtifactoryRepositoryUnavailable
+      expr: artifactory_repository_up == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: artifactory
+      annotations:
+        summary: Artifactory repository unavailable
+        description: "Artifactory repository {{ $labels.repository }} is unavailable."

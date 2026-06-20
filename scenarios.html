@@ -1,0 +1,3951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitOps Verification Scenarios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .scenario {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .scenario:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .scenario h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .scenario h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .scenario p {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .verification-steps {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .verification-steps h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .verification-steps ul {
+            margin-left: 20px;
+        }
+
+        .verification-steps li {
+            margin-bottom: 8px;
+        }
+
+        .expected-result {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .expected-result h4 {
+            color: #155724;
+            margin-bottom: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab:hover {
+            background: #5568d3;
+            color: white;
+        }
+
+        .category {
+            display: none;
+        }
+
+        .category.active {
+            display: block;
+        }
+
+        .severity-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .severity-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .severity-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .severity-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .metadata {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .metadata-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .metadata-item strong {
+            color: #667eea;
+        }
+
+        .command-output {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .file-change {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .file-change h4 {
+            color: #856404;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GitOps Verification Scenarios</h1>
+            <p>Comprehensive test scenarios to verify GitOps functionality with ArgoCD, Kubernetes, and Multi-Environment Support</p>
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <button class="tab active" onclick="showCategory('basic')">Basic GitOps</button>
+                <button class="tab" onclick="showCategory('environment')">Environment Management</button>
+                <button class="tab" onclick="showCategory('deployment')">Deployment Scenarios</button>
+                <button class="tab" onclick="showCategory('configuration')">Configuration Changes</button>
+                <button class="tab" onclick="showCategory('rollback')">Rollback & Recovery</button>
+                <button class="tab" onclick="showCategory('monitoring')">Monitoring & Alerting</button>
+                <button class="tab" onclick="showCategory('advanced')">Advanced Scenarios</button>
+                <button class="tab" onclick="showCategory('security')">Security & Compliance</button>
+                <button class="tab" onclick="showCategory('performance')">Performance & Scaling</button>
+                <button class="tab" onclick="showCategory('integration')">CI/CD Integration</button>
+                <button class="tab" onclick="showCategory('networking')">Networking & Ingress</button>
+                <button class="tab" onclick="showCategory('storage')">Storage & Persistence</button>
+                <button class="tab" onclick="showCategory('edgecases')">Edge Cases</button>
+                <button class="tab" onclick="showCategory('multicloud')">Multi-Cloud</button>
+                <button class="tab" onclick="showCategory('compliance')">Compliance & Auditing</button>
+                <button class="tab" onclick="showCategory('cost')">Cost Optimization</button>
+                <button class="tab" onclick="showCategory('devex')">Developer Experience</button>
+                <button class="tab" onclick="showCategory('operations')">Operations</button>
+                <button class="tab" onclick="showCategory('troubleshooting')">Troubleshooting</button>
+            </div>
+
+            <!-- Basic GitOps Scenarios -->
+            <div id="basic" class="category active">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> GITOPS-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Basic GitOps Flow</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 1: Basic GitOps Deployment Flow</h2>
+                    <p>Verify the basic GitOps workflow where changes in Git repository automatically trigger deployments through ArgoCD.</p>
+                    
+                    <h3>Pre-conditions</h3>
+                    <ul>
+                        <li>ArgoCD is installed and running</li>
+                        <li>Kubernetes cluster is accessible</li>
+                        <li>Git repository is connected to ArgoCD</li>
+                        <li>Application is initially deployed</li>
+                    </ul>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Make a simple configuration change
+cd environments/dev/k8s
+
+# Step 2: Modify the deployment replica count
+sed -i 's/replicas: 1/replicas: 2/' deployment-patch.yaml
+
+# Step 3: Commit and push changes
+git add deployment-patch.yaml
+git commit -m "Increase dev environment replicas to 2"
+git push origin develop
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Check ArgoCD application status: <code>argocd app get script-execution-manager-dev</code></li>
+                            <li>Verify sync status shows "Synced" within 2-3 minutes</li>
+                            <li>Check Kubernetes deployment: <code>kubectl get deployment -n script-execution-manager-dev</code></li>
+                            <li>Verify replica count increased to 2</li>
+                            <li>Check ArgoCD application logs for any errors</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>ArgoCD should detect the Git change, automatically sync the application, and update the Kubernetes deployment to 2 replicas without manual intervention.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> GITOPS-002</div>
+                        <div class="metadata-item"><strong>Category:</strong> Basic GitOps Flow</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 2: Configuration Drift Detection</h2>
+                    <p>Verify that ArgoCD detects and corrects configuration drift when changes are made directly to Kubernetes.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Manually modify deployment outside GitOps
+kubectl scale deployment script-execution-manager \
+  -n script-execution-manager-dev \
+  --replicas=5
+
+# Step 2: Verify the change was applied
+kubectl get deployment script-execution-manager -n script-execution-manager-dev
+
+# Step 3: Wait for ArgoCD self-heal to kick in (should auto-correct)
+sleep 60
+
+# Step 4: Check if ArgoCD corrected the drift
+kubectl get deployment script-execution-manager -n script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Check ArgoCD application health status</li>
+                            <li>View application operations: <code>argocd app operations script-execution-manager-dev</code></li>
+                            <li>Verify ArgoCD detected the drift</li>
+                            <li>Confirm automatic correction occurred</li>
+                            <li>Check final replica count matches Git (should be 2)</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>ArgoCD should detect the manual change as configuration drift and automatically correct it to match the Git state, bringing replicas back to 2.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> GITOPS-003</div>
+                        <div class="metadata-item"><strong>Category:</strong> Basic GitOps Flow</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 3: New Application Deployment</h2>
+                    <p>Test deploying a completely new application through the GitOps pipeline.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Create a new simple application manifest
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  namespace: script-execution-manager-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-app
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-app-service
+  namespace: script-execution-manager-dev
+spec:
+  selector:
+    app: test-app
+  ports:
+  - port: 80
+    targetPort: 80
+                    </div>
+
+                    <div class="file-change">
+                        <h4>File Change</h4>
+                        <p>Add the above manifest to <code>environments/dev/k8s/test-app.yaml</code> and update the kustomization.yaml to include it.</p>
+                    </div>
+
+                    <div class="code-block" data-language="bash">
+# Update kustomization.yaml
+cd environments/dev/k8s
+echo "- test-app.yaml" >> kustomization.yaml
+
+# Commit and push
+git add test-app.yaml kustomization.yaml
+git commit -m "Add test application for GitOps verification"
+git push origin develop
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Monitor ArgoCD sync status</li>
+                            <li>Check new deployment: <code>kubectl get deployment test-app -n script-execution-manager-dev</code></li>
+                            <li>Verify service creation: <code>kubectl get service test-app-service -n script-execution-manager-dev</code></li>
+                            <li>Test service connectivity</li>
+                            <li>Verify pods are running</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>ArgoCD should detect the new resources, sync them to the cluster, and the test application should be successfully deployed and accessible.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environment Management Scenarios -->
+            <div id="environment" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ENV-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Environment Management</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 4: Multi-Environment Deployment</h2>
+                    <p>Verify that changes propagate correctly across different environments (dev, staging, production).</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Make a change to base configuration
+cd k8s-base
+
+# Step 2: Modify base deployment resource limits
+sed -i 's/memory: "256Mi"/memory: "384Mi"/' deployment.yaml
+sed -i 's/cpu: "250m"/cpu: "300m"/' deployment.yaml
+
+# Step 3: Commit to develop branch
+git add deployment.yaml
+git commit -m "Increase base resource limits"
+git push origin develop
+
+# Step 4: Monitor dev environment sync
+argocd app get script-execution-manager-dev
+
+# Step 5: Merge to staging
+git checkout staging
+git merge develop
+git push origin staging
+
+# Step 6: Monitor staging environment sync
+argocd app get script-execution-manager-staging
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify dev environment updated with new resource limits</li>
+                            <li>Check staging environment after merge</li>
+                            <li>Verify environment-specific overrides still apply</li>
+                            <li>Compare resource configurations across environments</li>
+                            <li>Ensure production environment remains unchanged</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Changes should propagate to target environments based on branch strategy while preserving environment-specific configurations.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ENV-002</div>
+                        <div class="metadata-item"><strong>Category:</strong> Environment Management</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 5: Environment-Specific Configuration Override</h2>
+                    <p>Test that environment-specific configurations properly override base configurations.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Modify production environment to have higher resource limits
+# File: environments/production/k8s/deployment-patch.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-execution-manager
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: script-execution-manager
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+                    </div>
+
+                    <div class="code-block" data-language="bash">
+# Apply production-specific changes
+git add environments/production/k8s/deployment-patch.yaml
+git commit -m "Increase production resource limits"
+git push origin master
+
+# Monitor production sync
+argocd app get script-execution-manager-prod
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Check production deployment resource limits</li>
+                            <li>Verify dev environment still has lower limits</li>
+                            <li>Confirm environment isolation</li>
+                            <li>Check ArgoCD application health for production</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Production should have the higher resource limits while other environments maintain their specific configurations, demonstrating proper environment isolation.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ENV-003</div>
+                        <div class="metadata-item"><strong>Category:</strong> Environment Management</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 6: Environment Promotion Workflow</h2>
+                    <p>Test the complete promotion workflow from development to production.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Make a feature change in dev
+cd environments/dev/k8s
+sed -i 's/newTag: dev/newTag: v1.0.1/' kustomization.yaml
+git add kustomization.yaml
+git commit -m "Bump version to v1.0.1 in dev"
+git push origin develop
+
+# Step 2: Verify dev deployment
+argocd app sync script-execution-manager-dev
+argocd app wait script-execution-manager-dev
+
+# Step 3: Promote to staging
+git checkout staging
+git merge develop
+git push origin staging
+
+# Step 4: Verify staging deployment
+argocd app sync script-execution-manager-staging
+argocd app wait script-execution-manager-staging
+
+# Step 5: After staging validation, promote to production
+git checkout master
+git merge staging
+git push origin master
+
+# Step 6: Verify production deployment
+argocd app sync script-execution-manager-prod
+argocd app wait script-execution-manager-prod
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify application health at each stage</li>
+                            <li>Check image versions in each environment</li>
+                            <li>Monitor sync status during promotion</li>
+                            <li>Validate application functionality in each environment</li>
+                            <li>Ensure no downtime during promotions</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>The version bump should propagate through environments following the branch strategy, with each environment successfully deploying the new version.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deployment Scenarios -->
+            <div id="deployment" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> DEPLOY-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Deployment</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 7: Rolling Update Deployment</h2>
+                    <p>Verify that rolling updates work correctly without downtime.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Update image tag to trigger rolling update
+cd environments/dev/k8s
+sed -i 's/newTag: dev/newTag: v2.0.0/' kustomization.yaml
+
+# Step 2: Commit and push
+git add kustomization.yaml
+git commit -m "Update to version v2.0.0"
+git push origin develop
+
+# Step 3: Monitor the rolling update
+watch kubectl get pods -n script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Watch pod creation and termination sequence</li>
+                            <li>Verify no downtime during update</li>
+                            <li>Check rollout status: <code>kubectl rollout status deployment/script-execution-manager -n script-execution-manager-dev</code></li>
+                            <li>Verify new pods are running</li>
+                            <li>Test application connectivity during update</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Rolling update should gradually replace old pods with new ones, maintaining availability throughout the process.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> DEPLOY-002</div>
+                        <div class="metadata-item"><strong>Category:</strong> Deployment</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 8: Canary Deployment Scenario</h2>
+                    <p>Test a canary deployment pattern using ArgoCD strategies.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Create a canary deployment manifest
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: script-execution-manager-canary
+  namespace: script-execution-manager-dev
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: script-execution-manager
+  strategy:
+    canary:
+      canaryService: script-execution-manager-canary
+      stableService: script-execution-manager-stable
+      trafficAnalysis:
+        metrics:
+        - name: request-success-rate
+          thresholdRange:
+            min: 99
+        - name: request-duration
+          thresholdRange:
+            max: 500
+      steps:
+      - setWeight: 20
+      - pause: {duration: 10m}
+      - setWeight: 40
+      - pause: {duration: 10m}
+      - setWeight: 60
+      - pause: {duration: 10m}
+      - setWeight: 80
+      - pause: {duration: 10m}
+  template:
+    metadata:
+      labels:
+        app: script-execution-manager
+    spec:
+      containers:
+      - name: script-execution-manager
+        image: script-execution-manager:v2.0.0-canary
+        ports:
+        - containerPort: 5000
+                    </div>
+
+                    <div class="file-change">
+                        <h4>File Change</h4>
+                        <p>Add the canary rollout to <code>environments/dev/k8s/canary-rollout.yaml</code></p>
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Monitor canary rollout progress</li>
+                            <li>Check traffic split between stable and canary</li>
+                            <li>Verify metrics thresholds</li>
+                            <li>Test canary functionality</li>
+                            <li>Monitor automatic promotion or rollback</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Canary deployment should gradually shift traffic to the new version while monitoring metrics, automatically promoting or rolling back based on performance.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> DEPLOY-003</div>
+                        <div class="metadata-item"><strong>Category:</strong> Deployment</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 9: Blue-Green Deployment Scenario</h2>
+                    <p>Test blue-green deployment pattern for zero-downtime deployments.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Create blue-green deployment configuration
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: script-execution-manager-bg
+  namespace: script-execution-manager-dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: script-execution-manager
+  strategy:
+    blueGreen:
+      activeService: script-execution-manager-active
+      previewService: script-execution-manager-preview
+      autoPromotionEnabled: false
+      scaleDownDelaySeconds: 30
+      previewReplicaCount: 1
+  template:
+    metadata:
+      labels:
+        app: script-execution-manager
+    spec:
+      containers:
+      - name: script-execution-manager
+        image: script-execution-manager:v3.0.0
+        ports:
+        - containerPort: 5000
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Deploy new version as preview (green)</li>
+                            <li>Verify green environment is healthy</li>
+                            <li>Test green environment functionality</li>
+                            <li>Switch traffic from blue to green</li>
+                            <li>Verify traffic switch and monitor blue scale-down</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Blue-green deployment should create a parallel environment, allow testing, then switch traffic instantly with zero downtime.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Changes Scenarios -->
+            <div id="configuration" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> CONFIG-001</strong></div>
+                        <div class="metadata-item"><strong>Category:</strong> Configuration Changes</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 10: ConfigMap Update</h2>
+                    <p>Test ConfigMap updates and application reloading.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Modify ConfigMap configuration
+# File: environments/dev/k8s/configmap-patch.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script-execution-manager-config
+data:
+  flask_env: "development"
+  flask_debug: "true"
+  jenkins_job_name: "script-execution-job-v2"
+  log_level: "debug"
+  new_feature_enabled: "true"
+                    </div>
+
+                    <div class="code-block" data-language="bash">
+# Apply ConfigMap changes
+git add environments/dev/k8s/configmap-patch.yaml
+git commit -m "Update ConfigMap with new configuration"
+git push origin develop
+
+# Monitor ConfigMap update
+kubectl get configmap script-execution-manager-config \
+  -n script-execution-manager-dev -o yaml
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify ConfigMap updated in cluster</li>
+                            <li>Check if pods detected ConfigMap change</li>
+                            <li>Verify application configuration reloaded</li>
+                            <li>Test new configuration values</li>
+                            <li>Check application logs for reload events</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>ConfigMap changes should sync to the cluster and applications should pick up the new configuration, either through automatic reload or pod restart.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> CONFIG-002</div>
+                        <div class="metadata-item"><strong>Category:</strong> Configuration Changes</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 11: Secret Update Rotation</h2>
+                    <p>Test secret rotation and application credential updates.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Generate new secrets
+NEW_JENKINS_TOKEN=$(openssl rand -hex 32)
+NEW_ARTIFACTORY_KEY=$(openssl rand -hex 32)
+
+# Create new secret manifest
+cat > environments/dev/k8s/secret-patch.yaml <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: script-execution-manager-secrets
+type: Opaque
+stringData:
+  database_url: "sqlite:///script_manager.db"
+  jenkins_url: "http://jenkins:8080"
+  jenkins_username: "admin"
+  jenkins_password: "${NEW_JENKINS_TOKEN}"
+  artifactory_url: "http://artifactory:8082"
+  artifactory_username: "admin"
+  artifactory_password: "${NEW_ARTIFACTORY_KEY}"
+  artifactory_repository: "docker-local"
+EOF
+
+# Commit secret rotation
+git add environments/dev/k8s/secret-patch.yaml
+git commit -m "Rotate Jenkins and Artifactory credentials"
+git push origin develop
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify secret updated in cluster</li>
+                            <li>Check pod restart for secret rotation</li>
+                            <li>Test application connectivity with new credentials</li>
+                            <li>Verify no service interruption</li>
+                            <li>Check audit logs for secret access</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Secret changes should trigger pod restarts and applications should successfully connect using the new credentials without service disruption.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> CONFIG-003</div>
+                        <div class="metadata-item"><strong>Category:</strong> Configuration Changes</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 12: Service Configuration Update</h2>
+                    <p>Test service configuration changes like port updates or service type changes.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Modify service configuration
+# File: environments/dev/k8s/service-patch.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: script-execution-manager-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 5000
+    protocol: TCP
+    name: https
+  selector:
+    app: script-execution-manager
+                    </div>
+
+                    <div class="code-block" data-language="bash">
+# Apply service changes
+git add environments/dev/k8s/service-patch.yaml
+git commit -m "Update service to LoadBalancer with HTTPS support"
+git push origin develop
+
+# Monitor service update
+kubectl get service script-execution-manager-service \
+  -n script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify service type changed to LoadBalancer</li>
+                            <li>Check external IP assignment</li>
+                            <li>Test both HTTP and HTTPS endpoints</li>
+                            <li>Verify service endpoints updated</li>
+                            <li>Test connectivity from external sources</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Service configuration should update successfully, LoadBalancer IP should be assigned, and both HTTP and HTTPS endpoints should be accessible.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rollback & Recovery Scenarios -->
+            <div id="rollback" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ROLLBACK-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Rollback & Recovery</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 13: ArgoCD Manual Rollback</h2>
+                    <p>Test manual rollback through ArgoCD when a deployment fails.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Deploy a problematic version
+cd environments/dev/k8s
+sed -i 's/newTag: dev/newTag: broken-version/' kustomization.yaml
+git add kustomization.yaml
+git commit -m "Deploy broken version for rollback test"
+git push origin develop
+
+# Step 2: Monitor deployment failure
+argocd app get script-execution-manager-dev
+kubectl get pods -n script-execution-manager-dev
+
+# Step 3: Rollback using ArgoCD
+argocd app rollback script-execution-manager-dev
+
+# Step 4: Fix the configuration
+sed -i 's/newTag: broken-version/newTag: dev/' kustomization.yaml
+git add kustomization.yaml
+git commit -m "Rollback to stable version"
+git push origin develop
+
+# Step 5: Sync the rollback
+argocd app sync script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify deployment failure detected</li>
+                            <li>Check ArgoCD rollback operation</li>
+                            <li>Verify application restored to working state</li>
+                            <li>Test application functionality after rollback</li>
+                            <li>Check rollback history in ArgoCD</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>ArgoCD should successfully rollback to the previous healthy state and the application should be functional again.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ROLLBACK-002</div>
+                        <div class="metadata-item"><strong>Category:</strong> Rollback & Recovery</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 14: Git-Based Rollback</h2>
+                    <p>Test rollback by reverting Git commits.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Identify problematic commit
+git log --oneline -10
+
+# Step 2: Revert the problematic commit
+git revert <problematic-commit-hash>
+
+# Step 3: Push the revert
+git push origin develop
+
+# Step 4: Monitor ArgoCD sync
+argocd app get script-execution-manager-dev
+
+# Alternative: Hard reset to previous commit
+git reset --hard <previous-commit-hash>
+git push origin develop --force
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify Git history shows revert</li>
+                            <li>Monitor ArgoCD detecting the revert</li>
+                            <li>Check application restored to previous state</li>
+                            <li>Verify no conflicts after revert</li>
+                            <li>Test application functionality</li>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Git revert should trigger ArgoCD to sync the reverted state, restoring the application to its previous working configuration.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ROLLBACK-003</div>
+                        <div class="metadata-item"><strong>Category:</strong> Rollback & Recovery</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 15: Disaster Recovery Scenario</h2>
+                    <p>Test complete environment recovery from scratch.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Simulate complete environment loss
+kubectl delete namespace script-execution-manager-dev
+argocd app delete script-execution-manager-dev
+
+# Step 2: Verify environment is completely removed
+kubectl get namespace script-execution-manager-dev
+argocd app list
+
+# Step 3: Re-create ArgoCD application from Git
+kubectl apply -f environments/dev/argocd-application.yaml
+
+# Step 4: Sync the application
+argocd app sync script-execution-manager-dev
+
+# Step 5: Monitor recovery process
+argocd app get script-execution-manager-dev
+kubectl get all -n script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify namespace recreation</li>
+                            <li>Check all resources recreated</li>
+                            <li>Verify application health</li>
+                            <li>Test application functionality</li>
+                            <li>Verify data persistence (if applicable)</li>
+                            <li>Check monitoring and logging</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Complete environment should be recreated from Git state, with all resources properly configured and application functional.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring & Alerting Scenarios -->
+            <div id="monitoring" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> MON-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Monitoring & Alerting</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 16: Health Check Integration</h2>
+                    <p>Test application health checks and monitoring integration.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Check current health status
+kubectl get pods -n script-execution-manager-dev
+kubectl describe pod <pod-name> -n script-execution-manager-dev
+
+# Step 2: Test health endpoint
+kubectl exec -n script-execution-manager-dev <pod-name> \
+  -- curl http://localhost:5000/api/jenkins/health
+
+# Step 3: Simulate health check failure
+# Modify liveness probe to use incorrect path
+cd environments/dev/k8s
+cat > health-patch.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-execution-manager
+spec:
+  template:
+    spec:
+      containers:
+      - name: script-execution-manager
+        livenessProbe:
+          httpGet:
+            path: /api/invalid-health
+            port: 5000
+EOF
+
+# Apply health check change
+git add health-patch.yaml
+git commit -m "Test health check failure"
+git push origin develop
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Monitor pod restarts due to failed health checks</li>
+                            <li>Check ArgoCD application health status</li>
+                            <li>Verify monitoring alerts triggered</li>
+                            <li>Check logs for health check failures</li>
+                            <li>Restore correct health check configuration</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Failed health checks should trigger pod restarts and monitoring alerts, demonstrating the integration between health checks and monitoring.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> MON-002</div>
+                        <div class="metadata-item"><strong>Category:</strong> Monitoring & Alerting</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 17: Resource Usage Monitoring</h2>
+                    <p>Test resource monitoring and autoscaling responses.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Monitor current resource usage
+kubectl top pods -n script-execution-manager-dev
+kubectl top nodes
+
+# Step 2: Generate load on the application
+# Use a load testing tool or script
+for i in {1..100}; do
+  curl http://script-execution-manager-service.script-execution-manager-dev/api/scripts &
+done
+wait
+
+# Step 3: Monitor resource usage during load
+kubectl top pods -n script-execution-manager-dev --watch
+
+# Step 4: Check HPA if configured
+kubectl get hpa -n script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify resource usage metrics collected</li>
+                            <li>Check Prometheus/Grafana dashboards</li>
+                            <li>Monitor autoscaling responses</li>
+                            <li>Verify alerting thresholds</li>
+                            <li>Check resource limits enforcement</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Increased load should be reflected in monitoring metrics, potentially triggering autoscaling responses and alerting if thresholds are exceeded.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> MON-003</div>
+                        <div class="metadata-item"><strong>Category:</strong> Monitoring & Alerting</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 18: ArgoCD Sync Failure Alerting</h2>
+                    <p>Test alerting when ArgoCD sync operations fail.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Create an invalid configuration
+cd environments/dev/k8s
+cat > invalid-config.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invalid-deployment
+spec:
+  replicas: invalid
+  selector:
+    matchLabels:
+      app: invalid
+EOF
+
+# Step 2: Add invalid config to kustomization
+echo "- invalid-config.yaml" >> kustomization.yaml
+
+# Step 3: Commit and push invalid configuration
+git add invalid-config.yaml kustomization.yaml
+git commit -m "Add invalid configuration for sync failure test"
+git push origin develop
+
+# Step 4: Monitor sync failure
+argocd app get script-execution-manager-dev
+argocd app sync script-execution-manager-dev
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify sync failure detected</li>
+                            <li>Check ArgoCD application status shows error</li>
+                            <li>Verify alerting triggered for sync failure</li>
+                            <li>Check error details in ArgoCD UI</li>
+                            <li>Fix invalid configuration</li>
+                            <li>Verify recovery after fix</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Invalid configuration should cause sync failure with appropriate error messages and trigger alerting for quick detection and resolution.</p>
+                    </div>
+                </div>
+
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> MON-004</div>
+                        <div class="metadata-item"><strong>Category:</strong> Monitoring & Alerting</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 19: Integration Monitoring</h2>
+                    <p>Test monitoring of external service integrations (Jenkins, Artifactory).</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="bash">
+# Step 1: Check Jenkins integration health
+kubectl exec -n script-execution-manager-dev <pod-name> \
+  -- curl http://localhost:5000/api/jenkins/health
+
+# Step 2: Check Artifactory integration health
+kubectl exec -n script-execution-manager-dev <pod-name> \
+  -- curl http://localhost:5000/api/artifactory/health
+
+# Step 3: Simulate Jenkins failure
+# Scale down Jenkins deployment
+kubectl scale deployment jenkins -n jenkins --replicas=0
+
+# Step 4: Monitor application behavior
+kubectl logs -n script-execution-manager-dev <pod-name> --tail=50
+
+# Step 5: Restore Jenkins
+kubectl scale deployment jenkins -n jenkins --replicas=1
+                    </div>
+
+                    <div class="verification-steps">
+                        <h4>Verification Steps</h4>
+                        <ul>
+                            <li>Verify health check endpoints reflect Jenkins status</li>
+                            <li>Check application logs for connection errors</li>
+                            <li>Monitor alerting for service unavailability</li>
+                            <li>Verify application graceful degradation</li>
+                            <li>Check recovery when Jenkins restored</li>
+                        </ul>
+                    </div>
+
+                    <div class="expected-result">
+                        <h4>Expected Result</h4>
+                        <p>Application should detect external service failures, log appropriate errors, potentially trigger alerts, and recover gracefully when services are restored.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Scenarios -->
+            <div id="advanced" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> ADV-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Advanced Scenarios</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 20: ApplicationSet Multi-Cluster Deployment</h2>
+                    <p>Test ApplicationSet deployment across multiple Kubernetes clusters.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Modify ApplicationSet to test multi-cluster deployment
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: script-execution-manager-multi-cluster
+  namespace: argocd
+spec:
+  generators:
+  - clusters:
+      selector:
+        matchLabels:
+          environment: dev
+  template:
+    spec:
+      project: script-execution-manager
+      source:
+        repoURL: https://github.com/Tanmay71710/learning-and-implementation
+        targetRevision: develop
+        path: environments/dev/k8s
+      destination:
+        server: '{{server}}'
+        namespace: script-execution-manager-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify ApplicationSet creates applications for all matching clusters</li>
+                        <li>Check each cluster's application status</li>
+                        <li>Verify deployments across clusters</li>
+                        <li>Test cross-cluster communication if required</li>
+                        <li>Monitor sync status across all clusters</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>ApplicationSet should automatically deploy the application to all clusters matching the selector, with consistent configuration across environments.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> ADV-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> Advanced Scenarios</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 21: Progressive Delivery with Analysis</h2>
+                <p>Test progressive delivery with automated analysis and promotion.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create AnalysisTemplate for automated promotion
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+  namespace: script-execution-manager-dev
+spec:
+  metrics:
+  - name: success-rate
+    interval: 5m
+    successCondition: result[0] >= 0.95
+    failureLimit: 3
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring:9090
+        query: |
+          rate(http_requests_total{job="script-execution-manager",status="200"}[5m])
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Deploy new version with analysis template</li>
+                        <li>Monitor analysis runs</li>
+                        <li>Verify automatic promotion on success</li>
+                        <li>Test automatic rollback on failure</li>
+                        <li>Check analysis history and metrics</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Progressive delivery should automatically analyze metrics and promote or rollback based on predefined success conditions.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> ADV-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> Advanced Scenarios</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 22: GitOps Security and Access Control</h2>
+                <p>Test ArgoCD RBAC and access control policies.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Test different user roles and permissions
+# Admin user should have full access
+# Developer user should have limited access
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  policy.csv: |
+    p, role:admin, applications, *, */*, allow
+    p, role:developer, applications, get, */*, allow
+    p, role:developer, applications, sync, */*, allow
+    p, role:readonly, applications, get, */*, allow
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Test access with different roles
+# Test as admin
+argocd app list
+
+# Test as developer (should have limited access)
+argocd app get script-execution-manager-dev
+
+# Test sync operation as developer
+argocd app sync script-execution-manager-dev
+
+# Test deletion attempt (should fail for developer)
+argocd app delete script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify admin has full access</li>
+                        <li>Verify developer can view and sync</li>
+                        <li>Verify developer cannot delete applications</li>
+                        <li>Test readonly user permissions</li>
+                        <li>Check audit logs for access attempts</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>RBAC policies should properly restrict access based on user roles, with appropriate permissions for each user type.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> ADV-004</div>
+                    <div class="metadata-item"><strong>Category:</strong> Advanced Scenarios</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 23: Kustomize Overlay Testing</h2>
+                <p>Test Kustomize overlay functionality for complex configuration management.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Create a new overlay for testing
+mkdir -p environments/dev/k8s/overlay-testing
+cd environments/dev/k8s/overlay-testing
+
+# Step 2: Create kustomization for overlay
+cat > kustomization.yaml <<EOF
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: script-execution-manager-dev
+
+resources:
+- ../../../../k8s-base
+
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: script-execution-manager
+  path: deployment-patch.json
+EOF
+
+# Step 3: Create JSON patch
+cat > deployment-patch.json <<EOF
+[
+  {
+    "op": "replace",
+    "path": "/spec/replicas",
+    "value": 5
+  },
+  {
+    "op": "add",
+    "path": "/spec/template/spec/containers/0/env/-",
+    "value": {
+      "name": "TESTING_MODE",
+      "value": "enabled"
+    }
+  }
+]
+EOF
+
+# Step 4: Test kustomize build
+kustomize build . > /tmp/test-render.yaml
+cat /tmp/test-render.yaml
+
+# Step 5: Apply overlay changes
+cd ../../..
+git add environments/dev/k8s/overlay-testing/
+git commit -m "Add Kustomize overlay for testing"
+git push origin develop
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify Kustomize build succeeds</li>
+                        <li>Check rendered YAML contains patches</li>
+                        <li>Monitor ArgoCD sync with overlay</li>
+                        <li>Verify deployment has 5 replicas</li>
+                        <li>Check new environment variable present</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Kustomize overlay should successfully apply JSON patches and ArgoCD should sync the modified resources to the cluster.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> ADV-005</div>
+                    <div class="metadata-item"><strong>Category:</strong> Advanced Scenarios</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 24: Helm Chart Deployment via ArgoCD</h2>
+                <p>Test deploying Helm charts through ArgoCD with custom values.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create Helm-based ArgoCD application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: script-execution-manager-helm
+  namespace: argocd
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: develop
+    path: helm/script-execution-manager
+    helm:
+      valueFiles:
+      - ../../environments/dev/helm-values.yaml
+      parameters:
+      - name: image.tag
+        value: "v2.0.0-helm"
+      - name: replicaCount
+        value: "3"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: script-execution-manager-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply Helm application
+kubectl apply -f - <<EOF
+[above YAML content]
+EOF
+
+# Monitor Helm release
+argocd app get script-execution-manager-helm
+helm list -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify Helm chart deployed successfully</li>
+                        <li>Check Helm release status</li>
+                        <li>Verify custom values applied</li>
+                        <li>Test Helm rollback functionality</li>
+                        <li>Verify ArgoCD-Helm integration</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Helm chart should deploy successfully through ArgoCD with custom values applied, demonstrating the Helm integration.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> ADV-006</div>
+                    <div class="metadata-item"><strong>Category:</strong> Advanced Scenarios</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 25: Post-Sync Hook Execution</h2>
+                <p>Test ArgoCD resource hooks for post-sync operations.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create a post-sync hook job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: post-sync-job
+  namespace: script-execution-manager-dev
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+      - name: sync-verification
+        image: curlimages/curl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Running post-sync verification..."
+          curl -f http://script-execution-manager-service:5000/api/jenkins/health || exit 1
+          echo "Post-sync verification completed successfully"
+      restartPolicy: Never
+  backoffLimit: 2
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Add hook to kustomization
+cd environments/dev/k8s
+echo "- post-sync-hook.yaml" >> kustomization.yaml
+
+# Commit and push
+git add post-sync-hook.yaml kustomization.yaml
+git commit -m "Add post-sync verification hook"
+git push origin develop
+
+# Monitor hook execution
+argocd app get script-execution-manager-dev
+kubectl get jobs -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify job created after sync</li>
+                        <li>Check job execution logs</li>
+                        <li>Verify hook deleted on success</li>
+                        <li>Test hook failure behavior</li>
+                        <li>Check ArgoCD sync status with hooks</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Post-sync hook should execute automatically after successful sync, perform verification, and clean up upon completion.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Security & Compliance Scenarios -->
+            <div id="security" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> SEC-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Security & Compliance</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 26: Pod Security Standards</h2>
+                    <p>Test Pod Security Standards (PSS) compliance.</p>
+
+                    <h3>Test Steps</h3>
+                    <div class="code-block" data-language="yaml">
+# Create a pod security policy
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: script-execution-manager-dev
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply security standards
+kubectl apply -f - <<EOF
+[above YAML content]
+EOF
+
+# Test deployment with security violations
+cd environments/dev/k8s
+cat > security-test-deployment.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-test
+  namespace: script-execution-manager-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: security-test
+  template:
+    metadata:
+      labels:
+        app: security-test
+    spec:
+      containers:
+      - name: test-container
+        image: nginx:latest
+        securityContext:
+          runAsUser: 0
+          privileged: true
+EOF
+
+# Try to apply (should fail or warn)
+kubectl apply -f security-test-deployment.yaml
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify security labels applied to namespace</li>
+                        <li>Test deployment with privileged container (should fail)</li>
+                        <li>Check audit logs for security violations</li>
+                        <li>Verify compliant deployments succeed</li>
+                        <li>Review security warnings in kubectl output</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Non-compliant deployments should be rejected or generate warnings, while compliant deployments should succeed.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> SEC-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> Security & Compliance</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 27: Network Policy Implementation</h2>
+                    <p>Test network policies for restricting pod communication.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create restrictive network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: script-execution-manager-netpol
+  namespace: script-execution-manager-dev
+spec:
+  podSelector:
+    matchLabels:
+      app: script-execution-manager
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: script-execution-manager-dev
+    ports:
+    - protocol: TCP
+      port: 5000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: jenkins
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: artifactory
+    ports:
+    - protocol: TCP
+      port: 8082
+  - to:
+    - namespaceSelector: {}
+      ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply network policy
+kubectl apply -f network-policy.yaml
+
+# Test connectivity from allowed namespace
+kubectl run test-pod -n script-execution-manager-dev --image=busybox --rm -it -- wget -O- http://script-execution-manager-service:5000/api/jenkins/health
+
+# Test connectivity from blocked namespace
+kubectl run test-pod -n default --image=busybox --rm -it -- wget -O- http://script-execution-manager-service.script-execution-manager-dev:5000/api/jenkins/health
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify network policy applied</li>
+                        <li>Test allowed traffic succeeds</li>
+                        <li>Test blocked traffic fails</li>
+                        <li>Check policy logs and events</li>
+                        <li>Verify application still functions</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Network policy should allow only specified traffic patterns and block unauthorized communication while maintaining application functionality.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> SEC-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> Security & Compliance</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 28: Secret Management with External Secrets</h2>
+                <p>Test external secrets operator integration.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create ExternalSecret
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: script-execution-manager-secrets
+  namespace: script-execution-manager-dev
+spec:
+  refreshInterval: 15s
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: SecretStore
+  target:
+    name: script-execution-manager-secrets
+    creationPolicy: Owner
+  data:
+  - secretKey: database_url
+    remoteRef:
+      key: script-execution-manager/database-url
+  - secretKey: jenkins_password
+    remoteRef:
+      key: script-execution-manager/jenkins-password
+  - secretKey: artifactory_api_key
+    remoteRef:
+      key: script-execution-manager/artifactory-api-key
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply ExternalSecret
+kubectl apply -f external-secret.yaml
+
+# Monitor secret creation
+kubectl get externalsecret -n script-execution-manager-dev
+kubectl get secret script-execution-manager-secrets -n script-execution-manager-dev
+
+# Verify secret data
+kubectl get secret script-execution-manager-secrets -n script-execution-manager-dev -o yaml
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify ExternalSecret created</li>
+                        <li>Check Kubernetes secret synced from external source</li>
+                        <li>Test secret refresh interval</li>
+                        <li>Verify application uses external secrets</li>
+                        <li>Test secret rotation behavior</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>External secrets should be automatically synced from external secret manager to Kubernetes secrets and used by the application.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> SEC-004</div>
+                    <div class="metadata-item"><strong>Category:</strong> Security & Compliance</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 29: Image Vulnerability Scanning</h2>
+                    <p>Test container image vulnerability scanning integration.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Update to an image with known vulnerabilities
+cd environments/dev/k8s
+sed -i 's/newTag: dev/newTag: vulnerable-test/' kustomization.yaml
+
+# Step 2: Commit and push
+git add kustomization.yaml
+git commit -m "Test vulnerability scanning with vulnerable image"
+git push origin develop
+
+# Step 3: Monitor vulnerability scanning
+kubectl get imagepolicies -n script-execution-manager-dev
+kubectl get imagecheckresults -n script-execution-manager-dev
+
+# Step 4: Check if deployment was blocked
+argocd app get script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify vulnerability scanner runs</li>
+                        <li>Check scan results for vulnerabilities</li>
+                        <li>Verify deployment blocked if critical vulnerabilities found</li>
+                        <li>Test policy exceptions if configured</li>
+                        <li>Review vulnerability reports</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Vulnerability scanner should detect security issues and potentially block deployment based on policy configuration.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> SEC-005</div>
+                    <div class="metadata-item"><strong>Category:</strong> Security & Compliance</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 30: RBAC Policy Validation</h2>
+                <p>Test comprehensive RBAC policy validation and enforcement.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create comprehensive RBAC policies
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  policy.csv: |
+    # Admin role - full access
+    p, role:admin, applications, *, */*, allow
+    p, role:admin, clusters, *, *, allow
+    p, role:admin, repositories, *, *, allow
+    
+    # Developer role - limited to specific project
+    p, role:developer, applications, get, script-execution-manager/*, allow
+    p, role:developer, applications, sync, script-execution-manager/*, allow
+    p, role:developer, applications, create, script-execution-manager/*, allow
+    p, role:developer, applications, update, script-execution-manager/*, allow
+    p, role:developer, applications, action, script-execution-manager/*, allow
+    
+    # Read-only role
+    p, role:readonly, applications, get, */*, allow
+    p, role:readonly, applications, list, */*, allow
+    
+    # CI/CD role - for automation
+    p, role:ci-cd, applications, sync, script-execution-manager/*, allow
+    p, role:ci-cd, applications, get, script-execution-manager/*, allow
+    
+    # Deny policies
+    p, role:developer, applications, delete, *, deny
+    p, role:readonly, applications, sync, *, deny
+  policy.default: role:readonly
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply RBAC policies
+kubectl apply -f rbac-policies.yaml
+
+# Test different user roles
+# Test as admin
+argocd app list
+
+# Test as developer
+argocd app get script-execution-manager-dev
+argocd app sync script-execution-manager-dev
+argocd app delete script-execution-manager-dev  # Should fail
+
+# Test as readonly
+argocd app list
+argocd app sync script-execution-manager-dev  # Should fail
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify admin has full access</li>
+                        <li>Verify developer can sync but not delete</li>
+                        <li>Verify readonly can only view</li>
+                        <li>Test CI/CD role permissions</li>
+                        <li>Check audit logs for access attempts</li>
+                        <li>Verify default role assignment</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>RBAC policies should enforce proper access controls, allowing authorized actions while blocking unauthorized ones based on user roles.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Performance & Scaling Scenarios -->
+            <div id="performance" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> PERF-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Performance & Scaling</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 31: Horizontal Pod Autoscaling</h2>
+                    <p>Test HPA functionality under varying load conditions.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create HPA configuration
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: script-execution-manager-hpa
+  namespace: script-execution-manager-dev
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: script-execution-manager
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 4
+        periodSeconds: 15
+      selectPolicy: Max
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply HPA
+kubectl apply -f hpa-config.yaml
+
+# Generate load
+kubectl run load-generator --image=busybox --rm -it -- /bin/sh -c "while true; do wget -q -O- http://script-execution-manager-service:5000/api/scripts; done" &
+
+# Monitor HPA
+kubectl get hpa script-execution-manager-hpa -n script-execution-manager-dev --watch
+
+# Monitor pod scaling
+kubectl get pods -n script-execution-manager-dev --watch
+
+# Stop load and monitor scale-down
+pkill -f load-generator
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify HPA created and active</li>
+                        <li>Monitor pod count increase under load</li>
+                        <li>Check HPA metrics and thresholds</li>
+                        <li>Verify scale-down after load stops</li>
+                        <li>Check scaling policies applied</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>HPA should automatically scale pods based on CPU/memory metrics and follow configured scaling policies.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> PERF-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> Performance & Scaling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 32: Vertical Pod Autoscaling</h2>
+                <p>Test VPA for automatic resource request/limit adjustment.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create VPA configuration
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: script-execution-manager-vpa
+  namespace: script-execution-manager-dev
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: script-execution-manager
+  updatePolicy:
+    updateMode: Auto
+  resourcePolicy:
+    containerPolicies:
+    - containerName: script-execution-manager
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 1000m
+        memory: 1Gi
+      controlledResources: ["cpu", "memory"]
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply VPA
+kubectl apply -f vpa-config.yaml
+
+# Monitor VPA recommendations
+kubectl get vpa script-execution-manager-vpa -n script-execution-manager-dev
+kubectl describe vpa script-execution-manager-vpa -n script-execution-manager-dev
+
+# Generate load to trigger VPA recommendations
+kubectl run load-generator --image=busybox --rm -it -- /bin/sh -c "while true; do wget -q -O- http://script-execution-manager-service:5000/api/scripts; done" &
+
+# Wait for VPA to update recommendations
+sleep 300
+
+# Check if pods were updated with new resources
+kubectl get pods -n script-execution-manager-dev -o yaml | grep -A 10 resources
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify VPA created and active</li>
+                        <li>Check VPA recommendations</li>
+                        <li>Monitor resource limit updates</li>
+                        <li>Verify pods restarted with new limits</li>
+                        <li>Check application stability after updates</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>VPA should analyze resource usage and automatically update pod resource requests and limits based on actual needs.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> PERF-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> Performance & Scaling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 33: Load Testing and Performance Benchmarking</h2>
+                    <p>Test application performance under sustained load.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Install load testing tool
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# Run comprehensive load test
+kubectl run load-test --image=locustio/locust --rm -it -- /bin/bash -c "
+locust --host=http://script-execution-manager-service.script-execution-manager-dev:5000 \
+  --users=100 \
+  --spawn-rate=10 \
+  --run-time=5m \
+  --headless \
+  -f /locustfile.py
+"
+
+# Monitor performance metrics
+kubectl top pods -n script-execution-manager-dev
+kubectl top nodes
+
+# Check application response times
+kubectl logs -n script-execution-manager-dev -l app=script-execution-manager-manager --tail=100
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Monitor response times under load</li>
+                        <li>Check error rates during load test</li>
+                        <li>Verify resource utilization</li>
+                        <li>Check for memory leaks or performance degradation</li>
+                        <li>Review application logs for performance issues</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Application should maintain acceptable performance under load with minimal errors and resource utilization within limits.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> PERF-004</div>
+                    <div class="metadata-item"><strong>Category:</strong> Performance & Scaling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 34: Resource Quota and Limits Testing</h2>
+                    <p>Test namespace resource quotas and limits enforcement.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create resource quota
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: script-execution-manager-quota
+  namespace: script-execution-manager-dev
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "10"
+    persistentvolumeclaims: "5"
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply resource quota
+kubectl apply -f resource-quota.yaml
+
+# Check quota status
+kubectl get resourcequota script-execution-manager-quota -n script-execution-manager-dev
+
+# Try to exceed quota (should fail)
+kubectl run test-pod-1 --image=nginx --requests=cpu=3,memory=3Gi -n script-execution-manager-dev
+kubectl run test-pod-2 --image=nginx --requests=cpu=1,memory=1Gi -n script-execution-manager-dev
+
+# Monitor quota usage
+kubectl describe resourcequota script-execution-manager-quota -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify resource quota created</li>
+                        <li>Check current quota usage</li>
+                        <li>Test quota enforcement (should block over-quota requests)</li>
+                        <li>Monitor quota status</li>
+                        <li>Verify existing applications still function</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Resource quota should prevent creation of resources that would exceed defined limits while allowing compliant resource creation.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- CI/CD Integration Scenarios -->
+            <div id="integration" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> CI-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> CI/CD Integration</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 35: GitHub Actions ArgoCD Sync</h2>
+                    <p>Test GitHub Actions workflow triggering ArgoCD sync.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create GitHub Actions workflow
+name: ArgoCD Sync
+on:
+  push:
+    branches:
+    - develop
+    - master
+jobs:
+  argocd-sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Install ArgoCD CLI
+      run: |
+        curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+        chmod +x argocd
+        sudo mv argocd /usr/local/bin/argocd
+    
+    - name: Sync ArgoCD Application
+      run: |
+        argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+        argocd app sync script-execution-manager-dev
+        argocd app wait script-execution-manager-dev
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Commit workflow to repository
+mkdir -p .github/workflows
+cat > .github/workflows/argocd-sync.yml <<EOF
+[above YAML content]
+EOF
+
+# Push workflow
+git add .github/workflows/argocd-sync.yml
+git commit -m "Add GitHub Actions ArgoCD sync workflow"
+git push origin develop
+
+# Monitor workflow execution
+gh run list
+gh run view
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify GitHub Actions workflow triggered</li>
+                        <li>Check workflow execution logs</li>
+                        <li>Verify ArgoCD sync executed</li>
+                        <li>Check application status after sync</li>
+                        <li>Test workflow failure handling</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>GitHub Actions should automatically trigger ArgoCD sync on code changes, ensuring deployments are automated through CI/CD.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> CI-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> CI/CD Integration</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 36: Jenkins Pipeline Integration</h2>
+                    <p>Test Jenkins pipeline with ArgoCD deployment.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="groovy">
+// Jenkinsfile for GitOps deployment
+pipeline {
+    agent any
+    
+    environment {
+        ARGOCD_SERVER = 'argocd.example.com'
+        ARGOCD_CREDENTIALS = credentials('argocd-credentials')
+    }
+    
+    stages {
+        stage('Build') {
+            steps {
+                sh 'docker build -t script-execution-manager:${BUILD_NUMBER} .'
+                sh 'docker tag script-execution-manager:${BUILD_NUMBER} script-execution-manager:latest'
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                sh 'python -m pytest tests/'
+            }
+        }
+        
+        stage('Push Image') {
+            steps {
+                sh 'docker push script-execution-manager:${BUILD_NUMBER}'
+            }
+        }
+        
+        stage('Update GitOps Config') {
+            steps {
+                sh "sed -i 's/newTag: dev/newTag: ${BUILD_NUMBER}/' environments/dev/k8s/kustomization.yaml"
+                sh 'git add environments/dev/k8s/kustomization.yaml'
+                sh "git commit -m \"Update image tag to ${BUILD_NUMBER}\""
+                sh 'git push origin develop'
+            }
+        }
+        
+        stage('Sync ArgoCD') {
+            steps {
+                sh "argocd login ${ARGOCD_SERVER} --username ${ARGOCD_CREDENTIALS_USR} --password ${ARGOCD_CREDENTIALS_PSW}"
+                sh 'argocd app sync script-execution-manager-dev'
+                sh 'argocd app wait script-execution-manager-dev'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Deployment successful!'
+        }
+        failure {
+            echo 'Deployment failed! Rolling back...'
+            sh 'argocd app rollback script-execution-manager-dev'
+        }
+    }
+}
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify Jenkins pipeline executes all stages</li>
+                        <li>Check Docker image build and push</li>
+                        <li>Verify GitOps configuration update</li>
+                        <li>Monitor ArgoCD sync from Jenkins</li>
+                        <li>Test rollback on failure</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Jenkins pipeline should build, test, push images, update GitOps config, and trigger ArgoCD sync automatically.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> CI-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> CI/CD Integration</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 37: Automated Testing Gate</h2>
+                    <p>Test automated testing as a deployment gate.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create pre-sync hook for testing
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pre-sync-tests
+  namespace: script-execution-manager-dev
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+      - name: test-runner
+        image: python:3.9-slim
+        command:
+        - /bin/bash
+        - -c
+        - |
+          pip install pytest requests
+          cd /app
+          pytest tests/ -v
+          exit $?
+        volumeMounts:
+        - name: test-code
+          mountPath: /app
+      volumes:
+      - name: test-code
+        configMap:
+          name: test-code
+      restartPolicy: Never
+  backoffLimit: 2
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Add test hook to kustomization
+cd environments/dev/k8s
+echo "- pre-sync-tests.yaml" >> kustomization.yaml
+
+# Commit and push
+git add pre-sync-tests.yaml kustomization.yaml
+git commit -m "Add pre-sync testing gate"
+git push origin develop
+
+# Monitor test execution
+argocd app get script-execution-manager-dev
+kubectl get jobs -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify pre-sync hook executes before deployment</li>
+                        <li>Check test results and logs</li>
+                        <li>Test deployment blocked on test failure</li>
+                        <li>Verify deployment proceeds on test success</li>
+                        <li>Check hook cleanup after completion</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Pre-sync tests should execute before deployment and block deployment if tests fail, ensuring only tested code is deployed.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> CI-004</div>
+                    <div class="metadata-item"><strong>Category:</strong> CI/CD Integration</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 38: Multi-Stage Promotion Pipeline</h2>
+                    <p>Test automated promotion through multiple environments.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create promotion pipeline workflow
+name: Multi-Environment Promotion
+on:
+  push:
+    branches:
+    - master
+jobs:
+  promote-to-staging:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Sync to Staging
+      run: |
+        argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }}
+        argocd app sync script-execution-manager-staging
+        argocd app wait script-execution-manager-staging
+    
+  promote-to-production:
+    needs: promote-to-staging
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Run Production Tests
+      run: |
+        # Run production-specific tests
+        ./scripts/production-tests.sh
+    
+    - name: Sync to Production
+      run: |
+        argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }}
+        argocd app sync script-execution-manager-prod
+        argocd app wait script-execution-manager-prod
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify staging deployment succeeds</li>
+                        <li>Check production tests execute</li>
+                        <li>Monitor production deployment</li>
+                        <li>Verify each stage completes before next</li>
+                        <li>Test pipeline failure at any stage</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Promotion pipeline should deploy through environments sequentially with proper gates and testing at each stage.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Networking & Ingress Scenarios -->
+            <div id="networking" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> NET-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Networking & Ingress</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 39: Ingress Configuration and TLS</h2>
+                    <p>Test ingress configuration with TLS termination.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create ingress with TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: script-execution-manager-ingress
+  namespace: script-execution-manager-dev
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - script-execution-manager.example.com
+    secretName: script-execution-manager-tls
+  rules:
+  - host: script-execution-manager.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: script-execution-manager-service
+            port:
+              number: 80
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply ingress configuration
+kubectl apply -f ingress-config.yaml
+
+# Monitor certificate creation
+kubectl get certificate -n script-execution-manager-dev
+kubectl describe certificate script-execution-manager-tls -n script-execution-manager-dev
+
+# Test HTTPS access
+curl -k https://script-execution-manager.example.com/api/jenkins/health
+
+# Check ingress status
+kubectl get ingress script-execution-manager-ingress -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify ingress created successfully</li>
+                        <li>Check TLS certificate issued</li>
+                        <li>Test HTTPS endpoint access</li>
+                        <li>Verify SSL redirect working</li>
+                        <li>Check ingress routing rules</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Ingress should be configured with automatic TLS certificate issuance and HTTPS access should work correctly.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> NET-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> Networking & Ingress</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 40: Service Mesh Integration</h2>
+                    <p>Test Istio service mesh integration.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create Istio resources
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: script-execution-manager-vs
+  namespace: script-execution-manager-dev
+spec:
+  hosts:
+  - script-execution-manager
+  http:
+  - match:
+    - uri:
+        prefix: /api
+    route:
+    - destination:
+        host: script-execution-manager-service
+        subset: v1
+      weight: 100
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: script-execution-manager-dr
+  namespace: script-execution-manager-dev
+spec:
+  host: script-execution-manager-service
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: script-execution-manager-mtls
+  namespace: script-execution-manager-dev
+spec:
+  selector:
+    matchLabels:
+      app: script-execution-manager
+  mtls:
+    mode: STRICT
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply Istio configuration
+kubectl apply -f istio-config.yaml
+
+# Enable Istio injection for the namespace
+kubectl label namespace script-execution-manager-dev istio-injection=enabled
+
+# Restart pods to get Istio sidecar
+kubectl rollout restart deployment script-execution-manager -n script-execution-manager-dev
+
+# Verify Istio sidecar injection
+kubectl get pods -n script-execution-manager-dev -o jsonpath='{.items[*].spec.containers[*].name}'
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify Istio sidecar injected</li>
+                        <li>Check VirtualService configuration</li>
+                        <li>Test mTLS enforcement</li>
+                        <li>Monitor service mesh metrics</li>
+                        <li>Verify traffic routing rules</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Service mesh should be successfully integrated with mTLS enabled and traffic routing configured.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> NET-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> Networking & Ingress</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 41: DNS Configuration and Service Discovery</h2>
+                    <p>Test DNS resolution and service discovery.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Test DNS resolution from within cluster
+kubectl run dns-test --image=busybox --rm -it -- nslookup script-execution-manager-service.script-execution-manager-dev
+
+# Test service discovery
+kubectl run dns-test --image=busybox --rm -it -- wget -O- http://script-execution-manager-service.script-execution-manager-dev:5000/api/jenkins/health
+
+# Test external DNS resolution
+kubectl run dns-test --image=busybox --rm -it -- nslookup google.com
+
+# Check DNS configuration
+kubectl get configmap -n kube-system coredns -o yaml
+
+# Test endpoint discovery
+kubectl get endpoints script-execution-manager-service -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify internal DNS resolution works</li>
+                        <li>Check service discovery functionality</li>
+                        <li>Test external DNS resolution</li>
+                        <li>Verify endpoint updates</li>
+                        <li>Check DNS configuration</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>DNS resolution should work for both internal and external services, with proper service discovery and endpoint management.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Storage & Persistence Scenarios -->
+            <div id="storage" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> STR-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Storage & Persistence</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 42: Persistent Volume Claim Testing</h2>
+                    <p>Test PVC creation and data persistence.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: script-execution-manager-pvc
+  namespace: script-execution-manager-dev
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+# Update deployment to use PVC
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-execution-manager
+  namespace: script-execution-manager-dev
+spec:
+  template:
+    spec:
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: script-execution-manager-pvc
+      containers:
+      - name: script-execution-manager
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply PVC configuration
+kubectl apply -f pvc-config.yaml
+
+# Monitor PVC status
+kubectl get pvc script-execution-manager-pvc -n script-execution-manager-dev
+
+# Test data persistence
+kubectl run test-pod --image=busybox --rm -it -- /bin/sh -c "echo 'test data' > /mnt/test.txt"
+kubectl run test-pod --image=busybox --rm -it -- /bin/sh -c "cat /mnt/test.txt"
+
+# Verify PV binding
+kubectl get pv
+kubectl describe pvc script-execution-manager-pvc -n script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify PVC created and bound</li>
+                        <li>Check PV provisioned successfully</li>
+                        <li>Test data write and read</li>
+                        <li>Verify data persists across pod restarts</li>
+                        <li>Check storage class configuration</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>PVC should be created and bound successfully, with data persisting across pod restarts.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> STR-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> Storage & Persistence</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 43: StatefulSet Deployment</h2>
+                    <p>Test StatefulSet for stateful application deployment.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: script-execution-manager-stateful
+  namespace: script-execution-manager-dev
+spec:
+  serviceName: script-execution-manager-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: script-execution-manager-stateful
+  template:
+    metadata:
+      labels:
+        app: script-execution-manager-stateful
+    spec:
+      containers:
+      - name: script-execution-manager
+        image: script-execution-manager:latest
+        ports:
+        - containerPort: 5000
+          name: http
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: script-execution-manager-headless
+  namespace: script-execution-manager-dev
+spec:
+  clusterIP: None
+  selector:
+    app: script-execution-manager-stateful
+  ports:
+  - port: 5000
+    name: http
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Apply StatefulSet configuration
+kubectl apply -f statefulset-config.yaml
+
+# Monitor StatefulSet creation
+kubectl get statefulset script-execution-manager-stateful -n script-execution-manager-dev
+kubectl get pods -n script-execution-manager-dev -l app=script-execution-manager-stateful
+
+# Test ordered deployment
+kubectl describe statefulset script-execution-manager-stateful -n script-execution-manager-dev
+
+# Test stable network identities
+kubectl run test-pod --image=busybox --rm -it -- nslookup script-execution-manager-stateful-0.script-execution-manager-headless
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify StatefulSet created with ordered pod creation</li>
+                        <li>Check stable network identities</li>
+                        <li>Verify PVC templates created for each pod</li>
+                        <li>Test pod deletion and recreation</li>
+                        <li>Verify data persistence for each pod</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>StatefulSet should create pods with stable identities and persistent storage, maintaining ordered deployment and scaling.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> STR-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> Storage & Persistence</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 44: Backup and Recovery Testing</h2>
+                    <p>Test backup and recovery procedures for persistent data.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Install Velero for backup
+kubectl apply -f https://github.com/vmware-tanzu/velero/releases/latest/download/velero-v1.12.0-linux-amd64.tar.gz
+
+# Create backup
+velero backup create script-execution-manager-backup \
+  --include-namespaces script-execution-manager-dev \
+  --selector app=script-execution-manager
+
+# Monitor backup status
+velero backup get
+velero backup describe script-execution-manager-backup
+
+# Simulate data loss
+kubectl delete pvc script-execution-manager-pvc -n script-execution-manager-dev
+
+# Restore from backup
+velero restore create --from-backup script-execution-manager-backup
+
+# Monitor restore status
+velero restore get
+velero restore describe <restore-name>
+
+# Verify data recovery
+kubectl exec -it <pod-name> -n script-execution-manager-dev -- ls /app/data
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify backup completes successfully</li>
+                        <li>Check backup includes all resources</li>
+                        <li>Simulate data loss scenario</li>
+                        <li>Verify restore completes successfully</li>
+                        <li>Test data integrity after restore</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Backup should capture all application data and restore should successfully recover the application to its previous state.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> STR-004</div>
+                    <div class="metadata-item"><strong>Category:</strong> Storage & Persistence</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 45: Storage Class Migration</h2>
+                    <p>Test migrating between different storage classes.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Check current storage class
+kubectl get pvc -n script-execution-manager-dev
+kubectl get storageclass
+
+# Create new storage class if needed
+kubectl apply -f - <<EOF
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-ssd
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp3
+  iops: "3000"
+  throughput: "125"
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+EOF
+
+# Create snapshot of existing PVC
+kubectl apply -f - <<EOF
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: script-execution-manager-snapshot
+  namespace: script-execution-manager-dev
+spec:
+  volumeSnapshotClassName: csi-aws-vsc
+  source:
+    persistentVolumeClaimName: script-execution-manager-pvc
+EOF
+
+# Create new PVC from snapshot
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: script-execution-manager-pvc-new
+  namespace: script-execution-manager-dev
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 10Gi
+  dataSource:
+    name: script-execution-manager-snapshot
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+EOF
+
+# Update deployment to use new PVC
+# (Update deployment spec to use new PVC)
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify snapshot created successfully</li>
+                        <li>Check new PVC provisioned from snapshot</li>
+                        <li>Verify data integrity on new PVC</li>
+                        <li>Update deployment to use new storage</li>
+                        <li>Test application functionality with new storage</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Storage migration should complete successfully with data preserved and application functioning on new storage class.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Edge Cases & Error Handling Scenarios -->
+            <div id="edgecases" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> EDGE-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Edge Cases & Error Handling</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 46: Git Repository Connectivity Loss</h2>
+                    <p>Test ArgoCD behavior when Git repository becomes unavailable.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Block Git repository access
+# Simulate network issues or repository downtime
+# Method 1: Block GitHub domains
+iptables -A OUTPUT -p tcp --dport 443 -d github.com -j DROP
+
+# Method 2: Simulate repository unavailability
+# Modify ArgoCD repository configuration to point to invalid URL
+kubectl patch configmap argocd-cm -n argocd --type merge -p '{"data":{"repository.invalid":"https://invalid.github.com/repo"}}'
+
+# Step 2: Monitor ArgoCD behavior
+argocd app list
+argocd app get script-execution-manager-dev
+kubectl get pods -n argocd -l app.kubernetes.io/component=repo-server
+
+# Step 3: Attempt to trigger sync
+argocd app sync script-execution-manager-dev --force
+
+# Step 4: Restore connectivity
+iptables -D OUTPUT -p tcp --dport 443 -d github.com -j DROP
+
+# Step 5: Monitor recovery
+argocd app get script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify ArgoCD detects repository unavailability</li>
+                        <li>Check application health status during outage</li>
+                        <li>Monitor error logs and retry behavior</li>
+                        <li>Verify existing deployments remain functional</li>
+                        <li>Check automatic recovery when repository restored</li>
+                        <li>Verify sync queue processing after recovery</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>ArgoCD should detect repository unavailability, maintain existing deployments, queue sync operations, and automatically recover when connectivity is restored.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> EDGE-002</div>
+                    <div class="metadata-item"><strong>Category:</strong> Edge Cases & Error Handling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 47: Cluster API Server Unavailability</h2>
+                    <p>Test system behavior when Kubernetes API server becomes unavailable.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Simulate API server issues
+# Method 1: Restart API server (in test environment)
+kubectl scale deployment kube-apiserver -n kube-system --replicas=0
+
+# Method 2: Block API server access
+iptables -A OUTPUT -p tcp --dport 6443 -d kubernetes.default.svc -j DROP
+
+# Step 2: Monitor ArgoCD behavior
+# ArgoCD should detect API server unavailability
+kubectl get pods -n argocd
+argocd app list  # This should fail or timeout
+
+# Step 3: Test application availability
+# Applications should continue running
+kubectl get pods -n script-execution-manager-dev
+curl http://script-execution-manager-service.script-execution-manager-dev:5000/api/jenkins/health
+
+# Step 4: Restore API server
+kubectl scale deployment kube-apiserver -n kube-system --replicas=3
+# or
+iptables -D OUTPUT -p tcp --dport 6443 -d kubernetes.default.svc -j DROP
+
+# Step 5: Monitor recovery
+kubectl get pods -n argocd
+argocd app list
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify ArgoCD detects API server unavailability</li>
+                        <li>Check error handling and retry logic</li>
+                        <li>Verify existing applications continue running</li>
+                        <li>Monitor ArgoCD component recovery</li>
+                        <li>Check sync queue processing after recovery</li>
+                        <li>Verify no data corruption or state inconsistency</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>System should handle API server unavailability gracefully, maintain running applications, and recover automatically when API server is restored.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> EDGE-003</div>
+                    <div class="metadata-item"><strong>Category:</strong> Edge Cases & Error Handling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 48: Concurrent Git Operations Conflict</h2>
+                    <p>Test handling of concurrent Git operations and merge conflicts.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Create concurrent modification scenario
+# Terminal 1: Make changes to deployment replicas
+cd environments/dev/k8s
+sed -i 's/replicas: 1/replicas: 3/' deployment-patch.yaml
+git add deployment-patch.yaml
+git commit -m "Increase replicas to 3"
+
+# Terminal 2: Simultaneously make conflicting changes
+cd environments/dev/k8s
+sed -i 's/replicas: 1/replicas: 5/' deployment-patch.yaml
+git add deployment-patch.yaml
+git commit -m "Increase replicas to 5"
+
+# Step 2: Attempt to push both changes
+# Terminal 1:
+git push origin develop
+
+# Terminal 2:
+git push origin develop  # Should fail with conflict
+
+# Step 3: Resolve conflict
+# Terminal 2:
+git pull origin develop
+# Resolve conflict manually
+git add deployment-patch.yaml
+git commit -m "Resolve replica conflict"
+git push origin develop
+
+# Step 4: Monitor ArgoCD sync
+argocd app get script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify Git detects concurrent modifications</li>
+                        <li>Check conflict detection and error messages</li>
+                        <li>Test conflict resolution process</li>
+                        <li>Monitor ArgoCD sync after conflict resolution</li>
+                        <li>Verify final state is consistent</li>
+                        <li>Check for any orphaned resources or state</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Git should detect concurrent modifications, prevent conflicting pushes, and require proper conflict resolution before allowing sync.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> EDGE-004</div>
+                    <div class="metadata-item"><strong>Category:</strong> Edge Cases & Error Handling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                </div>
+                <h2>Scenario 49: Resource Limit Exhaustion</h2>
+                    <p>Test system behavior when cluster resources are exhausted.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Check current resource usage
+kubectl top nodes
+kubectl describe nodes | grep -A 5 "Allocated resources"
+
+# Step 2: Create resource exhaustion scenario
+# Deploy many resource-intensive pods
+for i in {1..20}; do
+  kubectl run stress-pod-$i --image=polinux/stress --rm -it -- \
+    --cpu 2 --vm 1 --vm-bytes 512M --timeout 300s &
+done
+
+# Step 3: Monitor cluster state
+kubectl top nodes
+kubectl get pods --all-namespaces | grep -i pending
+
+# Step 4: Attempt GitOps deployment during exhaustion
+cd environments/dev/k8s
+sed -i 's/replicas: 1/replicas: 2/' deployment-patch.yaml
+git add deployment-patch.yaml
+git commit -m "Test deployment during resource exhaustion"
+git push origin develop
+
+# Step 5: Monitor ArgoCD behavior
+argocd app get script-execution-manager-dev
+kubectl get events -n script-execution-manager-dev --sort-by='.lastTimestamp'
+
+# Step 6: Clean up stress pods
+pkill -f stress-pod
+kubectl delete pods -l run=stress-pod --all --force --grace-period=0
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify cluster resource exhaustion detected</li>
+                        <li>Check pod scheduling failures</li>
+                        <li>Monitor ArgoCD sync behavior under pressure</li>
+                        <li>Verify appropriate error messages</li>
+                        <li>Check system recovery after resource cleanup</li>
+                        <li>Verify no corruption in application state</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>System should handle resource exhaustion gracefully, provide appropriate error messages, and recover automatically when resources are available.</p>
+                </div>
+            </div>
+
+            <div class="scenario">
+                <div class="metadata">
+                    <div class="metadata-item"><strong>Scenario ID:</strong> EDGE-005</div>
+                    <div class="metadata-item"><strong>Category:</strong> Edge Cases & Error Handling</div>
+                    <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                </div>
+                <h2>Scenario 50: Malicious YAML Configuration</h2>
+                    <p>Test handling of malicious or malformed YAML configurations.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create malicious YAML configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: malicious-deployment
+  namespace: script-execution-manager-dev
+  annotations:
+    malicious-annotation: "attempting to inject malicious code"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: malicious
+  template:
+    metadata:
+      labels:
+        app: malicious
+    spec:
+      containers:
+      - name: malicious-container
+        image: nginx:latest
+        command: ["/bin/sh", "-c", "while true; do echo 'malicious activity'; sleep 1; done"]
+        securityContext:
+          runAsUser: 0
+          privileged: true
+          capabilities:
+            add: ["ALL"]
+        volumeMounts:
+        - name: root-volume
+          mountPath: /host
+      volumes:
+      - name: root-volume
+        hostPath:
+          path: /
+      resources:
+        limits:
+          cpu: "1000"  # Attempting to consume excessive resources
+          memory: "10Gi"
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Attempt to apply malicious configuration
+kubectl apply -f malicious-deployment.yaml
+
+# Check if admission controllers blocked it
+kubectl get events -n script-execution-manager-dev
+
+# Test with ArgoCD
+cd environments/dev/k8s
+cp malicious-deployment.yaml .
+echo "- malicious-deployment.yaml" >> kustomization.yaml
+git add malicious-deployment.yaml kustomization.yaml
+git commit -m "Test malicious configuration handling"
+git push origin develop
+
+# Monitor ArgoCD response
+argocd app get script-execution-manager-dev
+argocd app sync script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify admission controllers block malicious config</li>
+                        <li>Check ArgoCD sync rejection</li>
+                        <li>Review security policy violations</li>
+                        <li>Monitor audit logs for blocked attempts</li>
+                        <li>Verify system remains uncompromised</li>
+                        <li>Check appropriate alerting triggered</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Security policies and admission controllers should block malicious configurations, with appropriate logging and alerting.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Multi-Cloud Scenarios -->
+            <div id="multicloud" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> MC-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Multi-Cloud</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 51: Multi-Cluster GitOps Deployment</h2>
+                    <p>Test deploying application across multiple cloud providers.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="yaml">
+# Create ApplicationSet for multi-cloud deployment
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: script-execution-manager-multicloud
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: aws-dev
+        url: https://kubernetes.aws-dev.example.com
+        values:
+          cloudProvider: aws
+          region: us-west-2
+      - cluster: gcp-dev
+        url: https://kubernetes.gcp-dev.example.com
+        values:
+          cloudProvider: gcp
+          region: us-central1
+      - cluster: azure-dev
+        url: https://kubernetes.azure-dev.example.com
+        values:
+          cloudProvider: azure
+          region: eastus
+  template:
+    metadata:
+      name: 'script-execution-manager-{{cluster}}'
+    spec:
+      project: script-execution-manager
+      source:
+        repoURL: https://github.com/Tanmay71710/learning-and-implementation
+        targetRevision: develop
+        path: environments/dev/k8s
+      destination:
+        server: '{{url}}'
+        namespace: script-execution-manager-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+                    </div>
+
+                <div class="code-block" data-language="bash">
+# Add cluster credentials to ArgoCD
+argocd cluster add aws-dev-context
+argocd cluster add gcp-dev-context
+argocd cluster add azure-dev-context
+
+# Apply ApplicationSet
+kubectl apply -f multicloud-applicationset.yaml
+
+# Monitor deployment across clusters
+argocd app list
+argocd app get script-execution-manager-aws-dev
+argocd app get script-execution-manager-gcp-dev
+argocd app get script-execution-manager-azure-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify all clusters added to ArgoCD</li>
+                        <li>Check ApplicationSet creates applications for each cluster</li>
+                        <li>Monitor deployment status across all clusters</li>
+                        <li>Verify cloud-specific configurations applied</li>
+                        <li>Test cross-cluster functionality</li>
+                        <li>Check centralized monitoring and management</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>ApplicationSet should successfully deploy the application across multiple cloud providers with consistent configuration and cloud-specific adaptations.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Compliance & Auditing Scenarios -->
+            <div id="compliance" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> COMP-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Compliance & Auditing</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 54: Audit Log Verification</h2>
+                    <p>Test comprehensive audit logging for all GitOps operations.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Perform various GitOps operations
+argocd app sync script-execution-manager-dev
+argocd app rollback script-execution-manager-dev
+kubectl scale deployment script-execution-manager -n script-execution-manager-dev --replicas=3
+
+# Step 2: Check ArgoCD audit logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server --tail=100 | grep -i audit
+
+# Step 3: Check Kubernetes audit logs
+kubectl get events -n script-execution-manager-dev --sort-by='.lastTimestamp'
+kubectl auth can-i list deployments --as=system:anonymous
+
+# Step 4: Verify Git repository audit trail
+git log --all --oneline --graph
+git log --author="$(git config user.name)" --since="1 hour ago"
+
+# Step 5: Check application-specific audit logs
+kubectl logs -n script-execution-manager-dev -l app=script-execution-manager --tail=100
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify all operations logged in ArgoCD</li>
+                        <li>Check Kubernetes audit events captured</li>
+                        <li>Verify Git repository audit trail complete</li>
+                        <li>Test log retention and archiving</li>
+                        <li>Verify audit log immutability</li>
+                        <li>Check audit log search and filtering</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>All GitOps operations should be comprehensively logged with timestamps, user information, and operation details for compliance auditing.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Cost Optimization Scenarios -->
+            <div id="cost" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> COST-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Cost Optimization</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 58: Resource Rightsizing</h2>
+                    <p>Test automatic resource rightsizing based on usage patterns.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Monitor current resource usage
+kubectl top pods -n script-execution-manager-dev
+kubectl top nodes
+
+# Step 2: Install resource recommendation tool
+kubectl apply -f https://github.com/kubernetes-sigs/recommendations-system/releases/latest/download/components.yaml
+
+# Step 3: Generate resource recommendations
+kubectl get recommendations -n script-execution-manager-dev
+
+# Step 4: Apply recommendations to GitOps configuration
+# Update resource limits based on recommendations
+cd environments/dev/k8s
+cat > resource-optimization-patch.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-execution-manager
+spec:
+  template:
+    spec:
+      containers:
+      - name: script-execution-manager
+        resources:
+          requests:
+            memory: "64Mi"    # Reduced from 128Mi
+            cpu: "50m"       # Reduced from 100m
+          limits:
+            memory: "128Mi"  # Reduced from 256Mi
+            cpu: "100m"      # Reduced from 250m
+EOF
+
+# Step 5: Apply optimized configuration
+git add resource-optimization-patch.yaml
+git commit -m "Optimize resource allocation based on usage patterns"
+git push origin develop
+
+# Step 6: Monitor post-optimization performance
+kubectl top pods -n script-execution-manager-dev --watch
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify resource recommendations generated</li>
+                        <li>Check optimized configuration applied</li>
+                        <li>Monitor application performance after optimization</li>
+                        <li>Verify cost reduction achieved</li>
+                        <li>Check for performance degradation</li>
+                        <li>Test under load conditions</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Resource rightsizing should reduce costs while maintaining acceptable performance levels.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Developer Experience Scenarios -->
+            <div id="devex" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> DEV-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Developer Experience</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-medium">Medium</span></div>
+                    </div>
+                    <h2>Scenario 62: Local Development with GitOps Preview</h2>
+                    <p>Test local development workflow with GitOps preview environments.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Create preview environment generator
+cat > scripts/create-preview-env.sh <<EOF
+#!/bin/bash
+BRANCH_NAME=$1
+PREVIEW_NAME="preview-$(echo $BRANCH_NAME | sed 's/[^a-zA-Z0-9-]/-/g')"
+
+# Create preview namespace
+kubectl create namespace $PREVIEW_NAME
+
+# Create preview application
+cat > preview-app.yaml <<YAML
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: $PREVIEW_NAME
+  namespace: argocd
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: $BRANCH_NAME
+    path: environments/dev/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: $PREVIEW_NAME
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+YAML
+
+kubectl apply -f preview-app.yaml
+echo "Preview environment created: $PREVIEW_NAME"
+EOF
+
+chmod +x scripts/create-preview-env.sh
+
+# Step 2: Create feature branch
+git checkout -b feature/new-ui
+
+# Step 3: Make changes and create preview
+# Make some changes to the application
+echo "new feature" >> README.md
+git add README.md
+git commit -m "Add new UI feature"
+
+# Step 4: Create preview environment
+./scripts/create-preview-env.sh feature/new-ui
+
+# Step 5: Monitor preview deployment
+argocd app get preview-feature-new-ui
+kubectl get pods -n preview-feature-new-ui
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify preview environment created</li>
+                        <li>Check feature branch deployed</li>
+                        <li>Test preview environment accessibility</li>
+                        <li>Verify isolation from other environments</li>
+                        <li>Test preview cleanup after branch deletion</li>
+                        <li>Check developer workflow efficiency</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Preview environments should be automatically created for feature branches, enabling rapid development and testing.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Operations Scenarios -->
+            <div id="operations" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> OPS-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Operations</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 65: GitOps Platform Maintenance</h2>
+                    <p>Test maintenance procedures for GitOps platform components.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Backup ArgoCD configuration
+kubectl get configmap argocd-cm -n argocd -o yaml > argocd-config-backup.yaml
+kubectl get secret argocd-secret -n argocd -o yaml > argocd-secret-backup.yaml
+
+# Step 2: Backup application states
+argocd app get script-execution-manager-dev -o yaml > app-state-backup.yaml
+argocd app list -o yaml > apps-list-backup.yaml
+
+# Step 3: Perform rolling upgrade of ArgoCD
+# Check current version
+argocd version
+
+# Update ArgoCD using Helm
+helm upgrade argocd argo/argo-cd --namespace argocd --set controller.replicas=2
+
+# Step 4: Monitor upgrade process
+kubectl rollout status deployment argocd-server -n argocd
+kubectl get pods -n argocd -w
+
+# Step 5: Verify post-upgrade functionality
+argocd app list
+argocd app get script-execution-manager-dev
+
+# Step 6: Test sync operation
+argocd app sync script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify backups completed successfully</li>
+                        <li>Monitor upgrade process for errors</li>
+                        <li>Check ArgoCD component health</li>
+                        <li>Verify application states preserved</li>
+                        <li>Test post-upgrade functionality</li>
+                        <li>Verify no service disruption</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Platform maintenance should complete successfully with proper backups, zero downtime, and preserved application states.</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- Troubleshooting Scenarios -->
+            <div id="troubleshooting" class="category">
+                <div class="scenario">
+                    <div class="metadata">
+                        <div class="metadata-item"><strong>Scenario ID:</strong> TSHOOT-001</div>
+                        <div class="metadata-item"><strong>Category:</strong> Troubleshooting</div>
+                        <div class="metadata-item"><strong>Severity:</strong> <span class="severity-indicator severity-high">High</span></div>
+                    </div>
+                    <h2>Scenario 68: Sync Failure Investigation</h2>
+                    <p>Test systematic troubleshooting of sync failures.</p>
+
+                <h3>Test Steps</h3>
+                <div class="code-block" data-language="bash">
+# Step 1: Intentionally cause sync failure
+cd environments/dev/k8s
+cat > broken-config.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken-deployment
+spec:
+  replicas: invalid
+  selector:
+    matchLabels:
+      app: broken
+  template:
+    metadata:
+      labels:
+        app: broken
+    spec:
+      containers:
+      - name: broken
+        image: invalid-image:latest
+EOF
+echo "- broken-config.yaml" >> kustomization.yaml
+git add broken-config.yaml kustomization.yaml
+git commit -m "Introduce sync failure for troubleshooting"
+git push origin develop
+
+# Step 2: Investigate sync failure
+argocd app get script-execution-manager-dev
+argocd app sync script-execution-manager-dev --force
+
+# Step 3: Check detailed error information
+argocd app logs script-execution-manager-dev
+kubectl describe deployment script-execution-manager -n script-execution-manager-dev
+
+# Step 4: Check ArgoCD component logs
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller --tail=100
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server --tail=100
+
+# Step 5: Fix the issue
+sed -i 's/replicas: invalid/replicas: 1/' broken-config.yaml
+sed -i 's/image: invalid-image:latest/image: nginx:latest/' broken-config.yaml
+git add broken-config.yaml
+git commit -m "Fix sync failure"
+git push origin develop
+
+# Step 6: Verify recovery
+argocd app sync script-execution-manager-dev
+argocd app get script-execution-manager-dev
+                    </div>
+
+                <div class="verification-steps">
+                    <h4>Verification Steps</h4>
+                    <ul>
+                        <li>Verify sync failure detected</li>
+                        <li>Check error message clarity and detail</li>
+                        <li>Verify log accessibility and usefulness</li>
+                        <li>Test systematic troubleshooting process</li>
+                        <li>Verify fix resolution effectiveness</li>
+                        <li>Document troubleshooting procedures</li>
+                    </ul>
+                </div>
+
+                <div class="expected-result">
+                    <h4>Expected Result</h4>
+                    <p>Troubleshooting procedures should systematically identify and resolve sync failures with clear error messages and accessible logs.</p>
+                </div>
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showCategory(categoryId) {
+            // Hide all categories
+            document.querySelectorAll('.category').forEach(category => {
+                category.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected category
+            document.getElementById(categoryId).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

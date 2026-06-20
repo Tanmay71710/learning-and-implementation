@@ -1,0 +1,232 @@
+# ArgoCD Prometheus Monitoring Configuration
+# This configuration enables and extends ArgoCD metrics collection
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-prometheus-config
+  namespace: argocd
+data:
+  # ArgoCD metrics configuration
+  argocd-cmd-params-cm.yaml: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: argocd-cmd-params-cm
+      namespace: argocd
+    data:
+      # Enable metrics server
+      server.metrics.enabled: "true"
+      
+      # Metrics port
+      server.metrics.port: "8082"
+      
+      # Enable application metrics
+      application.metrics.enabled: "true"
+      
+      # Enable repository metrics
+      repository.metrics.enabled: "true"
+      
+      # Enable cluster metrics
+      cluster.metrics.enabled: "true"
+      
+      # Enable API server metrics
+      api.metrics.enabled: "true"
+      
+      # Metrics path
+      metrics.path: "/metrics"
+
+---
+# ServiceMonitor for ArgoCD
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-application-controller
+  namespace: argocd
+  labels:
+    app: argocd-application-controller
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-application-controller
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - argocd
+
+---
+# ServiceMonitor for ArgoCD API Server
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-server-metrics
+  namespace: argocd
+  labels:
+    app: argocd-server
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-server
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - argocd
+
+---
+# ServiceMonitor for ArgoCD Repository Server
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+  labels:
+    app: argocd-repo-server
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-repo-server
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - argocd
+
+---
+# PrometheusRule for ArgoCD alerts
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: argocd-alerts
+  namespace: argocd
+  labels:
+    app: argocd
+    release: prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: argocd.rules
+    interval: 30s
+    rules:
+    - alert: ArgoCDSyncFailure
+      expr: argocd_app_sync_status{sync_status!="Synced"} == 1
+      for: 10m
+      labels:
+        severity: critical
+        component: argocd
+      annotations:
+        summary: ArgoCD application sync failure
+        description: "ArgoCD application {{ $labels.app_name }} is {{ $labels.sync_status }} for more than 10 minutes."
+    
+    - alert: ArgoCDAppHealthDegraded
+      expr: argocd_app_health_status{health_status!="Healthy"} == 1
+      for: 15m
+      labels:
+        severity: critical
+        component: argocd
+      annotations:
+        summary: ArgoCD application health degraded
+        description: "ArgoCD application {{ $labels.app_name }} health status is {{ $labels.health_status }} for more than 15 minutes."
+    
+    - alert: ArgoCDRepositorySyncFailure
+      expr: rate(argocd_repo_sync_failed_total[1h]) > 0.05
+      for: 15m
+      labels:
+        severity: warning
+        component: argocd
+      annotations:
+        summary: ArgoCD repository sync failure rate
+        description: "ArgoCD repository {{ $labels.repo }} has sync failure rate {{ $value | humanizePercentage }} for the last hour."
+    
+    - alert: ArgoCDApiServerDown
+      expr: up{job="argocd-server"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: argocd
+      annotations:
+        summary: ArgoCD API server is down
+        description: "ArgoCD API server {{ $labels.instance }} has been down for more than 5 minutes."
+    
+    - alert: ArgoCDApplicationControllerDown
+      expr: up{job="argocd-application-controller"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: argocd
+      annotations:
+        summary: ArgoCD application controller is down
+        description: "ArgoCD application controller {{ $labels.instance }} has been down for more than 5 minutes."
+    
+    - alert: ArgoCDRepositoryServerDown
+      expr: up{job="argocd-repo-server"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: argocd
+      annotations:
+        summary: ArgoCD repository server is down
+        description: "ArgoCD repository server {{ $labels.instance }} has been down for more than 5 minutes."
+    
+    - alert: ArgoCDHighSyncLatency
+      expr: histogram_quantile(0.95, rate(argocd_application_controller_sync_duration_seconds_bucket[5m])) > 300
+      for: 15m
+      labels:
+        severity: warning
+        component: argocd
+      annotations:
+        summary: ArgoCD high sync latency
+        description: "ArgoCD application sync 95th percentile latency is {{ $value }}s."
+    
+    - alert: ArgoCDApiHighLatency
+      expr: histogram_quantile(0.95, rate(argocd_server_request_duration_seconds_bucket[5m])) > 2
+      for: 10m
+      labels:
+        severity: warning
+        component: argocd
+      annotations:
+        summary: ArgoCD API high latency
+        description: "ArgoCD API server 95th percentile latency is {{ $value }}s."
+    
+    - alert: ArgoCDKubernetesApiErrors
+      expr: rate(argocd_k8s_request_errors_total[5m]) > 0.05
+      for: 10m
+      labels:
+        severity: warning
+        component: argocd
+      annotations:
+        summary: ArgoCD Kubernetes API errors
+        description: "ArgoCD Kubernetes API error rate is {{ $value | humanizePercentage }} for the last 5 minutes."
+    
+    - alert: ArgoCDOutOfSyncApplications
+      expr: count(argocd_app_sync_status{sync_status!="Synced"}) > 0
+      for: 5m
+      labels:
+        severity: warning
+        component: argocd
+      annotations:
+        summary: ArgoCD applications out of sync
+        description: "{{ $value }} ArgoCD applications are out of sync."
+    
+    - alert: ArgoCDUnhealthyApplications
+      expr: count(argocd_app_health_status{health_status!="Healthy"}) > 0
+      for: 10m
+      labels:
+        severity: critical
+        component: argocd
+      annotations:
+        summary: ArgoCD applications unhealthy
+        description: "{{ $value }} ArgoCD applications are unhealthy."
