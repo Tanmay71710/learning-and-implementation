@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: script-execution-manager-pub-dev
+
+resources:
+  - ../../k8s-base
+
+commonLabels:
+  environment: pub-dev
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+  - configmap-patch.yaml
+  - service-patch.yaml
+
+images:
+  - name: script-execution-manager
+    newName: script-execution-manager
+    newTag: pub-dev

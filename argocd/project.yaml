@@ -12,7 +12,10 @@ spec:
   destinations:
   - name: in-cluster
     server: https://kubernetes.default.svc
-    namespace: script-execution-manager
+    namespace: script-execution-manager-dev
+  - name: in-cluster-pub-dev
+    server: https://kubernetes.default.svc
+    namespace: script-execution-manager-pub-dev
   - name: staging-cluster
     server: https://staging.kubernetes.example.com
     namespace: script-execution-manager-staging

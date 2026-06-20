@@ -1,0 +1,42 @@
+# Development environment values
+replicaCount: 1
+
+image:
+  repository: script-execution-manager
+  tag: dev
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+config:
+  flaskEnv: development
+  flaskDebug: "1"
+  jenkinsJobName: script-execution-job
+  artifactoryRepository: docker-local
+  logLevel: DEBUG
+  maxWorkers: 2
+  timeout: "300"
+
+secrets:
+  databaseUrl: sqlite:///script_manager_dev.db
+  jenkinsUrl: http://jenkins-service:8080
+  jenkinsUsername: your-jenkins-username
+  jenkinsPassword: your-jenkins-password
+  artifactoryUrl: http://artifactory-service:8082
+  artifactoryUsername: your-artifactory-username
+  artifactoryPassword: your-artifactory-password
+  artifactoryApiKey: your-artifactory-api-key

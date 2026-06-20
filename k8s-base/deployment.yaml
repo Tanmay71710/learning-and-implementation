@@ -23,10 +23,10 @@ spec:
     spec:
       containers:
       - name: script-execution-manager
-        image: nginx:latest
+        image: script-execution-manager:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: 5000
           name: http
           protocol: TCP
         env:
@@ -94,16 +94,16 @@ spec:
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /
-            port: 80
+            path: /api/jenkins/health
+            port: 5000
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /
-            port: 80
+            path: /api/jenkins/health
+            port: 5000
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3

@@ -1,5 +1,6 @@
 # Environment variables
 .env
+environments/*/.env
 
 # Python
 __pycache__/
@@ -45,3 +46,24 @@ Thumbs.db
 # Database
 *.db
 *.sqlite
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+
+# Environment-specific secrets (keep templates)
+environments/*/secrets.yaml
+!environments/*/secrets.yaml.example
+
+# Documentation builds
+docs/_build/
+site/

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script-execution-manager-config
+data:
+  flask_env: "development"
+  flask_debug: "1"

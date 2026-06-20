@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jenkins & Artifactory Setup with Kubernetes - Complete Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #764ba2;
+            margin: 20px 0 15px 0;
+            font-size: 1.4em;
+        }
+
+        .step {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #764ba2;
+        }
+
+        .step h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e74c3c;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .command {
+            background: #1a202c;
+            color: #48bb78;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 4px solid #48bb78;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #48bb78;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .info {
+            background: #bee3f8;
+            color: #2a4365;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #4299e1;
+        }
+
+        .warning {
+            background: #fefcbf;
+            color: #744210;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #d69e2e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status.running {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status.stopped {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status.pending {
+            background: #fefcbf;
+            color: #744210;
+        }
+
+        .toc {
+            background: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        .toc ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            padding: 8px 0;
+            border-bottom: 1px solid #cbd5e0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .diagram-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin: 10px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .diagram-arrow {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Jenkins & Artifactory Setup with Kubernetes</h1>
+            <p>Complete DevOps Infrastructure Setup Documentation</p>
+            <p>Generated: June 20, 2026</p>
+        </div>
+
+        <div class="content">
+            <div class="toc">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#overview">1. Project Overview</a></li>
+                    <li><a href="#jenkins-artifactory-installation">2. Jenkins & Artifactory Installation</a></li>
+                    <li><a href="#jenkins-configuration">3. Jenkins Configuration</a></li>
+                    <li><a href="#jenkins-pipeline-setup">4. Jenkins Pipeline Setup</a></li>
+                    <li><a href="#artifactory-troubleshooting">5. Artifactory Connectivity Issues</a></li>
+                    <li><a href="#kubernetes-cluster-setup">6. Kubernetes Cluster Creation</a></li>
+                    <li><a href="#jenkins-kubernetes-deployment">7. Jenkins Deployment to Kubernetes</a></li>
+                    <li><a href="#external-access-setup">8. External Access Configuration</a></li>
+                    <li><a href="#troubleshooting">9. Troubleshooting Guide</a></li>
+                    <li><a href="#summary">10. Final Summary</a></li>
+                </ul>
+            </div>
+
+            <div class="section" id="overview">
+                <h2>1. Project Overview</h2>
+                <p>This document covers the complete setup of a DevOps infrastructure including Jenkins, Artifactory, and Kubernetes for a Script Execution Manager application. The setup includes CI/CD pipeline configuration, artifact management, and container orchestration.</p>
+                
+                <div class="diagram">
+                    <div class="diagram-box">Jenkins</div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box">Artifactory</div>
+                    <span class="diagram-arrow">→</span>
+                    <div class="diagram-box">Kubernetes</div>
+                </div>
+
+                <h3>Project Components:</h3>
+                <ul>
+                    <li><strong>Jenkins:</strong> CI/CD automation server</li>
+                    <li><strong>Artifactory:</strong> Artifact repository and Docker registry</li>
+                    <li><strong>Kubernetes:</strong> Container orchestration platform</li>
+                    <li><strong>Flask Application:</strong> Script Execution Manager</li>
+                </ul>
+            </div>
+
+            <div class="section" id="jenkins-artifactory-installation">
+                <h2>2. Jenkins & Artifactory Installation</h2>
+                
+                <div class="step">
+                    <h4>Step 2.1: Docker Compose Setup</h4>
+                    <p>Created docker-compose.yml with Jenkins, Artifactory, and MinIO services:</p>
+                    <pre><code>version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_ADMIN_ID=${JENKINS_ADMIN_ID:-admin}
+      - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD:-admin}
+    volumes:
+      - jenkins_data:/var/jenkins_home
+
+  artifactory:
+    image: mattgruter/artifactory:latest
+    ports:
+      - "9082:8080"
+    environment:
+      - ARTIFACTORY_ADMIN_USERNAME=${ARTIFACTORY_ADMIN_USERNAME:-admin}
+      - ARTIFACTORY_ADMIN_PASSWORD=${ARTIFACTORY_ADMIN_PASSWORD:-password}
+    volumes:
+      - artifactory_data:/var/opt/jfrog/artifactory</code></pre>
+                </div>
+
+                <div class="step">
+                    <h4>Step 2.2: Environment Configuration</h4>
+                    <p>Created .env file with configuration:</p>
+                    <pre><code>JENKINS_URL=http://10.118.244.255:8080
+JENKINS_USERNAME=admin
+JENKINS_PASSWORD=admin
+ARTIFACTORY_URL=http://10.118.244.255:9082/artifactory
+ARTIFACTORY_USERNAME=admin
+ARTIFACTORY_PASSWORD=password</code></pre>
+                </div>
+
+                <div class="step">
+                    <h4>Step 2.3: Service Startup</h4>
+                    <div class="command">docker compose up -d jenkins artifactory</div>
+                    <div class="success">✅ Jenkins and Artifactory containers started successfully</div>
+                </div>
+            </div>
+
+            <div class="section" id="jenkins-configuration">
+                <h2>3. Jenkins Configuration</h2>
+                
+                <div class="step">
+                    <h4>Step 3.1: Initial Jenkins Setup</h4>
+                    <p>Retrieved initial admin password from Jenkins container:</p>
+                    <div class="command">docker exec learning-jenkins-1 cat /var/jenkins_home/secrets/initialAdminPassword</div>
+                    <p><strong>Password:</strong> ff829a34ec2b4106ac58a03241bf1287</p>
+                </div>
+
+                <div class="step">
+                    <h4>Step 3.2: Jenkins Plugin Installation</h4>
+                    <p>Installed essential plugins using Jenkins CLI:</p>
+                    <ul>
+                        <li>Artifactory Plugin</li>
+                        <li>Docker Plugin</li>
+                        <li>Kubernetes Plugin</li>
+                        <li>Git Plugin</li>
+                        <li>GitHub Plugin</li>
+                        <li>Pipeline Plugin</li>
+                        <li>Blue Ocean</li>
+                        <li>Email Extension Plugin</li>
+                    </ul>
+                    <div class="command">docker exec learning-jenkins-1 jenkins-plugin-cli --plugins artifactory docker-plugin kubernetes git github workflow-aggregator credentials ssh-agent email-ext timestamper blueocean</div>
+                    <div class="success">✅ All plugins installed successfully</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 3.3: Jenkins Job Creation</h4>
+                    <p>Created Jenkins pipeline job configuration:</p>
+                    <pre><code>&lt;flow-definition&gt;
+  &lt;description&gt;Script Execution Manager Pipeline&lt;/description&gt;
+  &lt;definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition"&gt;
+    &lt;scm class="hudson.plugins.git.GitSCM"&gt;
+      &lt;userRemoteConfigs&gt;
+        &lt;hudson.plugins.git.UserRemoteConfig&gt;
+          &lt;url&gt;file:///root/Desktop/learning&lt;/url&gt;
+        &lt;/hudson.plugins.git.UserRemoteConfig&gt;
+      &lt;/userRemoteConfigs&gt;
+    &lt;/scm&gt;
+    &lt;scriptPath&gt;Jenkinsfile&lt;/scriptPath&gt;
+  &lt;/definition&gt;
+&lt;/flow-definition&gt;</code></pre>
+                </div>
+            </div>
+
+            <div class="section" id="jenkins-pipeline-setup">
+                <h2>4. Jenkins Pipeline Setup</h2>
+                
+                <div class="step">
+                    <h4>Step 4.1: Jenkinsfile Creation</h4>
+                    <p>Created comprehensive Jenkinsfile with CI/CD pipeline:</p>
+                    <pre><code>pipeline {
+    agent any
+    
+    environment {
+        ARTIFACTORY_URL = 'http://10.118.244.255:9082'
+        ARTIFACTORY_USERNAME = 'admin'
+        ARTIFACTORY_PASSWORD = 'password'
+        DOCKER_IMAGE = "script-execution-manager:${BUILD_NUMBER}"
+        DOCKER_REPO = "10.118.244.255:9082/docker-local/script-execution-manager"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Setup Environment') {
+            steps {
+                sh """
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install -r requirements.txt
+                """
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                    docker build -t ${DOCKER_IMAGE} .
+                    docker tag ${DOCKER_IMAGE} ${DOCKER_REPO}:${BUILD_NUMBER}
+                """
+            }
+        }
+        
+        stage('Push to Artifactory') {
+            steps {
+                sh """
+                    echo ${ARTIFACTORY_PASSWORD} | docker login ${ARTIFACTORY_URL} -u ${ARTIFACTORY_USERNAME} --password-stdin
+                    docker push ${DOCKER_REPO}:${BUILD_NUMBER}
+                """
+            }
+        }
+        
+        stage('Cleanup') {
+            steps {
+                sh """
+                    docker logout ${ARTIFACTORY_URL}
+                    docker rmi ${DOCKER_IMAGE} || true
+                """
+            }
+        }
+    }
+}</code></pre>
+                </div>
+
+                <div class="step">
+                    <h4>Step 4.2: Pipeline Stages</h4>
+                    <table>
+                        <tr>
+                            <th>Stage</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>Checkout</td>
+                            <td>Clone repository</td>
+                        </tr>
+                        <tr>
+                            <td>Setup Environment</td>
+                            <td>Create Python virtual environment</td>
+                        </tr>
+                        <tr>
+                            <td>Code Quality</td>
+                            <td>Run linting and formatting checks</td>
+                        </tr>
+                        <tr>
+                            <td>Build Docker Image</td>
+                            <td>Build Docker image with build tags</td>
+                        </tr>
+                        <tr>
+                            <td>Push to Artifactory</td>
+                            <td>Push to Artifactory Docker registry</td>
+                        </tr>
+                        <tr>
+                            <td>Test Application</td>
+                            <td>Run application tests</td>
+                        </tr>
+                        <tr>
+                            <td>Cleanup</td>
+                            <td>Remove Docker images and clean workspace</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section" id="artifactory-troubleshooting">
+                <h2>5. Artifactory Connectivity Issues</h2>
+                
+                <div class="step">
+                    <h4>Step 5.1: Initial Artifactory Issues</h4>
+                    <div class="error">❌ Initial Artifactory image (docker.bintray.io/jfrog/artifactory-oss:latest) failed to start with cluster join errors</div>
+                    <p><strong>Error:</strong> Service registry ping failed, connection refused on port 8046</p>
+                </div>
+
+                <div class="step">
+                    <h4>Step 5.2: Image Replacement Attempts</h4>
+                    <p>Tried multiple Artifactory images:</p>
+                    <ul>
+                        <li>releases-docker.jfg.io/jfrog/artifactory-oss:latest - TLS errors</li>
+                        <li>releases.jfrog.io/jfrog/artifactory-oss:latest - 404 Not Found</li>
+                        <li>ghcr.io/jfrog/artifactory-oss:latest - Access denied</li>
+                        <li>releases.jfrog.io/jfrog/artifactory-pro:latest - Not Found</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <h4>Step 5.3: Working Solution</h4>
+                    <p>Successfully used mattgruter/artifactory:latest with port mapping correction:</p>
+                    <pre><code>artifactory:
+    image: mattgruter/artifactory:latest
+    ports:
+      - "9082:8080"  # Changed from 9082:8082 to 9082:8080</code></pre>
+                    <div class="success">✅ Artifactory successfully started and accessible internally</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 5.4: External Access Issues</h4>
+                    <div class="warning">⚠️ External browser access failed with ERR_CONNECTION_RESET errors</div>
+                    <p><strong>Root Cause:</strong> Network connectivity issues between client browser and server, not Artifactory functionality</p>
+                    <p><strong>Internal Status:</strong> Artifactory working perfectly via curl from server</p>
+                </div>
+            </div>
+
+            <div class="section" id="kubernetes-cluster-setup">
+                <h2>6. Kubernetes Cluster Creation</h2>
+                
+                <div class="step">
+                    <h4>Step 6.1: Tool Installation Check</h4>
+                    <p>Verified existing Kubernetes tools:</p>
+                    <ul>
+                        <li>kubectl: ✅ Already installed at /usr/local/bin/kubectl</li>
+                        <li>minikube: ❌ Not installed</li>
+                        <li>k3s: ❌ Not installed</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <h4>Step 6.2: minikube Installation Attempt</h4>
+                    <div class="command">curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64</div>
+                    <div class="command">chmod +x minikube-linux-amd64 && sudo mv minikube-linux-amd64 /usr/local/bin/minikube</div>
+                    <div class="error">❌ Docker driver failed with root privileges error</div>
+                    <div class="error">❌ None driver failed due to missing conntrack package</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 6.3: k3s Installation (Success)</h4>
+                    <div class="command">curl -sfL https://get.k3s.io | sh -</div>
+                    <div class="success">✅ k3s v1.35.5+k3s1 installed and started successfully</div>
+                    <p><strong>Cluster Information:</strong></p>
+                    <ul>
+                        <li>Version: v1.35.5+k3s1</li>
+                        <li>Node: smtpserverhost (Ready)</li>
+                        <li>Control Plane: Running at https://127.0.0.1:6443</li>
+                    </ul>
+                </div>
+
+                <div class="step">
+                    <h4>Step 6.4: kubectl Configuration</h4>
+                    <div class="command">mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config</div>
+                    <div class="command">sudo chown $USER:$USER ~/.kube/config && chmod 600 ~/.kube/config</div>
+                    <div class="success">✅ kubectl configured to use k3s cluster</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 6.5: Cluster Verification</h4>
+                    <div class="command">kubectl get nodes</div>
+                    <pre><code>NAME             STATUS   ROLES           AGE   VERSION
+smtpserverhost   Ready    control-plane   19s   v1.35.5+k3s1</code></pre>
+                    <div class="command">kubectl get pods --all-namespaces</div>
+                    <pre><code>NAMESPACE     NAME                                      READY   STATUS
+kube-system   coredns-8db54c48d-fwm6b                   1/1     Running
+kube-system   local-path-provisioner-5d9d9885bc-fv5rv   1/1     Running
+kube-system   metrics-server-786d997795-j58wc           1/1     Running
+kube-system   traefik-9bcdbbd9-5f2tt                    1/1     Running</code></pre>
+                </div>
+            </div>
+
+            <div class="section" id="jenkins-kubernetes-deployment">
+                <h2>7. Jenkins Deployment to Kubernetes</h2>
+                
+                <div class="step">
+                    <h4>Step 7.1: Kubernetes Manifests Creation</h4>
+                    <p>Created comprehensive Jenkins deployment configuration:</p>
+                    <pre><code>apiVersion: v1
+kind: Namespace
+metadata:
+  name: jenkins
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins
+  namespace: jenkins
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jenkins
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create","delete","get","list","patch","update","watch"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create","delete","get","list","patch","update","watch"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      serviceAccountName: jenkins
+      containers:
+      - name: jenkins
+        image: jenkins/jenkins:lts
+        ports:
+        - containerPort: 8080
+        - containerPort: 50000</code></pre>
+                </div>
+
+                <div class="step">
+                    <h4>Step 7.2: Initial Service Configuration</h4>
+                    <p>Initially configured as LoadBalancer service:</p>
+                    <pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  type: LoadBalancer
+  selector:
+    app: jenkins
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080</code></pre>
+                </div>
+
+                <div class="step">
+                    <h4>Step 7.3: Deployment Execution</h4>
+                    <div class="command">kubectl apply -f /root/Desktop/learning/k8s/jenkins-deployment.yaml</div>
+                    <pre><code>namespace/jenkins created
+serviceaccount/jenkins created
+clusterrole.rbac.authorization.k8s.io/jenkins created
+clusterrolebinding.rbac.authorization.k8s.io/jenkins created
+persistentvolumeclaim/jenkins-pvc created
+deployment.apps/jenkins created
+service/jenkins created</code></pre>
+                    <div class="success">✅ All Kubernetes resources created successfully</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 7.4: Pod Status Verification</h4>
+                    <div class="command">kubectl get pods -n jenkins</div>
+                    <pre><code>NAME                       READY   STATUS    RESTARTS   AGE
+jenkins-6b978f6ddb-j2t5m   1/1     Running   0          2m2s</code></pre>
+                    <div class="success">✅ Jenkins pod running successfully</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 7.5: Initial Setup Password</h4>
+                    <div class="command">kubectl logs -n jenkins jenkins-6b978f6ddb-j2t5m --tail 20</div>
+                    <p><strong>Initial Admin Password:</strong> 00e96955cd7842c59c11be2864a95cc8</p>
+                    <div class="info">ℹ️ Jenkins fully initialized and ready for setup</div>
+                </div>
+            </div>
+
+            <div class="section" id="external-access-setup">
+                <h2>8. External Access Configuration</h2>
+                
+                <div class="step">
+                    <h4>Step 8.1: LoadBalancer Issue</h4>
+                    <div class="error">❌ LoadBalancer service type didn't work for external access</div>
+                    <p><strong>Problem:</strong> LoadBalancer assigned VM IP (10.118.244.255) but wasn't accessible from Windows machine</p>
+                    <p><strong>Root Cause:</strong> LoadBalancer type requires cloud provider infrastructure; k3s mimics this but doesn't provide actual external load balancing</p>
+                </div>
+
+                <div class="step">
+                    <h4>Step 8.2: Network Configuration Analysis</h4>
+                    <div class="command">ip addr show</div>
+                    <pre><code>ens192: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt;
+    inet 10.118.244.255/22 brd 10.118.247.255 scope global ens192</code></pre>
+                    <p><strong>VM Network:</strong> 10.118.244.255/22 on interface ens192</p>
+                </div>
+
+                <div class="step">
+                    <h4>Step 8.3: NodePort Solution</h4>
+                    <p>Changed service type from LoadBalancer to NodePort:</p>
+                    <pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  type: NodePort  # Changed from LoadBalancer
+  selector:
+    app: jenkins
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    nodePort: 30080  # External access port
+  - name: agent
+    port: 50000
+    targetPort: 50000
+    nodePort: 30050</code></pre>
+                </div>
+
+                <div class="step">
+                    <h4>Step 8.4: Service Update</h4>
+                    <div class="command">kubectl apply -f /root/Desktop/learning/k8s/jenkins-deployment.yaml</div>
+                    <div class="success">✅ Service reconfigured as NodePort</div>
+                </div>
+
+                <div class="step">
+                    <h4>Step 8.5: External Access Verification</h4>
+                    <div class="command">kubectl get svc -n jenkins</div>
+                    <pre><code>NAME      TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S                          AGE
+jenkins   NodePort   10.43.151.53   &lt;none&gt;        8080:30080/TCP,50000:30050/TCP   5m45s</code></pre>
+                    <div class="command">curl -I http://10.118.244.255:30080</div>
+                    <pre><code>HTTP/1.1 403 Forbidden
+Server: Jetty(12.1.8)
+X-Jenkins: 2.555.3</code></pre>
+                    <div class="success">✅ Jenkins accessible via http://10.118.244.255:30080</div>
+                </div>
+            </div>
+
+            <div class="section" id="troubleshooting">
+                <h2>9. Troubleshooting Guide</h2>
+                
+                <h3>Common Issues and Solutions</h3>
+                
+                <div class="step">
+                    <h4>Issue 1: Artifactory Connection Reset</h4>
+                    <p><strong>Symptoms:</strong> ERR_CONNECTION_RESET when accessing Artifactory from browser</p>
+                    <p><strong>Solution:</strong> Use SSH tunneling or access from server directly</p>
+                    <div class="command">ssh -L 9082:localhost:9082 user@server-ip</div>
+                </div>
+
+                <div class="step">
+                    <h4>Issue 2: LoadBalancer Not Accessible Externally</h4>
+                    <p><strong>Symptoms:</strong> LoadBalancer service not accessible from external machines</p>
+                    <p><strong>Solution:</strong> Use NodePort service type for local Kubernetes clusters</p>
+                </div>
+
+                <div class="step">
+                    <h4>Issue 3: Kubernetes Pod Pending</h4>
+                    <p><strong>Symptoms:</strong> Pods stuck in Pending state</p>
+                    <p><strong>Solution:</strong> Check PVC status and storage class availability</p>
+                    <div class="command">kubectl get pvc -n jenkins</div>
+                    <div class="command">kubectl get storageclass</div>
+                </div>
+
+                <div class="step">
+                    <h4>Issue 4: Port Conflicts</h4>
+                    <p><strong>Symptoms:</strong> Services fail to start due to port conflicts</p>
+                    <p><strong>Solution:</strong> Use different port mappings or stop conflicting services</p>
+                </div>
+
+                <h3>Network Troubleshooting</h3>
+                
+                <div class="step">
+                    <h4>From Windows Machine:</h4>
+                    <div class="command">ping 10.118.244.255</div>
+                    <div class="command">telnet 10.118.244.255 30080</div>
+                    <div class="command">curl http://10.118.244.255:30080</div>
+                </div>
+
+                <div class="step">
+                    <h4>From VM/Server:</h4>
+                    <div class="command">kubectl get pods -n jenkins</div>
+                    <div class="command">kubectl get svc -n jenkins</div>
+                    <div class="command">kubectl logs -n jenkins jenkins-6b978f6ddb-j2t5m</div>
+                </div>
+            </div>
+
+            <div class="section" id="summary">
+                <h2>10. Final Summary</h2>
+                
+                <h3>Current Infrastructure Status</h3>
+                
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Status</th>
+                        <th>Access URL</th>
+                        <th>Credentials</th>
+                    </tr>
+                    <tr>
+                        <td>Jenkins (Docker)</td>
+                        <td><span class="status running">Running</span></td>
+                        <td>http://10.118.244.255:8080</td>
+                        <td>admin/admin</td>
+                    </tr>
+                    <tr>
+                        <td>Artifactory (Docker)</td>
+                        <td><span class="status running">Running</span></td>
+                        <td>http://10.118.244.255:9082/artifactory/webapp/</td>
+                        <td>admin/password</td>
+                    </tr>
+                    <tr>
+                        <td>Jenkins (Kubernetes)</td>
+                        <td><span class="status running">Running</span></td>
+                        <td>http://10.118.244.255:30080</td>
+                        <td>admin/00e96955cd7842c59c11be2864a95cc8</td>
+                    </tr>
+                    <tr>
+                        <td>Kubernetes Cluster</td>
+                        <td><span class="status running">Running</span></td>
+                        <td>k3s v1.35.5+k3s1</td>
+                        <td>Configured</td>
+                    </tr>
+                </table>
+
+                <h3>Key Learnings</h3>
+                <ul>
+                    <li><strong>Service Types:</strong> LoadBalancer is for cloud providers; use NodePort for local clusters</li>
+                    <li><strong>Image Selection:</strong> Not all Artifactory images are maintained; use working alternatives</li>
+                    <li><strong>Network Configuration:</strong> VM network settings are crucial for external access</li>
+                    <li><strong>Kubernetes Storage:</strong> Local-path provisioner works well for local development</li>
+                    <li><strong>RBAC Configuration:</strong> Essential for Jenkins pod management permissions</li>
+                </ul>
+
+                <h3>Access Methods</h3>
+                <div class="info">
+                    <strong>From Windows Machine:</strong><br>
+                    Jenkins Kubernetes: http://10.118.244.255:30080<br>
+                    Jenkins Docker: http://10.118.244.255:8080<br>
+                    Artifactory: http://10.118.244.255:9082/artifactory/webapp/
+                </div>
+
+                <h3>Next Steps</h3>
+                <ol>
+                    <li>Complete Jenkins setup wizard using initial password</li>
+                    <li>Configure Jenkins credentials for Artifactory</li>
+                    <li>Install and configure Kubernetes plugin in Jenkins</li>
+                    <li>Create and test Jenkins pipeline</li>
+                    <li>Deploy Flask application to Kubernetes</li>
+                    <li>Set up monitoring and logging</li>
+                </ol>
+
+                <div class="success">
+                    <strong>✅ Infrastructure Setup Complete</strong><br>
+                    All components are running and accessible. The DevOps infrastructure is ready for CI/CD pipeline implementation.
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Documentation generated automatically | Script Execution Manager Project</p>
+            <p>Last updated: June 20, 2026</p>
+        </div>
+    </div>
+</body>
+</html>

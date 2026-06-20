@@ -44,14 +44,14 @@ spec:
   syncPolicy:
     preserveResourcesOnDeletion: false
   applications:
-    - name: script-execution-manager-prod
-      namespace: script-execution-manager-prod
+    - name: script-execution-manager-dev
+      namespace: script-execution-manager-dev
       repoURL: https://github.com/Tanmay71710/learning-and-implementation
-      targetRevision: master
-      path: k8s
+      targetRevision: develop
+      path: environments/dev/k8s
       destination:
-        server: https://production.kubernetes.example.com
-        namespace: script-execution-manager-prod
+        server: https://kubernetes.default.svc
+        namespace: script-execution-manager-dev
       syncPolicy:
         automated:
           prune: true
@@ -61,8 +61,8 @@ spec:
     - name: script-execution-manager-staging
       namespace: script-execution-manager-staging
       repoURL: https://github.com/Tanmay71710/learning-and-implementation
-      targetRevision: develop
-      path: k8s
+      targetRevision: staging
+      path: environments/staging/k8s
       destination:
         server: https://staging.kubernetes.example.com
         namespace: script-execution-manager-staging
@@ -72,14 +72,28 @@ spec:
           selfHeal: true
         syncOptions:
         - CreateNamespace=true
-    - name: script-execution-manager-dev
-      namespace: script-execution-manager-dev
+    - name: script-execution-manager-pub-dev
+      namespace: script-execution-manager-pub-dev
       repoURL: https://github.com/Tanmay71710/learning-and-implementation
-      targetRevision: develop
-      path: k8s
+      targetRevision: pub/dev
+      path: environments/pub-dev/k8s
       destination:
         server: https://kubernetes.default.svc
-        namespace: script-execution-manager-dev
+        namespace: script-execution-manager-pub-dev
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+    - name: script-execution-manager-prod
+      namespace: script-execution-manager-prod
+      repoURL: https://github.com/Tanmay71710/learning-and-implementation
+      targetRevision: master
+      path: environments/production/k8s
+      destination:
+        server: https://production.kubernetes.example.com
+        namespace: script-execution-manager-prod
       syncPolicy:
         automated:
           prune: true

@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: script-execution-manager-staging
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  labels:
+    environment: staging
+spec:
+  project: script-execution-manager
+  source:
+    repoURL: https://github.com/Tanmay71710/learning-and-implementation
+    targetRevision: staging
+    path: environments/staging/k8s
+  destination:
+    server: https://staging.kubernetes.example.com
+    namespace: script-execution-manager-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+      - /spec/replicas
+  revisionHistoryLimit: 5
+  info:
+    - name: Application
+      value: Script Execution Manager
+    - name: Environment
+      value: Staging
+    - name: Owner
+      value: DevOps Team

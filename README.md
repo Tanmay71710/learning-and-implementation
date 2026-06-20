@@ -218,7 +218,34 @@ learning/
 ├── .github/
 │   └── workflows/
 │       ├── code-quality-check.yml     # GitHub Actions workflow (linting)
-│       └── docker-build-push-k8s.yml  # Docker build and K8s deployment
+│       └── docker-build-push-k8s.yml  # Docker build and K8s deployment (multi-env)
+├── environments/                      # Multi-environment configurations
+│   ├── dev/                           # Development environment
+│   │   ├── k8s/                       # Kubernetes overlays
+│   │   ├── helm-values.yaml            # Helm values
+│   │   ├── .env                       # Environment variables
+│   │   └── argocd-application.yaml     # ArgoCD application
+│   ├── staging/                       # Staging environment
+│   │   ├── k8s/
+│   │   ├── helm-values.yaml
+│   │   ├── .env
+│   │   └── argocd-application.yaml
+│   ├── pub-dev/                       # Public development environment
+│   │   ├── k8s/
+│   │   ├── helm-values.yaml
+│   │   ├── .env
+│   │   └── argocd-application.yaml
+│   └── production/                    # Production environment
+│       ├── k8s/
+│       ├── helm-values.yaml
+│       ├── .env
+│       └── argocd-application.yaml
+├── k8s-base/                          # Base Kubernetes manifests
+│   ├── kustomization.yaml
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── configmap.yaml
+│   └── secrets.yaml
 ├── helm/
 │   └── script-execution-manager/     # Helm chart for K8s deployment
 │       ├── Chart.yaml
@@ -238,11 +265,6 @@ learning/
 │   ├── app-of-apps.yaml
 │   ├── argocd-cm.yaml
 │   └── argocd-rbac-cm.yaml
-├── k8s/                             # Kubernetes manifests
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── configmap.yaml
-│   └── secrets.yaml
 ├── app.py                      # Main Flask application
 ├── models.py                   # Database models
 ├── requirements.txt            # Python dependencies
@@ -256,6 +278,7 @@ learning/
 ├── scripts/                   # Directory for executable scripts
 │   ├── send_email_notification.py  # Email notification script
 │   └── generate-artifactory-secret.sh  # K8s secret generator
+├── MULTI_ENVIRONMENT_SETUP.md  # Multi-environment setup guide
 ├── DATABASE_ARTIFACTORY_SETUP.md  # Database and Artifactory guide
 ├── GITHUB_ACTIONS_SETUP.md    # GitHub Actions setup guide
 ├── KUBERNETES_SETUP.md         # Kubernetes deployment guide
@@ -284,6 +307,53 @@ learning/
 - Output capture
 - Error handling
 - Timeout protection (5 minutes)
+
+## Multi-Environment Deployment
+
+This project supports multiple environments for different stages of development and deployment:
+
+- **dev**: Development environment with debug enabled and lower resources
+- **staging**: Pre-production environment for final testing
+- **pub/dev**: Public development environment for external access
+- **production**: Production environment with maximum resources and strict security
+
+### Environment-Specific Deployment
+
+#### Using Kustomize
+
+```bash
+# Deploy to specific environment
+kubectl apply -k environments/dev/k8s
+kubectl apply -k environments/staging/k8s
+kubectl apply -k environments/pub-dev/k8s
+kubectl apply -k environments/production/k8s
+```
+
+#### Using Helm
+
+```bash
+# Deploy to specific environment
+helm install script-execution-manager ./helm/script-execution-manager \
+  -f environments/dev/helm-values.yaml \
+  --namespace script-execution-manager-dev --create-namespace
+```
+
+#### Using ArgoCD
+
+```bash
+# Apply environment-specific ArgoCD application
+kubectl apply -f environments/dev/argocd-application.yaml
+```
+
+#### Using GitHub Actions
+
+The CI/CD pipeline automatically deploys to the appropriate environment based on the branch:
+- `develop` branch → dev environment
+- `staging` branch → staging environment
+- `pub/dev` branch → pub-dev environment
+- `master`/`main` branch → production environment
+
+For detailed information about multi-environment setup, see [MULTI_ENVIRONMENT_SETUP.md](MULTI_ENVIRONMENT_SETUP.md).
 
 ## Docker Deployment
 

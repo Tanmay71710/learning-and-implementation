@@ -1,0 +1,46 @@
+# Public Development environment values
+replicaCount: 3
+
+image:
+  repository: script-execution-manager
+  tag: pub-dev
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+
+resources:
+  limits:
+    cpu: 750m
+    memory: 768Mi
+  requests:
+    cpu: 350m
+    memory: 384Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+config:
+  flaskEnv: production
+  flaskDebug: "0"
+  jenkinsJobName: script-execution-job
+  artifactoryRepository: docker-local
+  logLevel: INFO
+  maxWorkers: 4
+  timeout: "300"
+
+secrets:
+  databaseUrl: postgresql://user:password@postgres-service:5432/script_manager_pubdev
+  jenkinsUrl: http://jenkins-pubdev-service:8080
+  jenkinsUsername: your-jenkins-username
+  jenkinsPassword: your-jenkins-password
+  artifactoryUrl: http://artifactory-pubdev-service:8082
+  artifactoryUsername: your-artifactory-username
+  artifactoryPassword: your-artifactory-password
+  artifactoryApiKey: your-artifactory-api-key

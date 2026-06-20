@@ -1,0 +1,46 @@
+# Staging environment values
+replicaCount: 2
+
+image:
+  repository: script-execution-manager
+  tag: staging
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+config:
+  flaskEnv: production
+  flaskDebug: "0"
+  jenkinsJobName: script-execution-job
+  artifactoryRepository: docker-local
+  logLevel: INFO
+  maxWorkers: 4
+  timeout: "300"
+
+secrets:
+  databaseUrl: postgresql://user:password@postgres-service:5432/script_manager_staging
+  jenkinsUrl: http://jenkins-staging-service:8080
+  jenkinsUsername: your-jenkins-username
+  jenkinsPassword: your-jenkins-password
+  artifactoryUrl: http://artifactory-staging-service:8082
+  artifactoryUsername: your-artifactory-username
+  artifactoryPassword: your-artifactory-password
+  artifactoryApiKey: your-artifactory-api-key

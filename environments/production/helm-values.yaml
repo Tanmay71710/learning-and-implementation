@@ -1,0 +1,46 @@
+# Production environment values
+replicaCount: 5
+
+image:
+  repository: script-execution-manager
+  tag: production
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 5000
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 15
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+config:
+  flaskEnv: production
+  flaskDebug: "0"
+  jenkinsJobName: script-execution-job
+  artifactoryRepository: docker-local
+  logLevel: WARNING
+  maxWorkers: 8
+  timeout: "300"
+
+secrets:
+  databaseUrl: postgresql://user:password@postgres-service:5432/script_manager_prod
+  jenkinsUrl: http://jenkins-prod-service:8080
+  jenkinsUsername: your-jenkins-username
+  jenkinsPassword: your-jenkins-password
+  artifactoryUrl: http://artifactory-prod-service:8082
+  artifactoryUsername: your-artifactory-username
+  artifactoryPassword: your-artifactory-password
+  artifactoryApiKey: your-artifactory-api-key
