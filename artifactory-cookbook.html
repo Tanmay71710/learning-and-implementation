@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artifactory Cookbook - Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .callout {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .callout.warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .callout.tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .callout.error {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .recipe {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recipe h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .faq-item {
+            margin: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            color: #666;
+            margin-left: 20px;
+        }
+
+        .collapsible {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapsible-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Artifactory Cookbook</h1>
+            <p>Script Execution Manager - JFrog Artifactory Configuration and Integration Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Documentation Index</a>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#recipes">Cookbook Recipes</a></li>
+                <li><a href="#usage">Usage in Project</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#common-mistakes">Common Mistakes</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#improvements">Improvements</a></li>
+                <li><a href="#quick-reference">Quick Reference</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="overview">
+            <h2>A. Title and Overview</h2>
+            <h3>JFrog Artifactory</h3>
+            <p><strong>Role in Project:</strong> Artifactory serves as the universal artifact repository for Docker images, build artifacts, and dependencies in the Script Execution Manager GitOps pipeline.</p>
+            
+            <h3>Why Artifactory is Used</h3>
+            <ul>
+                <li><strong>Universal Repository:</strong> Supports Docker, Maven, npm, and many other package formats</li>
+                <li><strong>High Availability:</strong> Enterprise-grade repository with redundancy and replication</li>
+                <li><strong>Security:</strong> Fine-grained access control and vulnerability scanning</li>
+                <li><strong>Integration:</strong> Seamless integration with CI/CD tools like Jenkins and GitHub Actions</li>
+                <li><strong>Performance:</strong> CDN capabilities and optimized artifact storage</li>
+            </ul>
+
+            <h3>GitOps Pipeline Position</h3>
+            <p>Artifactory sits between the CI pipeline (GitHub Actions/Jenkins) and the deployment environment. It stores Docker images that are built during the CI process and pulled by Kubernetes during deployment.</p>
+
+            <h3>Key Responsibilities</h3>
+            <ul>
+                <li>Docker image storage and distribution</li>
+                <li>Build artifact management</li>
+                <li>Dependency proxy for external repositories</li>
+                <li>Access control and security scanning</li>
+                <li>Replication and high availability</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>B. What You Should Know Before Starting</h2>
+            
+            <h3>Foundational Concepts</h3>
+            <ul>
+                <li><strong>Repository Management:</strong> Understanding of local, remote, and virtual repositories</li>
+                <li><strong>Docker Registry:</strong> Knowledge of Docker image storage and distribution</li>
+                <li><strong>Package Management:</strong> Understanding of dependency management concepts</li>
+                <li><strong>Access Control:</strong> Knowledge of authentication and authorization principles</li>
+                <li><strong>CI/CD Integration:</strong> Understanding of how repositories fit in build pipelines</li>
+            </ul>
+
+            <h3>Assumptions</h3>
+            <ul>
+                <li>You have basic understanding of container concepts</li>
+                <li>You're familiar with command-line tools</li>
+                <li>You understand basic networking and DNS concepts</li>
+                <li>You have access to Kubernetes cluster for deployment</li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <ul>
+                <li><strong>Docker:</strong> For building and pushing container images</li>
+                <li><strong>Kubernetes:</strong> For pulling images in deployment</li>
+                <li><strong>CI/CD Tools:</strong> Jenkins or GitHub Actions for integration</li>
+            </ul>
+
+            <h3>Operational Context</h3>
+            <p>Artifactory runs as a containerized application in Kubernetes with persistent storage. It provides Docker registry functionality and serves as the central artifact repository for the entire GitOps pipeline.</p>
+
+            <h3>Production Considerations</h3>
+            <ul>
+                <li>Implement proper backup and disaster recovery</li>
+                <li>Configure replication for high availability</li>
+                <li>Set up monitoring and alerting</li>
+                <li>Implement proper access control and security policies</li>
+                <li>Configure storage optimization and cleanup policies</li>
+            </ul>
+
+            <h3>Hidden Complexity</h3>
+            <ul>
+                <li>Repository layout and virtual repository configuration</li>
+                <li>Permission target management and inheritance</li>
+                <li>Storage optimization and garbage collection</li>
+                <li>Proxy configuration for external repositories</li>
+                <li>SSL/TLS certificate management</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>C. Prerequisites</h2>
+            
+            <h3>Software Requirements</h3>
+            <table>
+                <tr>
+                    <th>Software</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Docker</td>
+                    <td>20.0+</td>
+                    <td>Container image management</td>
+                </tr>
+                <tr>
+                    <td>Kubernetes</td>
+                    <td>1.20+</td>
+                    <td>Deployment platform</td>
+                </tr>
+                <tr>
+                    <td>kubectl</td>
+                    <td>Latest</td>
+                    <td>Kubernetes cluster management</td>
+                </tr>
+            </table>
+
+            <h3>Accounts and Permissions</h3>
+            <ul>
+                <li><strong>Artifactory Admin Account:</strong> For initial setup and configuration</li>
+                <li><strong>Service Account:</strong> For CI/CD automation (Jenkins/GitHub Actions)</li>
+                <li><strong>Developer Accounts:</strong> For developers to push/pull artifacts</li>
+                <li><strong>Kubernetes Permissions:</strong> For deploying Artifactory in cluster</li>
+            </ul>
+
+            <h3>Environment Variables Required</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>ARTIFACTORY_URL=http://artifactory-service:8082
+ARTIFACTORY_USERNAME=admin
+ARTIFACTORY_PASSWORD=password
+ARTIFACTORY_API_KEY=your-api-key
+ARTIFACTORY_REPOSITORY=docker-local</pre>
+            </div>
+
+            <h3>Network Requirements</h3>
+            <ul>
+                <li>DNS resolution for Artifactory hostname</li>
+                <li>Network connectivity between CI/CD tools and Artifactory</li>
+                <li>Network connectivity between Kubernetes cluster and Artifactory</li>
+                <li>Firewall rules for required ports (8081, 8082)</li>
+            </ul>
+        </section>
+
+        <section class="section" id="installation">
+            <h2>D. Installation / Setup</h2>
+            
+            <h3>Step 1: Deploy Artifactory in Kubernetes</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create namespace
+kubectl create namespace artifactory
+
+# Deploy Artifactory using Helm (recommended)
+helm repo add jfrog https://charts.jfrog.io
+helm install artifactory jfrog/artifactory --namespace artifactory
+
+# Or use provided Kubernetes manifests
+kubectl apply -f k8s/artifactory-deployment.yaml</pre>
+            </div>
+
+            <h3>Step 2: Configure Persistent Storage</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create PersistentVolumeClaim
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artifactory-data
+  namespace: artifactory
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+EOF</pre>
+            </div>
+
+            <h3>Step 3: Configure Service and Ingress</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Expose Artifactory service
+kubectl expose deployment artifactory --name=artifactory --port=8081 --namespace=artifactory
+
+# Create ingress for external access
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: artifactory-ingress
+  namespace: artifactory
+spec:
+  rules:
+  - host: artifactory.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: artifactory
+            port:
+              number: 8081
+EOF</pre>
+            </div>
+
+            <h3>Step 4: Initialize Artifactory</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Access Artifactory UI
+kubectl port-forward svc/artifactory -n artifactory 8082:8081
+
+# Open browser to http://localhost:8082
+# Default credentials: admin / password</pre>
+            </div>
+
+            <h3>Step 5: Create Docker Repository</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Via Artifactory UI:
+# 1. Navigate to Administration → Repositories → Repositories → Local
+# 2. Click "New Local Repository"
+# 3. Select "Docker"
+# 4. Name: docker-local
+# 5. Click "Create"</pre>
+            </div>
+
+            <h3>Step 6: Validate Setup</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Test Docker registry access
+docker login artifactory.local:8082
+# Use admin/password credentials
+
+# Pull test image
+docker pull nginx:latest
+docker tag nginx:latest artifactory.local:8082/docker-local/nginx:latest
+docker push artifactory.local:8082/docker-local/nginx:latest</pre>
+            </div>
+
+            <div class="callout tip">
+                <strong>Tip:</strong> For production deployments, use Artifactory High Availability (HA) setup with multiple nodes and shared storage for redundancy and performance.
+            </div>
+        </section>
+
+        <section class="section" id="configuration">
+            <h2>E. Configuration Guide</h2>
+            
+            <h3>Repository Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>Repository Name</td>
+                    <td>Unique identifier for repository</td>
+                    <td>docker-local</td>
+                    <td>Yes</td>
+                    <td>When creating new repositories</td>
+                </tr>
+                <tr>
+                    <td>Repository Type</td>
+                    <td>Type of repository (local, remote, virtual)</td>
+                    <td>Local</td>
+                    <td>Yes</td>
+                    <td>Based on use case</td>
+                </tr>
+                <tr>
+                    <td>Package Type</td>
+                    <td>Format of artifacts stored</td>
+                    <td>Docker</td>
+                    <td>Yes</td>
+                    <td>Based on artifact type</td>
+                </tr>
+                <tr>
+                    <td>Base URL</td>
+                    <td>URL for accessing repository</td>
+                    <td>http://artifactory.local:8082</td>
+                    <td>Yes</td>
+                    <td>When changing domain or port</td>
+                </tr>
+                <tr>
+                    <td>Storage Quota</td>
+                    <td>Maximum storage limit</td>
+                    <td>100GB</td>
+                    <td>No</td>
+                    <td>When managing storage capacity</td>
+                </tr>
+            </table>
+
+            <h3>Permission Target Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>Target Name</td>
+                    <td>Identifier for permission target</td>
+                    <td>ci-cd-permissions</td>
+                    <td>Yes</td>
+                    <td>When creating new permission sets</td>
+                </tr>
+                <tr>
+                    <td>Repositories</td>
+                    <td>Repositories this target applies to</td>
+                    <td>docker-local, maven-local</td>
+                    <td>Yes</td>
+                    <td>When adding/removing repositories</td>
+                </tr>
+                <tr>
+                    <td>Actions</td>
+                    <td>Allowed operations (read, write, delete)</td>
+                    <td>read, write, annotate</td>
+                    <td>Yes</td>
+                    <td>Based on access requirements</td>
+                </tr>
+            </table>
+
+            <h3>Common Configuration Mistakes</h3>
+            <div class="callout warning">
+                <strong>Warning:</strong> Avoid using admin credentials in CI/CD pipelines. Create dedicated service accounts with minimum required permissions.
+            </div>
+            <ul>
+                <li>Using admin credentials for automation</li>
+                <li>Not setting storage quotas leading to disk space issues</li>
+                <li>Incorrect repository type for use case</li>
+                <li>Missing HTTPS/TLS configuration for production</li>
+                <li>Not implementing proper cleanup policies</li>
+            </ul>
+
+            <h3>Environment-Specific Configuration</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Development</th>
+                    <th>Staging</th>
+                    <th>Production</th>
+                </tr>
+                <tr>
+                    <td>Repository Layout</td>
+                    <td>Single local repository</td>
+                    <td>Virtual with multiple repos</td>
+                    <td>HA setup with replication</td>
+                </tr>
+                <tr>
+                    <td>Authentication</td>
+                    <td>Basic auth</td>
+                    <td>Basic + API keys</td>
+                    <td>LDAP/OAuth integration</td>
+                </tr>
+                <tr>
+                    <td>Storage</td>
+                    <td>Local storage</td>
+                    <td>Network storage</td>
+                    <td>Shared storage with backup</td>
+                </tr>
+                <tr>
+                    <td>SSL/TLS</td>
+                    <td>Self-signed</td>
+                    <td>Valid certificate</td>
+                    <td>Valid certificate + HSTS</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="recipes">
+            <h2>F. Cookbook Recipes</h2>
+            
+            <div class="recipe">
+                <h4>Recipe 1: Create Docker Local Repository</h4>
+                <p><strong>Purpose:</strong> Set up a Docker repository for container image storage</p>
+                <p><strong>Ingredients:</strong> Artifactory admin access, repository configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Log in to Artifactory admin console</li>
+                    <li>Navigate to Administration → Repositories</li>
+                    <li>Click "New Local Repository"</li>
+                    <li>Select "Docker" as package type</li>
+                    <li>Enter repository name: <code>docker-local</code></li>
+                    <li>Configure base URL and port (default: 8082)</li>
+                    <li>Click "Create"</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Docker repository ready for image push/pull</p>
+                <p><strong>Verification:</strong> Test with <code>docker login artifactory:8082</code></p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 2: Configure CI/CD Service Account</h4>
+                <p><strong>Purpose:</strong> Create service account for Jenkins/GitHub Actions integration</p>
+                <p><strong>Ingredients:</strong> Artifactory admin access, user management</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Navigate to Administration → Users & Groups</li>
+                    <li>Click "New User"</li>
+                    <li>Enter username: <code>ci-cd-service</code></li>
+                    <li>Generate strong password</li>
+                    <li>Add to appropriate groups</li>
+                    <li>Create API key for automation</li>
+                    <li>Save credentials securely</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Service account with API key for CI/CD</p>
+                <p><strong>Verification:</strong> Test login with service account credentials</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 3: Set up Repository Replication</h4>
+                <p><strong>Purpose:</strong> Configure replication for high availability</p>
+                <p><strong>Ingredients:</strong> Multiple Artifactory instances, network connectivity</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Configure remote Artifactory instance</li>
+                    <li>Navigate to Administration → Replication</li>
+                    <li>Click "New Replication"</li>
+                    <li>Select source and target repositories</li>
+                    <li>Configure replication frequency and event types</li>
+                    <li>Test replication with sample artifact</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Artifacts automatically replicated between instances</p>
+                <p><strong>Verification:</strong> Push artifact to source, verify in target</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 4: Configure Storage Cleanup</h4>
+                <p><strong>Purpose:</strong> Implement automatic cleanup of old artifacts</p>
+                <p><strong>Ingredients:</strong> Artifactory admin access, cron expressions</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Navigate to Administration → Maintenance</li>
+                    <li>Click "New Cleanup Policy"</li>
+                    <li>Select repositories to clean up</li>
+                    <li>Configure retention rules (e.g., keep last 10 versions)</li>
+                    <li>Set schedule using cron expression</li>
+                    <li>Enable policy</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Old artifacts automatically cleaned up</p>
+                <p><strong>Verification:</strong> Monitor storage usage over time</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 5: Integrate with GitHub Actions</h4>
+                <p><strong>Purpose:</strong> Configure Artifactory for GitHub Actions CI/CD</p>
+                <p><strong>Ingredients:</strong> GitHub repository, Artifactory credentials</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Add Artifactory credentials to GitHub Secrets</li>
+                    <li>Configure Docker login in GitHub Actions workflow</li>
+                    <li>Set up build and push steps in workflow</li>
+                    <li>Configure image tagging strategy</li>
+                    <li>Test workflow with sample build</li>
+                </ol>
+                <p><strong>Expected Result:</strong> GitHub Actions can push images to Artifactory</p>
+                <p><strong>Verification:</strong> Trigger workflow and check Artifactory for new images</p>
+            </div>
+        </section>
+
+        <section class="section" id="usage">
+            <h2>G. Usage in This Project</h2>
+            
+            <h3>Who Uses the Tool</h3>
+            <ul>
+                <li><strong>CI/CD Pipeline:</strong> GitHub Actions pushes Docker images to Artifactory</li>
+                <li><strong>Kubernetes:</strong> Pulls Docker images from Artifactory for deployment</li>
+                <li><strong>Developers:</strong> Use Artifactory for dependency management and artifact storage</li>
+                <li><strong>DevOps Engineers:</strong> Manage repository configuration and access control</li>
+            </ul>
+
+            <h3>Event Triggers</h3>
+            <ul>
+                <li><strong>Git Push:</strong> Triggers GitHub Actions to build and push images</li>
+                <li><strong>Deployment:</strong> Kubernetes pulls images during deployment</li>
+                <li><strong>Cleanup Policies:</strong> Scheduled cleanup of old artifacts</li>
+            </ul>
+
+            <h3>Input/Output</h3>
+            <ul>
+                <li><strong>Input:</strong> Docker images, build artifacts, dependencies</li>
+                <li><strong>Output:</strong> Stored artifacts with metadata, access logs, security scan results</li>
+            </ul>
+
+            <h3>System Integration</h3>
+            <ul>
+                <li><strong>GitHub Actions:</strong> CI/CD pipeline pushes images to Artifactory</li>
+                <li><strong>Kubernetes:</strong> Pulls images from Artifactory for deployments</li>
+                <li><strong>Jenkins:</strong> Can use Artifactory for build artifact storage</li>
+                <li><strong>Argo CD:</strong> References Artifactory image locations in manifests</li>
+            </ul>
+
+            <h3>GitOps Flow</h3>
+            <ol>
+                <li>Developer pushes code changes to Git repository</li>
+                <li>GitHub Actions builds Docker image</li>
+                <li>Image is pushed to Artifactory with appropriate tags</li>
+                <li>Argo CD detects new image in deployment manifests</li>
+                <li>Kubernetes pulls new image from Artifactory for deployment</li>
+            </ol>
+        </section>
+
+        <section class="section" id="best-practices">
+            <h2>H. Best Practices</h2>
+            
+            <h3>Naming Conventions</h3>
+            <ul>
+                <li>Use lowercase with hyphens for repository names: <code>docker-local</code></li>
+                <li>Use semantic versioning for Docker tags: <code>v1.0.0, v1.1.0</code></li>
+                <li>Use descriptive names for permission targets: <code>ci-cd-permissions</code></li>
+                <li>Use consistent naming across environments: <code>docker-dev, docker-prod</code></li>
+            </ul>
+
+            <h3>Repository Organization</h3>
+            <ul>
+                <li>Separate repositories for different environments (dev, staging, prod)</li>
+                <li>Use virtual repositories to aggregate multiple local repositories</li>
+                <li>Implement repository hierarchies for complex projects</li>
+                <li>Use remote repositories for external dependencies</li>
+            </ul>
+
+            <h3>Access Control</h3>
+            <ul>
+                <li>Implement principle of least privilege for service accounts</li>
+                <li>Use groups to manage permissions efficiently</li>
+                <li>Regular audit of user permissions and access logs</li>
+                <li>Integrate with LDAP/Active Directory for enterprise environments</li>
+            </ul>
+
+            <h3>Security Hardening</h3>
+            <ul>
+                <li>Enable HTTPS/TLS for all Artifactory access</li>
+                <li>Implement vulnerability scanning for Docker images</li>
+                <li>Use API keys instead of passwords for automation</li>
+                <li>Regular security updates and patching</li>
+                <li>Implement IP whitelist for admin access</li>
+            </ul>
+
+            <h3>Storage Management</h3>
+            <ul>
+                <li>Set up storage quotas per repository</li>
+                <li>Implement automated cleanup policies</li>
+                <li>Monitor storage usage and set up alerts</li>
+                <li>Use storage class with appropriate performance characteristics</li>
+                <li>Regular backup of Artifactory configuration and metadata</li>
+            </ul>
+
+            <h3>Performance Optimization</h3>
+            <ul>
+                <li>Use CDN for distribution to geographically dispersed teams</li>
+                <li>Implement repository replication for high availability</li>
+                <li>Optimize storage layout for frequently accessed artifacts</li>
+                <li>Use caching for remote repositories</li>
+                <li>Monitor and tune Artifactory JVM settings</li>
+            </ul>
+
+            <h3>Monitoring and Logging</h3>
+            <ul>
+                <li>Enable comprehensive access logging</li>
+                <li>Monitor repository performance metrics</li>
+                <li>Set up alerts for critical failures</li>
+                <li>Integrate with centralized logging systems</li>
+                <li>Regular review of system logs and access patterns</li>
+            </ul>
+        </section>
+
+        <section class="section" id="common-mistakes">
+            <h2>I. Common Mistakes</h2>
+            
+            <table>
+                <tr>
+                    <th>Mistake</th>
+                    <th>What Happens</th>
+                    <th>Why It Happens</th>
+                    <th>How to Avoid</th>
+                </tr>
+                <tr>
+                    <td>Wrong repository URL</td>
+                    <td>Docker push/pull failures</td>
+                    <td>Incorrect hostname or port configuration</td>
+                    <td>Validate repository URL with test operations</td>
+                </tr>
+                <tr>
+                    <td>Incorrect credentials</td>
+                    <td>Authentication failures</td>
+                    <td>Wrong username/password or expired tokens</td>
+                    <td>Use service accounts with API keys</td>
+                </tr>
+                <tr>
+                    <td>Missing storage quota</td>
+                    <td>Unlimited storage consumption</td>
+                    <td>Forgot to set storage limits</td>
+                    <td>Always set storage quotas on repositories</td>
+                </tr>
+                <tr>
+                    <td>No cleanup policies</td>
+                    <td>Disk space exhaustion</td>
+                    <td>Artifacts accumulate indefinitely</td>
+                    <td>Implement automated cleanup policies</td>
+                </tr>
+                <tr>
+                    <td>Using admin credentials</td>
+                    <td>Security risk and audit issues</td>
+                    <td>Convenience during setup</td>
+                    <td>Create dedicated service accounts</td>
+                </tr>
+                <tr>
+                    <td>Incorrect Docker tag format</td>
+                    <td>Image versioning confusion</td>
+                    <td>Inconsistent tagging strategy</td>
+                    <td>Use semantic versioning for tags</td>
+                </tr>
+                <tr>
+                    <td>Missing HTTPS configuration</td>
+                    <td>Credentials transmitted in clear text</td>
+                    <td>Default HTTP configuration</td>
+                    <td>Always use HTTPS in production</td>
+                </tr>
+                <tr>
+                    <td>No backup strategy</td>
+                    <td>Data loss in case of failure</td>
+                    <td>Backup not considered during setup</td>
+                    <td>Implement regular backup and disaster recovery</td>
+                </tr>
+                <tr>
+                    <td>Improper permission setup</td>
+                    <td>Unauthorized access or access denied</td>
+                    <td>Complex permission inheritance</td>
+                    <td>Test permissions with limited accounts</td>
+                </tr>
+                <tr>
+                    <td>Single point of failure</td>
+                    <td>Service unavailable during maintenance</td>
+                    <td>Single Artifactory instance</td>
+                    <td>Implement HA setup with replication</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="troubleshooting">
+            <h2>J. Troubleshooting</h2>
+            
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Docker push authentication failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> "unauthorized: authentication required" or "no basic auth credentials"</p>
+                    <p><strong>Likely Cause:</strong> Invalid credentials, expired token, or incorrect repository URL</p>
+                    <p><strong>How to Diagnose:</strong> Test login manually, check credential validity, verify repository URL</p>
+                    <p><strong>Fix:</strong> Update credentials, regenerate API key, correct repository URL</p>
+                    <p><strong>Prevention:</strong> Use service accounts with API keys, regular credential rotation</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Slow Docker image pulls</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Docker pull operations take excessive time</p>
+                    <p><strong>Likely Cause:</strong> Network issues, large image sizes, lack of CDN, or storage performance</p>
+                    <p><strong>How to Diagnose:</strong> Check network connectivity, monitor Artifactory performance, analyze image sizes</p>
+                    <p><strong>Fix:</strong> Optimize image sizes, implement CDN, improve storage performance</p>
+                    <p><strong>Prevention:</strong> Use multi-stage builds, implement layer caching, monitor performance</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Storage space exhaustion</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Artifactory stops accepting new artifacts, disk space warnings</p>
+                    <p><strong>Likely Cause:</strong> No cleanup policies, large artifacts, lack of storage quotas</p>
+                    <p><strong>How to Diagnose:</strong> Check storage usage, analyze artifact sizes, review cleanup policies</p>
+                    <p><strong>Fix:</strong> Implement cleanup policies, delete old artifacts, increase storage capacity</p>
+                    <p><strong>Prevention:</strong> Set storage quotas, implement automated cleanup, monitor usage</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Repository not accessible from Kubernetes</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Kubernetes pods cannot pull images from Artifactory</p>
+                    <p><strong>Likely Cause:</strong> Network policies, DNS issues, imagePullSecrets not configured</p>
+                    <p><strong>How to Diagnose:</strong> Check pod logs, test DNS resolution, verify imagePullSecrets</p>
+                    <p><strong>Fix:</strong> Configure imagePullSecrets, update network policies, fix DNS configuration</p>
+                    <p><strong>Prevention:</strong> Test connectivity during setup, use proper service discovery</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <h2>K. Q&A / FAQ</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Why is Artifactory needed instead of Docker Hub?</div>
+                <div class="faq-answer">A: Artifactory provides better security, access control, integration with CI/CD tools, and support for multiple artifact types in a single platform.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if Artifactory configuration is wrong?</div>
+                <div class="faq-answer">A: CI/CD pipelines will fail, deployments will be unable to pull images, and development workflow will be disrupted. Always validate configuration with test operations.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I validate Artifactory access configuration?</div>
+                <div class="faq-answer">A: Test Docker login: <code>docker login artifactory-url</code>, test repository access via API, and verify permissions with limited user accounts.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I debug Docker push failures?</div>
+                <div class="faq-answer">A: Check Docker daemon logs, verify Artifactory credentials, test network connectivity, and examine Artifactory access logs for detailed error information.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I rollback Artifactory configuration changes?</div>
+                <div class="faq-answer">A: Use Artifactory configuration backup/restore, or revert changes via admin console. For repository layout changes, restore from configuration export.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What logs should I inspect for troubleshooting?</div>
+                <div class="faq-answer">A: Artifactory request logs, Docker daemon logs, Kubernetes pod logs, network connectivity logs, and CI/CD pipeline logs.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I secure Artifactory credentials?</div>
+                <div class="faq-answer">A: Use Kubernetes Secrets for imagePullSecrets, environment variables for CI/CD, API keys for automation, and integrate with secret management systems.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How does Artifactory behave in production?</div>
+                <div class="faq-answer">A: In production, Artifactory should be configured with HA, replication, HTTPS, proper security, monitoring, and backup. It handles higher load and provides enterprise-grade reliability.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I improve Artifactory performance?</div>
+                <div class="faq-answer">A: Implement CDN, use repository replication, optimize storage layout, increase resources, tune JVM settings, and implement caching for remote repositories.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What are the common limitations of Artifactory?</div>
+                <div class="faq-answer">A: Storage management complexity, initial setup learning curve, resource requirements for HA setup, and cost for enterprise features and support.</div>
+            </div>
+        </section>
+
+        <section class="section" id="improvements">
+            <h2>L. Improvements / Optimization Ideas</h2>
+            
+            <h3>Security Improvements</h3>
+            <ul>
+                <li>Implement Xray for vulnerability scanning and security analysis</li>
+                <li>Integrate with SAML/OAuth for enterprise authentication</li>
+                <li>Implement IP whitelisting for admin access</li>
+                <li>Enable repository signing and verification</li>
+                <li>Regular security audits and penetration testing</li>
+            </ul>
+
+            <h3>Performance Improvements</h3>
+            <ul>
+                <li>Implement CDN for global distribution</li>
+                <li>Use multi-site replication for geographic distribution</li>
+                <li>Optimize storage with SSD and proper IOPS configuration</li>
+                <li>Implement smart caching strategies</li>
+                <li>Tune JVM and garbage collection settings</li>
+            </ul>
+
+            <h3>Maintainability Improvements</h3>
+            <ul>
+                <li>Automate configuration management with Infrastructure as Code</li>
+                <li>Implement configuration backup and versioning</li>
+                <li>Use monitoring and alerting for proactive maintenance</li>
+                <li>Document repository layouts and permission structures</li>
+                <li>Implement disaster recovery procedures</li>
+            </ul>
+
+            <h3>Production Hardening</h3>
+            <ul>
+                <li>Implement high availability with multiple nodes</li>
+                <li>Configure database clustering for metadata</li>
+                <li>Implement backup and disaster recovery</li>
+                <li>Set up comprehensive monitoring and alerting</li>
+                <li>Implement rate limiting and access controls</li>
+            </ul>
+
+            <h3>Scaling Considerations</h3>
+            <ul>
+                <li>Design for horizontal scaling with load balancing</li>
+                <li>Implement storage tiering for hot/cold data</li>
+                <li>Consider sharding for large-scale deployments</li>
+                <li>Use geographic distribution for global teams</li>
+                <li>Implement auto-scaling for cloud deployments</li>
+            </ul>
+
+            <h3>Developer Experience Improvements</h3>
+            <ul>
+                <li>Implement webhooks for CI/CD integration</li>
+                <li>Create developer-friendly documentation and guides</li>
+                <li>Implement self-service repository creation</li>
+                <li>Set up developer portals and dashboards</li>
+                <li>Automate common developer workflows</li>
+            </ul>
+        </section>
+
+        <section class="section" id="quick-reference">
+            <h2>M. Quick Reference</h2>
+            
+            <h3>Important Files</h3>
+            <ul>
+                <li><code>k8s/artifactory-deployment.yaml</code> - Kubernetes deployment manifest</li>
+                <li><code>.env</code> - Environment variables with Artifactory configuration</li>
+                <li><code>docker-compose.yml</code> - Local development setup</li>
+            </ul>
+
+            <h3>Important Commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Docker login
+docker login artifactory.local:8082
+
+# Push image
+docker push artifactory.local:8082/docker-local/image:tag
+
+# Pull image
+docker pull artifactory.local:8082/docker-local/image:tag
+
+# Kubernetes imagePullSecret
+kubectl create secret docker-registry artifactory-registry-secret \
+  --docker-server=artifactory.local:8082 \
+  --docker-username=admin \
+  --docker-password=password</pre>
+            </div>
+
+            <h3>Critical Config Fields</h3>
+            <ul>
+                <li><code>ARTIFACTORY_URL</code> - Base URL for Artifactory access</li>
+                <li><code>ARTIFACTORY_REPOSITORY</code> - Docker repository name</li>
+                <li><code>Repository Type</code> - Local, remote, or virtual</li>
+                <li><code>Storage Quota</code> - Maximum storage limit</li>
+                <li><code>Permission Targets</code> - Access control configuration</li>
+            </ul>
+
+            <h3>Common Failure Checkpoints</h3>
+            <ul>
+                <li>Docker login authentication</li>
+                <li>Repository accessibility from CI/CD tools</li>
+                <li>Image pull from Kubernetes pods</li>
+                <li>Storage capacity and cleanup policies</li>
+                <li>Network connectivity and DNS resolution</li>
+            </ul>
+
+            <h3>Verification Checklist</h3>
+            <ul>
+                <li>☐ Artifactory service running and accessible</li>
+                <li>☐ Docker repository created and accessible</li>
+                <li>☐ Service account with appropriate permissions</li>
+                <li>☐ CI/CD integration working</li>
+                <li>☐ Kubernetes can pull images</li>
+                <li>☐ Storage quotas configured</li>
+                <li>☐ Cleanup policies in place</li>
+                <li>☐ HTTPS/TLS configured</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const arrow = element.querySelector('.collapsible-header span:last-child');
+            if (element.classList.contains('active')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>

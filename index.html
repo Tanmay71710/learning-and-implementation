@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Script Execution Manager - GitOps Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .card p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .card a {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .card a:hover {
+            background: #5568d3;
+        }
+
+        .architecture-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .architecture-diagram pre {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .quick-reference {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .quick-reference h4 {
+            color: #2c5f7d;
+            margin-bottom: 15px;
+        }
+
+        .quick-reference ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .quick-reference li {
+            padding: 8px 0;
+            border-bottom: 1px solid #d1e8ed;
+        }
+
+        .quick-reference li:last-child {
+            border-bottom: none;
+        }
+
+        .quick-reference code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-dev {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-prod {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .badge-tool {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            margin-top: 40px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Script Execution Manager</h1>
+            <p>End-to-End GitOps Documentation</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Flask • Artifactory • Jenkins • Kubernetes • GitHub Actions • Argo CD</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="section">
+            <h2>Project Overview</h2>
+            <p><strong>Script Execution Manager</strong> is a comprehensive GitOps project that demonstrates modern DevOps practices for deploying and managing a Flask-based web application. This project showcases a complete CI/CD pipeline with automated code quality checks, artifact management, and GitOps deployment strategies.</p>
+            
+            <h3 style="margin-top: 25px;">Key Features</h3>
+            <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                <li><strong>Web-based Interface:</strong> Modern Flask application for script execution and monitoring</li>
+                <li><strong>Jenkins Integration:</strong> Trigger and monitor Jenkins jobs with fallback to local execution</li>
+                <li><strong>Artifact Management:</strong> JFrog Artifactory integration for Docker image storage</li>
+                <li><strong>GitOps Workflow:</strong> Argo CD as the source of truth for Kubernetes deployments</li>
+                <li><strong>Automated CI/CD:</strong> GitHub Actions for code quality, image building, and deployment</li>
+                <li><strong>Multi-Environment Support:</strong> Development, staging, and production configurations</li>
+            </ul>
+        </section>
+
+        <section class="section">
+            <h2>GitOps Architecture</h2>
+            <p>The project follows a complete GitOps workflow where Git serves as the single source of truth for deployment configuration.</p>
+            
+            <div class="architecture-diagram">
+                <pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                     Git Repository (Source of Truth)              │
+│                 github.com/Tanmay71710/learning-and-implementation │
+└────────────────────────┬────────────────────────────────────────┘
+                         │ Push/PR/Merge
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    GitHub Actions (CI Pipeline)                  │
+│  • Code Quality Checks (Pylint, Flake8, Black, Bandit)           │
+│  • Docker Image Build & Push to Artifactory                     │
+│  • Update Kubernetes Manifests                                   │
+│  • Trigger Argo CD Sync                                          │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     Argo CD (GitOps Operator)                   │
+│  • Monitor Git Repository                                       │
+│  • Detect Configuration Changes                                 │
+│  • Sync to Kubernetes Cluster                                    │
+│  • Self-Heal & Prune Resources                                  │
+└────────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   Kubernetes Cluster (k3s)                       │
+│  • Deploy Application (Rolling Update)                           │
+│  • Manage ConfigMaps, Secrets, Services                        │
+│  • Health Checks & Auto-scaling                                 │
+└─────────────────────────────────────────────────────────────────┘
+                </pre>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Technology Documentation</h2>
+            <p>Each technology used in this project has comprehensive documentation covering setup, configuration, best practices, and troubleshooting.</p>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Flask Cookbook <span class="badge badge-tool">Framework</span></h3>
+                    <p>Complete guide to the Flask application structure, configuration, production deployment, and Docker containerization.</p>
+                    <a href="flask-cookbook.html">View Flask Documentation →</a>
+                </div>
+
+                <div class="card">
+                    <h3>Artifactory Cookbook <span class="badge badge-tool">Registry</span></h3>
+                    <p>Artifactory setup, repository configuration, Docker image management, and integration with CI/CD pipelines.</p>
+                    <a href="artifactory-cookbook.html">View Artifactory Documentation →</a>
+                </div>
+
+                <div class="card">
+                    <h3>Jenkins Cookbook <span class="badge badge-tool">CI/CD</span></h3>
+                    <p>Jenkins installation, pipeline configuration, credential management, and integration with the application.</p>
+                    <a href="jenkins-cookbook.html">View Jenkins Documentation →</a>
+                </div>
+
+                <div class="card">
+                    <h3>Kubernetes Cookbook <span class="badge badge-tool">Orchestration</span></h3>
+                    <p>Kubernetes deployment manifests, services, ingress, configuration management, and operational best practices.</p>
+                    <a href="kubernetes-cookbook.html">View Kubernetes Documentation →</a>
+                </div>
+
+                <div class="card">
+                    <h3>GitHub Actions Cookbook <span class="badge badge-tool">Automation</span></h3>
+                    <p>Workflow configuration, CI/CD pipeline setup, secrets management, and automated deployment strategies.</p>
+                    <a href="github-actions-cookbook.html">View GitHub Actions Documentation →</a>
+                </div>
+
+                <div class="card">
+                    <h3>Argo CD Cookbook <span class="badge badge-tool">GitOps</span></h3>
+                    <p>Argo CD installation, application configuration, sync policies, and GitOps workflow management.</p>
+                    <a href="argocd-cookbook.html">View Argo CD Documentation →</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Quick Reference</h2>
+            
+            <div class="quick-reference">
+                <h4>Project Configuration</h4>
+                <ul>
+                    <li><strong>Repository:</strong> <code>https://github.com/Tanmay71710/learning-and-implementation</code></li>
+                    <li><strong>Flask App Name:</strong> <code>script-execution-manager</code></li>
+                    <li><strong>Artifact Repository:</strong> <code>docker-local</code> in Artifactory</li>
+                    <li><strong>Container Registry:</strong> <code>http://10.118.244.255:30082/artifactory</code></li>
+                    <li><strong>Jenkins Pipeline:</strong> Declarative pipeline with webhook integration</li>
+                    <li><strong>Kubernetes Cluster:</strong> k3s (on-prem)</li>
+                    <li><strong>Namespaces:</strong> <code>script-execution-manager</code>, <code>nginx-demo</code>, <code>jenkins</code>, <code>artifactory</code></li>
+                    <li><strong>Argo CD Applications:</strong> <code>script-execution-manager</code>, <code>nginx-demo</code></li>
+                    <li><strong>Deployment Strategy:</strong> Rolling update</li>
+                    <li><strong>Ingress Controller:</strong> Traefik (built into k3s)</li>
+                    <li><strong>Secrets Management:</strong> Kubernetes Secrets</li>
+                </ul>
+            </div>
+
+            <div class="quick-reference" style="background: #fef9e7; margin-top: 20px;">
+                <h4>Environment Variables</h4>
+                <ul>
+                    <li><strong>FLASK_ENV:</strong> <code>development</code> / <code>production</code></li>
+                    <li><strong>DATABASE_URL:</strong> <code>sqlite:///script_manager.db</code></li>
+                    <li><strong>JENKINS_URL:</strong> <code>http://jenkins-service:8080</code></li>
+                    <li><strong>ARTIFACTORY_URL:</strong> <code>http://artifactory-service:8082</code></li>
+                    <li><strong>ARGOCD_URL:</strong> <code>http://argocd-server.argocd.svc.cluster.local</code></li>
+                </ul>
+            </div>
+
+            <div class="quick-reference" style="background: #fde8e8; margin-top: 20px;">
+                <h4>Known Limitations</h4>
+                <ul>
+                    <li>ApplicationSet CRD not installed (annotation size limitation in k3s)</li>
+                    <li>Placeholder image references in development manifests</li>
+                    <li>LoadBalancer external IP pending (k3s limitation)</li>
+                    <li>Basic authentication only (OIDC configured but not fully tested)</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Deployment Lifecycle</h2>
+            
+            <div class="architecture-diagram">
+                <pre>
+1. DEVELOPMENT
+   └─> Developer pushes code to feature branch
+   └─> GitHub Actions runs code quality checks
+   └─> PR created for review
+
+2. STAGING
+   └─> Code merged to develop branch
+   └─> GitHub Actions builds Docker image
+   └─> Image pushed to Artifactory
+   └─> Argo CD syncs to staging namespace
+   └─> Automated testing and validation
+
+3. PRODUCTION
+   └─> Code merged to master branch
+   └─> GitHub Actions builds production image
+   └─> Image tagged and pushed to Artifactory
+   └─> Argo CD syncs to production namespace
+   └─> Rolling update with health checks
+   └─> Monitoring and alerting
+                </pre>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Getting Started</h2>
+            <p>To get started with this project, follow these steps:</p>
+            <ol style="margin-left: 20px; margin-top: 15px; line-height: 1.8;">
+                <li><strong>Clone the repository:</strong> <code>git clone https://github.com/Tanmay71710/learning-and-implementation.git</code></li>
+                <li><strong>Review the documentation:</strong> Start with the Flask Cookbook to understand the application structure</li>
+                <li><strong>Set up local environment:</strong> Configure environment variables using <code>.env.example</code></li>
+                <li><strong>Install dependencies:</strong> <code>pip install -r requirements.txt</code></li>
+                <li><strong>Run locally:</strong> <code>python app.py</code></li>
+                <li><strong>Explore each technology:</strong> Use the individual cookbooks to set up each component</li>
+            </ol>
+        </section>
+    </div>
+
+    <footer>
+        <p><strong>Script Execution Manager - GitOps Documentation</strong></p>
+        <p style="margin-top: 10px; font-size: 0.9em;">Generated for DevOps teams implementing GitOps workflows</p>
+        <p style="margin-top: 5px; font-size: 0.8em;">Documentation Version: 1.0 | Last Updated: June 2026</p>
+    </footer>
+</body>
+</html>

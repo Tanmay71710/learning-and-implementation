@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Argo CD Cookbook - Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+                padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font                font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .callout {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .callout.warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .callout.tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .callout.error {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .recipe {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recipe h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .faq-item {
+            margin: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            color: #666;
+            margin-left: 20px;
+        }
+
+        .collapsible {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapsible-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Argo CD Cookbook</h1>
+            <p>Script Execution Manager - Argo CD GitOps Configuration and Management Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Documentation Index</a>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#recipes">Cookbook Recipes</a></li>
+                <li><a href="#usage">Usage in Project</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#common-mistakes">Common Mistakes</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#improvements">Improvements</a></li>
+                <a href="#quick-reference">Quick Reference</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="overview">
+            <h2>A. Title and Overview</h2>
+            <h3>Argo CD GitOps Operator</h3>
+            <p><strong>Role in Project:</strong> Argo CD serves as the GitOps operator that automatically synchronizes Kubernetes manifests from Git to the cluster, ensuring the deployed state matches the desired state defined in the repository.</p>
+            
+            <h3>Why Argo CD is Used</h3>
+            <ul>
+                <li><strong>GitOps Native:</strong> Implements GitOps methodology with Git as single source of truth</li>
+                <li><strong>Automated Sync:</strong> Automatically detects and applies Git changes to Kubernetes</li>
+                <li><strong>Self-Healing:</strong> Automatically reverts manual changes to maintain desired state</li>
+                <li><strong>Rollback Support:</strong> Easy rollback to previous application states</li>
+                <li><strong>Declarative Configuration:</strong> Infrastructure and deployment as code with YAML manifests</li>
+            </ul>
+
+            <h3>GitOps Pipeline Position</h3>
+            <p>Argo CD is the CD (Continuous Deployment) component of the GitOps pipeline. It monitors the Git repository and automatically applies Kubernetes manifests to the cluster, ensuring that the deployed state always matches the Git repository state.</p>
+
+            <h3>Key Responsibilities</h3>
+            <ul>
+                <li>Monitor Git repository for manifest changes</li>
+                <li>Automatically sync changes to Kubernetes cluster</li>
+                <li>Detect and alert on configuration drift</li>
+                <li>Provide rollback capabilities for quick recovery</li>
+                <li>Manage application lifecycle and health monitoring</li>
+                <li>Implement RBAC and access control</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>B. What You Should Know Before Starting</h2>
+            
+            <h3>Foundational Concepts</h3>
+            <ul>
+                <li><strong>GitOps Methodology:</strong> Understanding of GitOps principles and workflow</li>
+                <li><strong>Kubernetes Manifests:</strong> Understanding of YAML manifests and Kubernetes resources</li>
+                <li><strong>Declarative Configuration:</strong> Understanding of infrastructure as code principles</li>
+                <li><strong>Git Workflow:</strong> Understanding of branching, PRs, and repository management</li>
+                <li><strong>CI/CD Integration:</strong>Understanding of how Argo CD fits in CI/CD pipelines</li>
+            </ul>
+
+            <h3>Assumptions</h3>
+            <ul>
+                <li>You have a Kubernetes cluster with kubectl access</li>
+                <li>You have a Git repository with Kubernetes manifests</li>
+                <li>You understand Git workflows and branching strategies</li>
+                <li>You have basic Kubernetes knowledge of resources and manifests</li>
+                <li>You understand the difference between imperative and declarative deployment</li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <li><strong>Kubernetes Cluster:</strong> Target cluster for deployment</li>
+                <li><strong>Git Repository:</strong> Source of truth for manifests</li>
+                <li><strong>Container Registry:</strong> Artifactory for Docker image storage</li>
+                <li><strong>CI/CD Pipeline:</strong> GitHub Actions for building and pushing images</li>
+            </ul>
+
+            <h3>Operational Context</h3>
+            <p>The project uses Argo CD in a k3s cluster with multiple applications managed through GitOps. Argo CD handles the script-execution-manager and nginx-demo applications, automatically syncing changes from the Git repository.</p>
+
+            <h3>Production Considerations</h3>
+            <ul>
+                <li>Implement proper RBAC and access control</li>
+                <li>Configure appropriate sync policies for different environments</li>
+                <li>Set up monitoring and alerting for Argo CD</li>
+                <li>Implement backup and disaster recovery for Argo CD</li>
+                <li>Configure proper secret management for cluster access</li>
+            </ul>
+
+            <h3>Hidden Complexity</h3>
+            <ul>
+                <li>ApplicationSet CRD limitations in k3s (annotation size)</li>
+                <li>Resource whitelisting and project configuration</li>
+                <li>Sync policy configuration and tuning</li>
+                <li>Health check configuration and monitoring</li>
+                <li>Multi-cluster and multi-environment management</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>C. Prerequisites</h2>
+            
+            <h3>Cluster Requirements</h3>
+            <ul>
+                <li><strong>Kubernetes Version:</strong> 1.20+ for Argo CD compatibility</li>
+                <li><strong>Cluster Access:</strong> kubectl configured with appropriate permissions</li>
+                <li><strong>Resource Availability:</strong> Sufficient resources for Argo CD components</li>
+                <li><strong>Network Policies:</strong> Allow ArgoCD pods to communicate</li>
+            </ul>
+
+            <h3>Repository Requirements</h3>
+            <ul>
+                <li><strong>Git Repository:</strong> Repository containing Kubernetes manifests</li>
+                <li><strong>Access Permissions:</strong> Read access to repository</li>
+                <li><strong>Manifest Structure:</strong> Organized manifest files in repository</li>
+                <li><strong>Branch Strategy:</strong> Clear branching strategy for environments</li>
+            </ul>
+
+            <h3>Argo CD Installation Requirements</h3>
+            <table>
+                <tr>
+                    <th>Software</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>kubectl</td>
+                    <td>Latest</td>
+                    <td>Cluster management</td>
+                </tr>
+                <tr>
+                    <td>ArgoCD</td>
+                    <td>v2.4+ (or latest)</td>
+                    <td>GitOps operator</td>
+                </tr>
+            </table>
+
+            <h3>Environment Variables Required</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>ARGOCD_URL=http://argocd-server.argocd.svc.cluster.local
+ARGOCD_USERNAME=admin
+ARGOCD_PASSWORD=admin
+ARGOCD_NAMESPACE=argocd
+KUBECONFIG=/path/to/kubeconfig</pre>
+            </div>
+
+            <h3>Network Requirements</h3>
+            <ul>
+                <li>DNS resolution for ArgoCD server</li>
+                <li>Network connectivity between ArgoCD and Kubernetes API server</li>
+                <li>Network connectivity to Git repository</li>
+                <li>Network connectivity to container registry (Artifactory)</li>
+                <li>Firewall rules for ArgoCD ports (8080, 443)</li>
+            </ul>
+        </section>
+
+        <section class="section" id="installation">
+            <h2>D. Installation / Setup</h2>
+            
+            <h3>Step 1: Create Argo CD Namespace</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create namespace for Argo CD
+kubectl create namespace argocd</pre>
+            </div>
+
+            <h3>Step 2: Install Argo CD</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Install ArgoCD using official manifests
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml</pre>
+            </div>
+
+            <h3>Step 3: Apply Custom Configuration</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Apply custom ConfigMaps
+kubectl apply -f argocd/argocd-cm.yaml -n argocd
+kubectl apply -f argocd/argocd-rbac-cm.yaml -n argocd</pre>
+            </div>
+
+            <h3>Step 4: Create Project</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create ArgoCD project
+kubectl apply -f argocd/project.yaml -n argocd</pre>
+            </div>
+
+            <h3>Step 5: Create Application</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create ArgoCD application
+kubectl apply -f argocd/application.yaml -n argocd</pre>
+            </div>
+
+            <h3>Step 6: Validate Installation</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Check ArgoCD pods
+kubectl get pods -n argocd
+
+# Check ArgoCD application
+kubectl get application -n argocd
+
+# Access ArgoCD UI (port-forward)
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d</pre>
+            </div>
+
+            <div class="callout tip">
+                <strong>Tip:</strong> For production deployments, consider using Helm to install Argo CD for easier configuration and management.
+            </div>
+        </section>
+
+        <section class="section" id="configuration">
+            <h2>E. Configuration Guide</h2>
+            
+            <h3>Application Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>project</td>
+                    <td>ArgoCD project reference</td>
+                    <td>script-execution-manager</td>
+                    <td>Yes</td>
+                    <td>When organizing applications</td>
+                </tr>
+                <tr>
+                    <td>source.repoURL</td>
+                    <td>Git repository URL</td>
+                    <td>https://github.com/Tanmay71710/learning-and-implementation</td>
+                    <td>Yes</td>
+                    <td>When changing repository</td>
+                </tr>
+                <tr>
+                    <td>source.targetRevision</td>
+                    <td>Git branch to track</td>
+                    <td>master</td>
+                    <td>Yes</td>
+                    <td>When changing target branch</td>
+                </tr>
+                <tr>
+                    <td>source.path</td>
+                    <td>Path to manifests in repository</td>
+                    <td>k8s</td>
+                    <td>Yes</td>
+                    <td>When changing manifest location</td>
+                </tr>
+                <tr>
+                    <td>destination.server</td>
+                    <td>Kubernetes cluster server</td>
+                    <td>https://kubernetes.default.svc</td>
+                    <td>Yes</td>
+                    <td>When deploying to different cluster</td>
+                </tr>
+                <tr>
+                    <td>destination.namespace</td>
+                    <td>Kubernetes namespace</td>
+                    <td>script-execution-manager</td>
+                    <td>Yes</td>
+                    <td>When changing deployment namespace</td>
+                </tr>
+            </table>
+
+            <h3>Sync Policy Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>automated.prune</td>
+                    <td>Remove resources not in Git</td>
+                    <td>true</td>
+                    <td>No</td>
+                    <td>Based on cleanup requirements</td>
+                </tr>
+                <tr>
+                    <td>automated.selfHeal</td>
+                    <td>Revert manual changes</td>
+                    <td>true</td>
+                    <td>No</td>
+                    <td>Based on operational requirements</td>
+                </tr>
+                <tr>
+                    <td>syncOptions.CreateNamespace</td>
+                    <td>Create namespace if missing</td>
+                    <td>true</td>
+                    <td>No</td>
+                    <td>When managing namespace lifecycle</td>
+                </tr>
+                <tr>
+                    <td>syncOptions.ServerSideApply</td>
+                    <td>Use server-side apply for updates</td>
+                    <td>true</td>
+                    <td>No</td>
+                    <td>When managing complex resources</td>
+                </tr>
+            </table>
+
+            <h3>Project Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>sourceRepos</td>
+                    <td>Allowed Git repositories</td>
+                    <td>https://github.com/Tanmay71710/learning-and-implementation</td>
+                    <td>Yes</td>
+                    <td>When adding new repositories</td>
+                </tr>
+                <tr>
+                    <td>destinations</td>
+                    <td>Allowed deployment targets</td>
+                    <td>server: https://kubernetes.default.svc, namespace: script-execution-manager</td>
+                    <td>Yes</td>
+                    <td>When adding new clusters/namespaces</td>
+                </tr>
+                <tr>
+                    <td>clusterResourceWhitelist</td>
+                    <td>Allowed cluster resources</td>
+                    <td>Namespace, Deployment, Service</td>
+                    <td>No</td>
+                    <td>Based on resource requirements</td>
+                </tr>
+                <tr>
+                    <td>namespaceResourceWhitelist</td>
+                    <td>Allowed namespace resources</td>
+                    <td>ConfigMap, Secret, ServiceAccount</td>
+                    <td>No</td>
+                    <td>Based on application requirements</td>
+                </tr>
+            </table>
+
+            <h3>Common Configuration Mistakes</h3>
+            <div class="callout warning">
+                <strong>Warning:</strong> Avoid enabling automated prune without understanding the consequences. It will remove resources from Kubernetes that are not present in Git, which can cause data loss if not configured properly.
+            </div>
+            <ul>
+                <li>Enabling automated prune without proper testing</li>
+                <li>Incorrect repository URL or branch configuration</li>
+                <li>Wrong namespace configuration causing deployment failures</li>
+                <li>Missing resource whitelisting causing sync failures</li>
+                <li>Incorrect sync policy causing deployment issues</li>
+            </ul>
+
+            <h3>Environment-Specific Configuration</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Development</th>
+                    <th>Staging</th>
+                    <th>Production</th>
+                </tr>
+                <tr>
+                    <td>targetRevision</td>
+                    <td>develop</td>
+                    <td>develop</td>
+                    <td>master</td>
+                </tr>
+                <tr>
+                    <td>syncPolicy.automated.prune</td>
+                    <td>false</td>
+                    <td>true</td>
+                    <td>true</td>
+                </tr>
+                <tr>
+                    <td>syncPolicy.automated.selfHeal</td>
+                    <td>false</td>
+                    <td>true</td>
+                    <td>true</td>
+                </tr>
+                <tr>
+                    <td>destination.namespace</td>
+                    <td>script-execution-manager-dev</td>
+                    <td>script-execution-manager-staging</td>
+                    <td>script-execution-manager-prod</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="recipes">
+            <h2>F. Cookbook Recipes</h2>
+            
+            <div class="recipe">
+                <h4>Recipe 1: Create Basic ArgoCD Application</h4>
+                <p><strong>Purpose:</strong> Set up basic ArgoCD application for GitOps deployment</p>
+                <p><strong>Ingredients:</strong> Argo CD installed, Git repository, Kubernetes manifests</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create ArgoCD project with repository configuration</li>
+                    <li>Configure allowed destinations and resource whitelists</li>
+                    <li>Create Application YAML manifest</li>
+                    <li>Configure source repository and target cluster</li>
+                    <li>Set sync policy to manual initially</li>
+                    <li>Apply manifest: <code>kubectl apply -f application.yaml</code></li>
+                    <li>Test manual sync with ArgoCD CLI</li>
+                </ol>
+                <p><strong>Expected Result:</strong> ArgoCD application ready for GitOps deployment</p>
+                <p><strong>Verification:</strong> <code>argocd app get application-name</code> to check status</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 2: Configure Automated Sync with Self-Healing</h4>
+                <p><strong>Purpose:</strong> Enable automated GitOps workflow with self-healing capabilities</p>
+                <p><strong>Ingredients:</strong> ArgoCD CLI, application manifest</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Update application sync policy to enable automated mode</li>
+                    <li>Set automated.prune: true for cleanup</li>
+                    <li>Set automated.selfHeal: true for self-healing</li>
+                    <li>Add syncOptions with CreateNamespace=true</li>
+                    <li>Apply updated manifest</li>
+                    <li>Test by making changes in Git repository</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Changes in Git automatically sync to cluster</p>
+                <p><strong>Verification:</strong> Monitor application status after Git changes</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 3: Configure Multi-Environment Deployment</h4>
+                <p><strong>Purpose:</strong> Set up ArgoCD for managing multiple environments</p>
+                <p><strong>Ingredients:</strong> Multiple application manifests, project configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create project with multiple destination namespaces</li>
+                    <li>Create separate applications for each environment</li>
+                    <li>Configure different target branches for each environment</li>
+                    <li>Set environment-specific sync policies</li>
+                    <li>Test deployment to each environment</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Multi-environment GitOps deployment</p>
+                <p><strong>Verification:</strong> Check each application's status and sync status</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 4: Configure Rollback with ArgoCD</h4>
+                <p><strong>Purpose:</strong> Enable quick rollback to previous application states</p>
+                <p><strong>Ingredients:</strong> ArgoCD CLI, application history</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>View application history: <code>argocd app history application-name</code></li>
+                    <li>Rollback to previous revision: <code>argocd app rollback application-name</code></li>
+                    <li>Rollback to specific revision: <code>argocd app rollback application-name --revision 2</code></li>
+                <li>Verify rollback completed successfully</li>
+                <li>Test application functionality</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application reverted to previous state</p>
+                <p><strong>Verification:</strong> Check application status and pod versions</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 5: Configure Health Checks and Monitoring</h4>
+                <p><strong>Purpose:</strong> Enable application health monitoring and alerting</p>
+                <p><strong>Ingredients:</strong> ArgoCD application manifest, health endpoints</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Configure health checks in application manifest</li>
+                    <li>Set up appropriate health check endpoints</li>
+                    <li>Configure ArgoCD to monitor application health</li>
+                    <li>Set up notifications for health status changes</li>
+                    <li>Test health check functionality</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application health monitored and reported</p>
+                <p><strong>Verification:</strong> Check application health status in ArgoCD UI</p>
+            </div>
+        </section>
+
+        <section class="section" id="usage">
+            <h2>G. Usage in This Project</h2>
+            
+            <h3>Who Uses the Tool</h3>
+            <ul>
+                <li><strong>DevOps Engineers:</strong> Configure and manage ArgoCD applications</li>
+                <li><strong>GitOps Pipeline:</strong> Automatically applies Git changes to cluster</li>
+                <li><strong>Developers:</strong> Commit code changes that trigger deployments</li>
+                <li><strong>Operations Team:</strong> Monitor application health and status</li>
+            </ul>
+
+            <h3>Event Triggers</h3>
+            <ul>
+                <li><strong>Git Changes:</strong> ArgoCD detects manifest changes in Git repository</li>
+                <li><strong>Manual Sync:</strong> Developers can trigger manual sync via CLI or UI</li>
+                <li><strong>Schedule:</strong> ArgoCD can be configured for periodic sync</li>
+            </ul>
+
+            <h3>Input/Output</h3>
+            <ul>
+                <li><strong>Input:</strong> Kubernetes manifests from Git repository</li>
+                <li><strong>Output:</strong> Deployed resources in cluster, sync status, health status</li>
+            </ul>
+
+            <h3>System Integration</h3>
+            <ul>
+                <li><strong>Git Repository:</strong> Source of truth for manifests</li>
+                <li><strong>Kubernetes Cluster:</strong> Deployment target for ArgoCD</li>
+                <li><strong>GitHub Actions:</strong> Triggers ArgoCD sync after deployment</li>
+                <li><strong>Artifactory:</strong> Provides Docker images for deployment</li>
+                <li><strong>Flask Application:</strong> Main application managed by ArgoCD</li>
+            </ul>
+
+            <h3>GitOps Flow</h3>
+            <ol>
+                <li>Developer commits Kubernetes manifest changes to Git repository</li>
+                <li>ArgoCD detects changes in Git repository</li>
+                <li>ArgoCD compares desired state (Git) with actual state (cluster)</li>
+                <li>ArgoCD syncs differences to bring cluster to desired state</li>
+                <li>Kubernetes applies changes using rolling updates</li>
+                <li>Application is deployed with new configuration</li>
+            </ol>
+        </section>
+
+        <section class="section" id="best-practices">
+            <h2>H. Best Practices</h2>
+            
+            <h3>GitOps Workflow</h3>
+            <ul>
+                <li>Always use Git as the single source of truth</li>
+                <li>Never make manual changes to deployed resources</li>
+                <li>Commit all configuration changes to Git</li>
+                <li>Use descriptive commit messages</li>
+                <li>Implement proper branch protection rules</li>
+                <li>Use semantic versioning for releases</li>
+            </ul>
+
+            <h3>Application Organization</h3>
+            <li>Organize applications by project using ArgoCD projects</li>
+                <li>Use clear naming conventions for applications</li>
+                <li>Separate environments into different namespaces</li>
+                <li>Use consistent manifest organization across repositories</li>
+                <li>Document application dependencies and relationships</li>
+            </ul>
+
+            <h3>Sync Policy Configuration</h3>
+            <ul>
+                <li>Start with manual sync for testing</li>
+                <li>Enable automated sync only after validation</li>
+                <li>Configure prune carefully with testing</li>
+                <li>Set up selfHeal for production environments</li>
+                <li>Use appropriate sync options for different environments</li>
+            </ul>
+
+            <h3>Security Configuration</h3>
+            <li>Implement proper RBAC and access control</li>
+                <li>Use namespace restrictions for application isolation</li>
+                <li>Configure resource whitelisting for security</li>
+                <li>Use secrets management for sensitive data</li>
+                <li>Regular security audits of ArgoCD configuration</li>
+            </ul>
+
+            <h3>Monitoring and Alerting</hli>
+                <li>Enable comprehensive application health monitoring</li>
+                <li>Set up alerts for sync failures</li>
+                <li>Monitor ArgoCD component health</li>
+                <li>Implement logging and log aggregation</li>
+                <li>Set up dashboards for monitoring ArgoCD health</li>
+            </ul>
+
+            <h3>Deployment Strategies</h3>
+                <li>Use rolling updates for zero-downtime deployments</li>
+                <li>Implement proper rollback procedures</li>
+                <li>Test deployments in staging before production</li>
+                <li>Use canary deployments for major changes</li>
+                <li>Implement blue-green deployments for critical applications</li>
+            </ul>
+        </section>
+
+        <section class="section" id="common-mistakes">
+            <h2>I. Common Mistakes</h2>
+            
+            <table>
+                <tr>
+                    <th>Mistake</th>
+                    <th>What Happens</th>
+                    <th>Why It Happens</th>
+                    <th>How to Avoid</th>
+                </tr>
+                <tr>
+                    <td>Wrong repository URL</td>
+                    <td>Application sync fails with connection errors</td>
+                    <td>Incorrect Git repository URL or authentication</td>
+                    <td>Validate repository access before configuration</td>
+                </tr>
+                <tr>
+                    <td>Incorrect branch configuration</td>
+                    <td>Wrong version deployed</td>
+                    <td>Target branch doesn't match environment</td>
+                    <td>Configure appropriate branch per environment</td>
+                </tr>
+                <tr>
+                    <td>Wrong namespace configuration</td>
+                    <td>Deployment fails or deploys to wrong environment</td>
+                    <td>Namespace doesn't match application environment</td>
+                    <td>Configure correct namespace per application</td>
+                </tr>
+                <tr>
+                    <td>Missing resource whitelisting</td>
+                    <td>Sync fails with permission errors</td>
+                    <td>Resource not allowed in project configuration</td>
+                    <td>Configure proper resource whitelisting</td>
+                </tr>
+                <tr>
+                    <td>Enabling prune without testing</td>
+                    <td>Production data loss due to resource deletion</td>
+                    <td>Prune configured without understanding consequences</td>
+                    <td>Test prune in development first</td>
+                </tr>
+                <tr>
+                    <td>Manual changes to deployed resources</td>
+                    <td>Changes are reverted by ArgoCD</td>
+                    <td>Manual changes conflict with Git state</td>
+                    <td>Always make changes via Git</td>
+                </tr>
+                <tr>
+                    <td>Incorrect health check configuration</td>
+                    <td>Application marked unhealthy</td>
+                    <td>Wrong endpoint or port configuration</td>
+                    <td>Test health endpoints before configuration</td>
+                </tr>
+                <tr>
+                    <td>Not implementing RBAC</td>
+                    <td>Unauthorized access or security risk</td>
+                    <td>Default admin account with full access</td>
+                    <td>Configure proper RBAC and service accounts</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="troubleshooting">
+            <h2>J. Troubleshooting</h2>
+            
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Application stuck in OutOfSync state</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Application shows OutOfSync status and won't sync automatically</p>
+                    <p><strong>Likely Cause:</strong> Invalid configuration, repository access issues, resource conflicts</p>
+                    <p><strong>How to Diagnose:</strong> Check application details, review sync status, examine application logs</p>
+                    <p><strong>Fix:</strong> Fix configuration, resolve repository issues, resolve conflicts</p>
+                    <p><strong>Prevention:</strong> Test configuration before applying, validate repository access, use proper resource whitelisting</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Sync failures with permission errors</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Sync fails with "resource not permitted" errors</p>
+                    <p><strong>Likely Cause:</strong> Resource not in project whitelist, RBAC issues, namespace conflicts</p>
+                    <p><strong>How to Diagnose:</strong> Check project configuration, review RBAC policies, examine sync logs</p>
+                    <p><strong>Fix:</strong> Update project whitelisting, fix RBAC policies, resolve namespace conflicts</p>
+                    <p><strong>Prevention:</strong> Configure proper resource whitelisting, test RBAC policies, use namespace isolation</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Health checks failing</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Application marked unhealthy, sync issues</p>
+                    <p><strong>Likely Cause:</strong> Incorrect health endpoint, application not ready, network issues</p>
+                    <p><strong>How to Diagnose:</strong> Check application health endpoints, review pod status, test network connectivity</p>
+                    <p><strong>Fix:</strong> Fix health endpoints, wait for application readiness, resolve network issues</p>
+                    <p><strong>Prevention:</strong> Test health endpoints, configure appropriate timeouts, implement proper startup probes</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <h2>K. Q&A / FAQ</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Why is Argo CD used instead of kubectl apply?</div>
+                <div class="faq-answer">A: Argo CD provides automated sync, self-healing, health monitoring, and rollback capabilities that kubectl apply doesn't have. It implements the GitOps methodology with Git as the single source of truth.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if ArgoCD configuration is wrong?</div>
+                <div class="faq-answer">A> Sync operations will fail or produce incorrect deployments. Always validate configuration with dry-run and test in non-production environments before enabling automated sync.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I validate ArgoCD configuration?</div>
+                <div class="faq-answer">A> Use <code>argocd app get application-name</code> to check status, <code>argocd app diff application-name</code> to see differences, and test with manual sync before enabling automation.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I debug ArgoCD sync failures?</div>
+                <div class="faq-answer">A> Check application details in ArgoCD UI, review sync status logs, examine application controller logs, and use argocd CLI for detailed diagnostics.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I rollback ArgoCD deployment?</div>
+                <div class="faq-answer">A> Use <code>argocd app rollback application-name</code> to rollback to previous version, or <code>argocd app rollback application-name --revision 2</code> for specific revision.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What logs should I inspect for troubleshooting?</div>
+                <div class="faq-answer">A> ArgoCD application logs, controller logs, repository server logs, application controller logs, and Kubernetes pod logs for the application.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I secure ArgoCD credentials?</div>
+                <div class="faq-answer">A> Use RBAC for access control, use service accounts for automation, integrate with secret management systems, and regularly rotate credentials.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How does ArgoCD behave in production?</div>
+                <div class="faq-answer">A> In production, ArgoCD handles high-traffic sync operations, provides enterprise-grade reliability, integrates with monitoring systems, and supports multi-cluster and multi-region deployments.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I improve ArgoCD performance?</div>
+                <div class="faq-answer">A> Optimize repository access, use efficient diff algorithms, configure appropriate sync intervals, optimize application controller settings, and tune resource limits.</div>
+            </div>
+        </section>
+
+        <section class="section" id="improvements">
+            <h2>L. Improvements / Optimization Ideas</h2>
+            
+            <h3>Security Improvements</h3>
+            <li>Implement OIDC/SAML integration for authentication</li>
+                <li>Use network policies for pod communication control</li>
+                <li>Implement pod security policies for security standards</li>
+                <li>Regular security audits of ArgoCD configuration</li>
+                <li>Implement secret management integration (Vault, Sealed Secrets)</li>
+            </ul>
+
+            <h3>Performance Improvements</h3>
+            <li>Optimize repository access and caching</li>
+                <li>Configure appropriate sync intervals</li>
+                <li>Implement application controller tuning</li>
+                <li>Use efficient diff algorithms</li>
+                <li>Implement resource optimization for ArgoCD components</li>
+            </ul>
+
+            <h3>Maintainability Improvements</h3>
+            <li>Use GitOps with ApplicationSets for multi-app management</li>
+                <li>Implement configuration as Code for ArgoCD</li>
+                <li>Use Helm charts for complex application deployments</li>
+                <li>Automate ArgoCD installation and configuration</li>
+                <li>Implement configuration backup and versioning</li>
+            </ul>
+
+            <h3>Production Hardening</h3>
+            <li>Implement high availability for ArgoCD components</li>
+                <li>Configure database clustering for metadata</li>
+                <li>Implement backup and disaster recovery</li>
+                <li>Set up comprehensive monitoring and alerting</li>
+                <li>Implement load balancing for ArgoCD server</li>
+            </ul>
+
+            <h3>Scaling Considerations</h3>
+            <li>Design for multi-cluster management</li>
+                <li>Implement cluster federation for large deployments</li>
+                <li>Use ApplicationSets for multi-app management</li>
+                <li>Consider multi-region deployment for global teams</li>
+                <li>Implement distributed tracing for monitoring</li>
+            </ul>
+
+            <h3>Developer Experience Improvements</h3>
+            <li>Create ArgoCD dashboards for monitoring</li>
+                <li>Implement self-service application creation</li>
+                <li>Automate common workflow operations</li>
+                <li>Provide comprehensive documentation and training</li>
+                <li>Implement developer-friendly debugging tools</li>
+            </ul>
+        </section>
+
+        <section class="section" id="quick-reference">
+            <h2>M. Quick Reference</h2>
+            
+            <h3>Important Files</h3>
+            <ul>
+                <li><code>argocd/namespace.yaml</code> - ArgoCD namespace definition</li>
+                <li><code>argocd/project.yaml</code> - ArgoCD project configuration</li>
+                <li><code>argocd/application.yaml</code> - Application configuration</li>
+                <li><code>argocd/app-of-apps.yaml</code> - Multi-environment configuration</li>
+                <li><code>argocd/argocd-cm.yaml</code> - ArgoCD configuration</li>
+                <li><code>argocd/argocd-rbac-cm.yaml</code> - RBAC configuration</li>
+                <li><code>k8s/</code> - Kubernetes manifests directory</li>
+            </ul>
+
+            <h3>Important Commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Application management
+argocd app list
+argocd app get application-name
+argocd app sync application-name
+argocd app rollback application-name
+argocd app history application-name
+
+# Project management
+argocd proj list
+argocd proj get project-name
+
+# Cluster management
+argocd cluster list
+argocd cluster add cluster-name
+
+# CLI configuration
+argocd login https://argocd.example.com
+argocd context set-context context-name</argocd></pre>
+            </div>
+
+            <h3>Critical Config Fields</h3>
+            <ul>
+                <li><code>project</code> - ArgoCD project reference</li>
+                <li><code>source.repoURL</code> - Git repository URL</li>
+                <li><code>source.targetRevision</code> - Git branch to track</li>
+                <li><code>destination.server</code> - Kubernetes cluster server</li>
+                <li><code>destination.namespace</code> - Kubernetes namespace</li>
+                <li><code>syncPolicy.automated.prune</code> - Automatic resource cleanup</li>
+                <li><code>syncPolicy.automated.selfHeal</code> - Automatic state reconciliation</li>
+            </ul>
+
+            <h3>Common Failure Checkpoints</h3>
+            <ul>
+                <li>Git repository access and authentication</li>
+                <li>Kubernetes cluster connectivity</li>
+                <li>Resource whitelisting and permissions</li>
+                <li>Sync policy configuration</li>
+                <li>Health check endpoint configuration</li>
+                <li>Image pull secrets and registry access</li>
+            </ul>
+
+            <h3>Verification Checklist</li>
+            <ul>
+                <li>☐ ArgoCD pods running and healthy</li>
+                <li>☐ Project configured with repository access</li>
+                <li>☐ Application created and configured</li>
+                <li>☐ Sync policy configured appropriately</li>
+                <li>☐ Git repository accessible to ArgoCD</li>
+                <li>☐ Kubernetes cluster accessible from ArgoCD</li>
+                <li>☐ Image pull secrets configured for private registries</li>
+                <li>☐ Health checks configured for application</li>
+                <li>☐ RBAC configured with proper permissions</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const arrow = element.querySelector('.collapsible-header span:last-child');
+            if (element.classList.contains('active')) {
+                arrow.textContent = <▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>

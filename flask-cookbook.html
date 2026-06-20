@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Cookbook - Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .callout {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .callout.warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .callout.tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .callout.error {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .recipe {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recipe h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .faq-item {
+            margin: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            color: #666;
+            margin-left: 20px;
+        }
+
+        .collapsible {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapsible-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Flask Cookbook</h1>
+            <p>Script Execution Manager - Flask Application Development and Deployment Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Documentation Index</a>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#recipes">Cookbook Recipes</a></li>
+                <li><a href="#usage">Usage in Project</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#common-mistakes">Common Mistakes</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#improvements">Improvements</a></li>
+                <li><a href="#quick-reference">Quick Reference</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="overview">
+            <h2>A. Title and Overview</h2>
+            <h3>Flask Web Framework</h3>
+            <p><strong>Role in Project:</strong> Flask serves as the core web application framework for the Script Execution Manager, providing the REST API and web interface for script execution and job monitoring.</p>
+            
+            <h3>Why Flask is Used</h3>
+            <ul>
+                <li><strong>Lightweight:</strong> Minimal overhead with essential features built-in</li>
+                <li><strong>Flexible:</strong> Easy to integrate with various databases, task queues, and authentication systems</li>
+                <li><strong>Python-based:</strong> Leverages Python's extensive ecosystem for data processing, automation, and integration</li>
+                <li><strong>Production-ready:</strong> Can be deployed with WSGI servers like Gunicorn for production use</li>
+            </ul>
+
+            <h3>GitOps Pipeline Position</h3>
+            <p>Flask is the application layer that gets containerized, pushed to Artifactory, and deployed via Argo CD. Changes to Flask code trigger the CI/CD pipeline, resulting in new Docker images and Kubernetes deployments.</p>
+
+            <h3>Key Responsibilities</h3>
+            <ul>
+                <li>REST API endpoints for script execution and job monitoring</li>
+                <li>Web interface for user interaction</li>
+                <li>Database integration for job history and analytics</li>
+                <li>Jenkins integration for job triggering and monitoring</li>
+                <li>Artifactory integration for Docker image management</li>
+                <li>Health check endpoints for Kubernetes probes</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>B. What You Should Know Before Starting</h2>
+            
+            <h3>Foundational Concepts</h3>
+            <ul>
+                <li><strong>Python Programming:</strong> Solid understanding of Python 3.8+ syntax and features</li>
+                <li><strong>Web Frameworks:</strong> Basic understanding of MVC (Model-View-Controller) architecture</li>
+                <li><strong>REST APIs:</strong> Knowledge of HTTP methods, status codes, and API design principles</li>
+                <li><strong>Database Concepts:</strong> Understanding of SQL, ORM (Object-Relational Mapping), and database connections</li>
+                <li><strong>Containerization:</strong> Basic knowledge of Docker and container concepts</li>
+            </ul>
+
+            <h3>Assumptions</h3>
+            <ul>
+                <li>You have Python 3.8+ installed on your development machine</li>
+                <li>You understand basic web server concepts (ports, hosts, requests/responses)</li>
+                <li>You're familiar with command-line operations</li>
+                <li>You have basic knowledge of Git for version control</li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <ul>
+                <li><strong>Flask:</strong> Core web framework</li>
+                <li><strong>SQLAlchemy:</strong> Database ORM</li>
+                <li><strong>Requests:</strong> HTTP client for Jenkins and Artifactory integration</li>
+                <li><strong>Python-dotenv:</strong> Environment variable management</li>
+            </ul>
+
+            <h3>Operational Context</h3>
+            <p>The Flask application runs in a Kubernetes pod with health checks and resource limits. It communicates with Jenkins for job execution, Artifactory for artifact management, and uses SQLite/PostgreSQL for data persistence.</p>
+
+            <h3>Production Considerations</h3>
+            <ul>
+                <li>Use a production WSGI server (Gunicorn) instead of Flask's development server</li>
+                <li>Implement proper logging and monitoring</li>
+                <li>Configure database connection pooling</li>
+                <li>Set up proper error handling and exception tracking</li>
+                <li>Implement security measures (HTTPS, authentication, input validation)</li>
+            </ul>
+
+            <h3>Hidden Complexity</h3>
+            <ul>
+                <li>Database connection management and pooling</li>
+                <li>Async task processing for long-running operations</li>
+                <li>Session management and security</li>
+                <li>API rate limiting and throttling</li>
+                <li>Caching strategies for performance optimization</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>C. Prerequisites</h2>
+            
+            <h3>Software Requirements</h3>
+            <table>
+                <tr>
+                    <th>Software</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Python</td>
+                    <td>3.8+</td>
+                    <td>Runtime environment</td>
+                </tr>
+                <tr>
+                    <td>pip</td>
+                    <td>20.0+</td>
+                    <td>Package management</td>
+                </tr>
+                <tr>
+                    <td>Git</td>
+                    <td>2.0+</td>
+                    <td>Version control</td>
+                </tr>
+                <tr>
+                    <td>Docker</td>
+                    <td>20.0+</td>
+                    <td>Containerization (optional)</td>
+                </tr>
+            </table>
+
+            <h3>Accounts and Permissions</h3>
+            <ul>
+                <li><strong>GitHub Account:</strong> For repository access and CI/CD integration</li>
+                <li><strong>Jenkins Account:</strong> With API token for job triggering</li>
+                <li><strong>Artifactory Account:</strong> With permissions for Docker repository access</li>
+                <li><strong>Kubernetes Cluster Access:</strong> kubectl configured with appropriate permissions</li>
+            </ul>
+
+            <h3>Environment Variables Required</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>FLASK_ENV=production
+FLASK_DEBUG=0
+DATABASE_URL=sqlite:///script_manager.db
+JENKINS_URL=http://jenkins-service:8080
+JENKINS_USERNAME=your-jenkins-username
+JENKINS_PASSWORD=your-jenkins-api-token
+JENKINS_JOB_NAME=script-execution-job
+ARTIFACTORY_URL=http://artifactory-service:8082
+ARTIFACTORY_USERNAME=your-artifactory-username
+ARTIFACTORY_PASSWORD=your-artifactory-password
+ARTIFACTORY_REPOSITORY=docker-local</pre>
+            </div>
+
+            <h3>Tools to Install</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Install Python dependencies
+pip install -r requirements.txt
+
+# For development
+pip install -r requirements-dev.txt
+
+# Docker (optional)
+curl -fsSL https://get.docker.com | sh</pre>
+            </div>
+        </section>
+
+        <section class="section" id="installation">
+            <h2>D. Installation / Setup</h2>
+            
+            <h3>Step 1: Clone the Repository</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>git clone https://github.com/Tanmay71710/learning-and-implementation.git
+cd learning</pre>
+            </div>
+
+            <h3>Step 2: Create Virtual Environment</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate</pre>
+            </div>
+
+            <h3>Step 3: Install Dependencies</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>pip install -r requirements.txt</pre>
+            </div>
+
+            <h3>Step 4: Configure Environment Variables</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>cp .env.example .env
+# Edit .env with your configuration</pre>
+            </div>
+
+            <h3>Step 5: Initialize Database</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>python app.py
+# The database will be automatically created on first run</pre>
+            </div>
+
+            <h3>Step 6: Validate Setup</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Test the application
+curl http://localhost:5000/api/jenkins/health
+
+# Expected output: {"status": "healthy"}</pre>
+            </div>
+
+            <div class="callout tip">
+                <strong>Tip:</strong> For development, set <code>FLASK_ENV=development</code> and <code>FLASK_DEBUG=1</code> in your .env file to enable auto-reload and detailed error messages.
+            </div>
+        </section>
+
+        <section class="section" id="configuration">
+            <h2>E. Configuration Guide</h2>
+            
+            <h3>Application Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>FLASK_ENV</td>
+                    <td>Environment mode</td>
+                    <td>development / production</td>
+                    <td>Yes</td>
+                    <td>Set to 'production' for deployment</td>
+                </tr>
+                <tr>
+                    <td>FLASK_DEBUG</td>
+                    <td>Debug mode</td>
+                    <td>0 / 1</td>
+                    <td>No</td>
+                    <td>Enable in development only</td>
+                </tr>
+                <tr>
+                    <td>DATABASE_URL</td>
+                    <td>Database connection string</td>
+                    <td>sqlite:///script_manager.db</td>
+                    <td>Yes</td>
+                    <td>Change for PostgreSQL/MySQL</td>
+                </tr>
+                <tr>
+                    <td>JENKINS_URL</td>
+                    <td>Jenkins server URL</td>
+                    <td>http://jenkins-service:8080</td>
+                    <td>No</td>
+                    <td>Update for different Jenkins instance</td>
+                </tr>
+                <tr>
+                    <td>JENKINS_USERNAME</td>
+                    <td>Jenkins authentication</td>
+                    <td>admin</td>
+                    <td>No</td>
+                    <td>Change for different user</td>
+                </tr>
+                <tr>
+                    <td>JENKINS_PASSWORD</td>
+                    <td>Jenkins API token</td>
+                    <td>your-api-token</td>
+                    <td>No</td>
+                    <td>Update when token changes</td>
+                </tr>
+                <tr>
+                    <td>ARTIFACTORY_URL</td>
+                    <td>Artifactory server URL</td>
+                    <td>http://artifactory-service:8082</td>
+                    <td>No</td>
+                    <td>Update for different Artifactory</td>
+                </tr>
+            </table>
+
+            <h3>Configuration Classes</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>class Config:
+    """Base configuration"""
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///script_manager.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+class DevelopmentConfig(Config):
+    """Development configuration"""
+    DEBUG = True
+    TESTING = False
+
+class ProductionConfig(Config):
+    """Production configuration"""
+    DEBUG = False
+    TESTING = False</pre>
+            </div>
+
+            <h3>Common Configuration Mistakes</h3>
+            <div class="callout warning">
+                <strong>Warning:</strong> Never commit actual credentials to version control. Use environment variables or secret management systems.
+            </div>
+            <ul>
+                <li>Hardcoding credentials in source code</li>
+                <li>Using debug mode in production</li>
+                <li>Not setting SECRET_KEY in production</li>
+                <li>Leaving SQLALCHEMY_TRACK_MODIFICATIONS = True in production</li>
+                <li>Using SQLite in production (use PostgreSQL instead)</li>
+            </ul>
+
+            <h3>Environment-Specific Configuration</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Development</th>
+                    <th>Staging</th>
+                    <th>Production</th>
+                </tr>
+                <tr>
+                    <td>FLASK_ENV</td>
+                    <td>development</td>
+                    <td>production</td>
+                    <td>production</td>
+                </tr>
+                <tr>
+                    <td>FLASK_DEBUG</td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>DATABASE</td>
+                    <td>SQLite</td>
+                    <td>PostgreSQL</td>
+                    <td>PostgreSQL</td>
+                </tr>
+                <tr>
+                    <td>Logging</td>
+                    <td>DEBUG level</td>
+                    <td>INFO level</td>
+                    <td>WARNING level</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="recipes">
+            <h2>F. Cookbook Recipes</h2>
+            
+            <div class="recipe">
+                <h4>Recipe 1: Basic Local Development Setup</h4>
+                <p><strong>Purpose:</strong> Set up Flask application for local development</p>
+                <p><strong>Ingredients:</strong> Python 3.8+, virtual environment, requirements.txt</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create virtual environment: <code>python -m venv venv</code></li>
+                    <li>Activate virtual environment: <code>source venv/bin/activate</code></li>
+                    <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
+                    <li>Set environment variables: <code>export FLASK_ENV=development</code></li>
+                    <li>Run application: <code>python app.py</code></li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application running on http://localhost:5000</p>
+                <p><strong>Verification:</strong> Access http://localhost:5000 in browser</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 2: Database Migration</h4>
+                <p><strong>Purpose:</strong> Migrate from SQLite to PostgreSQL</p>
+                <p><strong>Ingredients:</strong> PostgreSQL server, psycopg2 library</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Install PostgreSQL adapter: <code>pip install psycopg2-binary</code></li>
+                    <li>Update DATABASE_URL: <code>postgresql://user:password@localhost/dbname</code></li>
+                    <li>Update requirements.txt with psycopg2-binary</li>
+                    <li>Test connection: <code>python -c "from app import app; print('Connected')"</code></li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application connects to PostgreSQL database</p>
+                <p><strong>Verification:</strong> Check database for new tables</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 3: Docker Containerization</h4>
+                <p><strong>Purpose:</strong> Containerize Flask application for deployment</p>
+                <p><strong>Ingredients:</strong> Dockerfile, Docker daemon</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Build Docker image: <code>docker build -t script-execution-manager .</code></li>
+                    <li>Test container: <code>docker run -p 5000:5000 script-execution-manager</code></li>
+                    <li>Tag for registry: <code>docker tag script-execution-manager registry/image:tag</code></li>
+                    <li>Push to registry: <code>docker push registry/image:tag</code></li>
+                </ol>
+                <p><strong>Expected Result:</strong> Docker image built and pushed to registry</p>
+                <p><strong>Verification:</strong> Pull and run image on different machine</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 4: Production Deployment with Gunicorn</h4>
+                <p><strong>Purpose:</strong> Deploy Flask with production WSGI server</p>
+                <p><strong>Ingredients:</strong> Gunicorn, systemd (Linux)</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Install Gunicorn: <code>pip install gunicorn</code></li>
+                    <li>Test Gunicorn: <code>gunicorn -w 4 -b 0.0.0.0:5000 app:app</code></li>
+                    <li>Create systemd service file</li>
+                    <li>Enable and start service: <code>sudo systemctl enable flask-app</code></li>
+                </ol>
+                <p><strong>Expected Result:</strong> Flask application running as system service</p>
+                <p><strong>Verification:</strong> Check service status: <code>sudo systemctl status flask-app</code></p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 5: Health Check Configuration</h4>
+                <p><strong>Purpose:</strong> Configure health endpoints for Kubernetes probes</p>
+                <p><strong>Ingredients:</strong> Flask application, Kubernetes deployment</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Add health endpoint to Flask: <code>@app.route('/health')</code></li>
+                    <li>Return JSON response with status</li>
+                    <li>Configure Kubernetes liveness/readiness probes</li>
+                    <li>Set appropriate timeouts and intervals</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Kubernetes can monitor application health</p>
+                <p><strong>Verification:</strong> Check pod status in Kubernetes dashboard</p>
+            </div>
+        </section>
+
+        <section class="section" id="usage">
+            <h2>G. Usage in This Project</h2>
+            
+            <h3>Who Uses the Tool</h3>
+            <ul>
+                <li><strong>Developers:</strong> Use the Flask API for script execution and monitoring</li>
+                <li><strong>DevOps Engineers:</strong> Deploy and manage the application in Kubernetes</li>
+                <li><strong>CI/CD Pipeline:</strong> Builds and deploys Flask application containers</li>
+            </ul>
+
+            <h3>Event Triggers</h3>
+            <ul>
+                <li><strong>HTTP Requests:</strong> API endpoints triggered by web interface or external systems</li>
+                <li><strong>Jenkins Webhooks:</strong> Job status updates from Jenkins</li>
+                <li><strong>Git Pushes:</strong> Code changes trigger CI/CD pipeline rebuilds</li>
+            </ul>
+
+            <h3>Input/Output</h3>
+            <ul>
+                <li><strong>Input:</strong> Script names, parameters, execution mode (Jenkins/local)</li>
+                <li><strong>Output:</strong> Job status, console output, execution history</li>
+            </ul>
+
+            <h3>System Integration</h3>
+            <ul>
+                <li><strong>Jenkins:</strong> Triggers jobs and monitors execution status</li>
+                <li><strong>Artifactory:</strong> Stores Docker images and build artifacts</li>
+                <li><strong>Kubernetes:</strong> Provides deployment platform and scaling</li>
+                <li><strong>GitHub Actions:</strong> Builds containers and updates deployment manifests</li>
+            </ul>
+
+            <h3>Execution Flow</h3>
+            <ol>
+                <li>User submits script execution request via web interface</li>
+                <li>Flask API validates request and parameters</li>
+                <li>Application triggers Jenkins job or executes locally</li>
+                <li>Job status is monitored and stored in database</li>
+                <li>Results are returned to user via web interface</li>
+            </ol>
+        </section>
+
+        <section class="section" id="best-practices">
+            <h2>H. Best Practices</h2>
+            
+            <h3>Naming Conventions</h3>
+            <ul>
+                <li>Use lowercase with underscores for Python modules: <code>script_manager.py</code></li>
+                <li>Use PascalCase for class names: <code>ScriptExecutionManager</code></li>
+                <li>Use lowercase with hyphens for route names: <code>/api/scripts/execute</code></li>
+                <li>Use descriptive environment variable names: <code>JENKINS_API_TOKEN</code></li>
+            </ul>
+
+            <h3>Folder Structure Guidance</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>project/
+├── app.py              # Main application entry point
+├── models.py           # Database models
+├── requirements.txt    # Python dependencies
+├── templates/          # HTML templates
+├── static/            # Static files (CSS, JS, images)
+├── scripts/           # Executable scripts
+├── tests/             # Unit tests
+└── config.py          # Configuration classes</pre>
+            </div>
+
+            <h3>Environment Separation</h3>
+            <ul>
+                <li>Use separate configuration classes for dev/staging/prod</li>
+                <li>Never mix environment-specific settings</li>
+                <li>Use environment variables for sensitive data</li>
+                <li>Implement configuration validation at startup</li>
+            </ul>
+
+            <h3>Secrets Handling</h3>
+            <ul>
+                <li>Never commit secrets to version control</li>
+                <li>Use environment variables or secret management systems</li>
+                <li>Rotate credentials regularly</li>
+                <li>Implement proper secret injection in Kubernetes</li>
+            </ul>
+
+            <h3>Security Hardening</h3>
+            <ul>
+                <li>Set strong SECRET_KEY in production</li>
+                <li>Implement HTTPS/TLS for production deployments</li>
+                <li>Validate and sanitize all user inputs</li>
+                <li>Implement rate limiting for API endpoints</li>
+                <li>Use dependency scanning for security vulnerabilities</li>
+            </ul>
+
+            <h3>Logging and Monitoring</h3>
+            <ul>
+                <li>Implement structured logging with log levels</li>
+                <li>Use centralized logging in production</li>
+                <li>Monitor application performance metrics</li>
+                <li>Set up alerting for critical errors</li>
+            </ul>
+
+            <h3>Error Handling</h3>
+            <ul>
+                <li>Implement global exception handlers</li>
+                <li>Return appropriate HTTP status codes</li>
+                <li>Log errors with sufficient context</li>
+                <li>Provide user-friendly error messages</li>
+            </ul>
+
+            <h3>Rollback Practices</h3>
+            <ul>
+                <li>Use database migrations for schema changes</li>
+                <li>Implement feature flags for new functionality</li>
+                <li>Keep previous Docker images for quick rollback</li>
+                <li>Test rollback procedures regularly</li>
+            </ul>
+
+            <h3>Versioning</h3>
+            <ul>
+                <li>Use semantic versioning for releases</li>
+                <li>Tag releases in Git</li>
+                <li>Maintain CHANGELOG for significant changes</li>
+                <li>Use dependency version pinning in requirements.txt</li>
+            </ul>
+        </section>
+
+        <section class="section" id="common-mistakes">
+            <h2>I. Common Mistakes</h2>
+            
+            <table>
+                <tr>
+                    <th>Mistake</th>
+                    <th>What Happens</th>
+                    <th>Why It Happens</th>
+                    <th>How to Avoid</th>
+                </tr>
+                <tr>
+                    <td>Wrong environment variables</td>
+                    <td>Application fails to start or connect to services</td>
+                    <td>Typo in variable name or missing .env file</td>
+                    <td>Validate environment variables at startup</td>
+                </tr>
+                <tr>
+                    <td>Incorrect credentials</td>
+                    <td>Authentication failures with Jenkins/Artifactory</td>
+                    <td>Outdated tokens or wrong usernames</td>
+                    <td>Use secret management and regular rotation</td>
+                </tr>
+                <tr>
+                    <td>Debug mode in production</td>
+                    <td>Security risk and performance issues</td>
+                    <td>Forgot to set FLASK_ENV=production</td>
+                    <td>Use configuration classes and environment-specific settings</td>
+                </tr>
+                <tr>
+                    <td>Missing SECRET_KEY</td>
+                    <td>Session security vulnerabilities</td>
+                    <td>Not set in production configuration</td>
+                    <td>Generate strong random key for production</td>
+                </tr>
+                <tr>
+                    <td>SQLite in production</td>
+                    <td>Performance and concurrency issues</td>
+                    <td>Convenient for development, not production</td>
+                    <td>Use PostgreSQL or MySQL in production</td>
+                </tr>
+                <tr>
+                    <td>Hardcoded credentials</td>
+                    <td>Security breach if code is exposed</td>
+                    <td>Convenience during development</td>
+                    <td>Always use environment variables</td>
+                </tr>
+                <tr>
+                    <td>No health checks</td>
+                    <td>Kubernetes cannot detect application failures</td>
+                    <td>Health endpoints not implemented</td>
+                    <td>Implement /health and /ready endpoints</td>
+                </tr>
+                <tr>
+                    <td>Inadequate logging</td>
+                    <td>Difficult to troubleshoot production issues</td>
+                    <td>Minimal logging during development</td>
+                    <td>Implement comprehensive logging strategy</td>
+                </tr>
+                <tr>
+                    <td>Missing error handling</td>
+                    <td>Application crashes with generic errors</td>
+                    <td>Focus on happy path during development</td>
+                    <td>Implement comprehensive exception handling</td>
+                </tr>
+                <tr>
+                    <td>No dependency pinning</td>
+                    <td>Unexpected behavior from dependency updates</td>
+                    <td>Using latest versions by default</td>
+                    <td>Pin specific versions in requirements.txt</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="troubleshooting">
+            <h2>J. Troubleshooting</h2>
+            
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Application fails to start</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Application exits immediately or shows import errors</p>
+                    <p><strong>Likely Cause:</strong> Missing dependencies or incorrect Python version</p>
+                    <p><strong>How to Diagnose:</strong> Check error messages, verify Python version, run <code>pip list</code></p>
+                    <p><strong>Fix:</strong> Install missing dependencies, use correct Python version</p>
+                    <p><strong>Prevention:</strong> Use virtual environments and requirements.txt</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Database connection errors</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Application shows database connection refused errors</p>
+                    <p><strong>Likely Cause:</strong> Database not running, wrong credentials, or incorrect DATABASE_URL</p>
+                    <p><strong>How to Diagnose:</strong> Check database status, verify connection string, test with database client</p>
+                    <p><strong>Fix:</strong> Start database, update credentials, fix connection string</p>
+                    <p><strong>Prevention:</strong> Use connection pooling and proper error handling</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Jenkins authentication failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> 401 Unauthorized errors when calling Jenkins API</p>
+                    <p><strong>Likely Cause:</strong> Invalid API token or username, CSRF protection</p>
+                    <p><strong>How to Diagnose:</strong> Test credentials with curl, check Jenkins logs</p>
+                    <p><strong>Fix:</strong> Generate new API token, update credentials, handle CSRF tokens</p>
+                    <p><strong>Prevention:</strong> Use proper credential management and token rotation</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Memory leaks in production</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Application memory usage increases over time</p>
+                    <p><strong>Likely Cause:</strong> Unclosed database connections, large objects in memory</p>
+                    <p><strong>How to Diagnose:</strong> Use memory profiling tools, monitor resource usage</p>
+                    <p><strong>Fix:</strong> Implement proper connection cleanup, use memory profiling</p>
+                    <p><strong>Prevention:</strong> Regular load testing and memory profiling</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Slow response times</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> API endpoints take too long to respond</p>
+                    <p><strong>Likely Cause:</strong> Database queries, external API calls, inefficient code</p>
+                    <p><strong>How to Diagnose:</strong> Use profiling tools, check database query performance</p>
+                    <p><strong>Fix:</strong> Optimize database queries, implement caching, add async processing</p>
+                    <p><strong>Prevention:</strong> Performance testing and monitoring</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <h2>K. Q&A / FAQ</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Why is Flask used instead of other frameworks like Django?</div>
+                <div class="faq-answer">A: Flask provides more flexibility and is better suited for REST API development. It has a smaller footprint and allows developers to choose their own components, which is ideal for microservices architectures.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if the DATABASE_URL is configured incorrectly?</div>
+                <div class="faq-answer">A: The application will fail to start or will show database connection errors. Always validate database connectivity at startup and provide clear error messages.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I validate Jenkins access configuration?</div>
+                <div class="faq-answer">A: Test Jenkins connectivity using curl: <code>curl -u username:token http://jenkins-url/api/json</code>. The application also provides a health check endpoint at <code>/api/jenkins/health</code>.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I debug Flask application issues in production?</div>
+                <div class="faq-answer">A: Use structured logging, monitor application metrics, check Kubernetes pod logs, and use debugging tools like pdb for remote debugging when necessary.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I rollback a Flask application deployment?</div>
+                <div class="faq-answer">A: Use Kubernetes rollout commands: <code>kubectl rollout undo deployment/script-execution-manager</code>. For database changes, use migration rollback tools.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What logs should I inspect for troubleshooting?</div>
+                <div class="faq-answer">A: Check Flask application logs, Kubernetes pod logs, Jenkins build logs, and any relevant system logs. Enable debug logging during troubleshooting.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I secure Flask application credentials?</div>
+                <div class="faq-answer">A: Use Kubernetes Secrets, environment variables, or dedicated secret management tools like HashiCorp Vault. Never commit credentials to version control.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How does Flask behave in a Kubernetes environment?</div>
+                <div class="faq-answer">A: Flask runs in containers with health checks, resource limits, and automatic scaling. It should be stateless and handle graceful shutdowns for proper Kubernetes integration.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I improve Flask application performance?</div>
+                <div class="faq-answer">A: Use caching (Redis), optimize database queries, implement async processing for long tasks, use a production WSGI server, and enable HTTP/2 if possible.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What are the common limitations of Flask in production?</div>
+                <div class="faq-answer">A: Single-threaded development server, lack of built-in async support, limited scalability without proper WSGI server, and need for additional components for production features.</div>
+            </div>
+        </section>
+
+        <section class="section" id="improvements">
+            <h2>L. Improvements / Optimization Ideas</h2>
+            
+            <h3>Security Improvements</h3>
+            <ul>
+                <li>Implement OAuth2/OpenID Connect for authentication</li>
+                <li>Add API rate limiting and throttling</li>
+                <li>Implement input validation and sanitization</li>
+                <li>Use security headers (CSP, X-Frame-Options, etc.)</li>
+                <li>Regular dependency security scanning</li>
+            </ul>
+
+            <h3>Performance Improvements</h3>
+            <ul>
+                <li>Implement Redis caching for frequently accessed data</li>
+                <li>Use connection pooling for database connections</li>
+                <li>Implement async processing with Celery for long tasks</li>
+                <li>Enable HTTP/2 and compression</li>
+                <li>Use CDN for static assets</li>
+            </ul>
+
+            <h3>Maintainability Improvements</h3>
+            <ul>
+                <li>Implement comprehensive unit and integration tests</li>
+                <li>Use API documentation tools like Swagger/OpenAPI</li>
+                <li>Implement automated database migrations</li>
+                <li>Add performance monitoring and APM integration</li>
+                <li>Use feature flags for gradual rollouts</li>
+            </ul>
+
+            <h3>Production Hardening</h3>
+            <ul>
+                <li>Implement proper logging and log aggregation</li>
+                <li>Set up distributed tracing for microservices</li>
+                <li>Implement circuit breakers for external dependencies</li>
+                <li>Use read replicas for database scaling</li>
+                <li>Implement graceful shutdown handling</li>
+            </ul>
+
+            <h3>Scaling Considerations</h3>
+            <ul>
+                <li>Design for horizontal scaling (stateless architecture)</li>
+                <li>Implement database sharding if needed</li>
+                <li>Use Kubernetes HPA for automatic scaling</li>
+                <li>Consider multi-region deployment for high availability</li>
+                <li>Implement proper session management for scaled deployments</li>
+            </ul>
+
+            <h3>Developer Experience Improvements</h3>
+            <ul>
+                <li>Implement hot reload during development</li>
+                <li>Use Docker Compose for local development environment</li>
+                <li>Implement pre-commit hooks for code quality</li>
+                <li>Create comprehensive development documentation</li>
+                <li>Set up local development scripts</li>
+            </ul>
+        </section>
+
+        <section class="section" id="quick-reference">
+            <h2>M. Quick Reference</h2>
+            
+            <h3>Important Files</h3>
+            <ul>
+                <li><code>app.py</code> - Main Flask application</li>
+                <li><code>models.py</code> - Database models</li>
+                <li><code>requirements.txt</code> - Python dependencies</li>
+                <li><code>Dockerfile</code> - Container definition</li>
+                <li><code>.env</code> - Environment variables</li>
+            </ul>
+
+            <h3>Important Commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Development
+python app.py
+
+# Production with Gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+
+# Docker
+docker build -t script-execution-manager .
+docker run -p 5000:5000 script-execution-manager
+
+# Testing
+pytest tests/
+curl http://localhost:5000/api/jenkins/health</pre>
+            </div>
+
+            <h3>Critical Config Fields</h3>
+            <ul>
+                <li><code>FLASK_ENV</code> - Must be 'production' in production</li>
+                <li><code>SECRET_KEY</code> - Required for session security</li>
+                <li><code>DATABASE_URL</code> - Database connection string</li>
+                <li><code>JENKINS_URL</code> - Jenkins server for job execution</li>
+                <li><code>ARTIFACTORY_URL</code> - Artifactory for artifact storage</li>
+            </ul>
+
+            <h3>Common Failure Checkpoints</h3>
+            <ul>
+                <li>Application startup - Check environment variables</li>
+                <li>Database connectivity - Test connection string</li>
+                <li>External API calls - Verify credentials and network access</li>
+                <li>Health checks - Ensure endpoints return proper responses</li>
+                <li>Resource limits - Monitor memory and CPU usage</li>
+            </ul>
+
+            <h3>Verification Checklist</h3>
+            <ul>
+                <li>☐ Application starts without errors</li>
+                <li>☐ Database connectivity working</li>
+                <li>☐ Health endpoints responding</li>
+                <li>☐ Environment variables loaded correctly</li>
+                <li>☐ External API integration working</li>
+                <li>☐ Logging configured and functioning</li>
+                <li>☐ Resource limits appropriate</li>
+                <li>☐ Security measures in place</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const arrow = element.querySelector('.collapsible-header span:last-child');
+            if (element.classList.contains('active')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>

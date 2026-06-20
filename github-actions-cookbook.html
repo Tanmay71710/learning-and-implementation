@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Actions Cookbook - Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .callout {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .callout.warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .callout.tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .callout.error {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .recipe {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recipe h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .faq-item {
+            margin: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            color: #666;
+            margin-left: 20px;
+        }
+
+        .collapsible {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapsible-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>GitHub Actions Cookbook</h1>
+            <p>Script Execution Manager - GitHub Actions CI/CD Pipeline Configuration Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Documentation Index</a>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#recipes">Cookbook Recipes</a></li>
+                <li><a href="#usage">Usage in Project</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#common-mistakes">Common Mistakes</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#improvements">Improvements</a></li>
+                <li><a href="#quick-reference">Quick Reference</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="overview">
+            <h2>A. Title and Overview</h2>
+            <h3>GitHub Actions CI/CD Platform</h3>
+            <p><strong>Role in Project:</strong> GitHub Actions serves as the primary CI/CD automation platform for the Script Execution Manager, handling code quality checks, Docker image building, and Kubernetes deployment.</p>
+            
+            <h3>Why GitHub Actions is Used</h3>
+            <ul>
+                <li><strong>Native Integration:</strong> Seamless integration with GitHub repositories and pull requests</li>
+                <li><strong>YAML Workflows:</strong> Declarative pipeline configuration with YAML syntax</li>
+                <li><strong>Marketplace:</strong> Extensive marketplace for pre-built actions and integrations</li>
+                <li><strong>Free Tier:</strong> Generous free tier for public repositories</li>
+                <li><strong>Community:</strong> Large community and extensive documentation</li>
+            </ul>
+
+            <h3>GitOps Pipeline Position</h3>
+            <p>GitHub Actions is the CI component of the GitOps pipeline. It builds and tests code, creates Docker images, pushes them to Artifactory, and updates Kubernetes manifests which are then deployed by Argo CD.</p>
+
+            <h3>Key Responsibilities</h3>
+            <ul>
+                <li>Automated code quality checks (Pylint, Flake8, Black, Bandit)</li>
+                <li>Docker image building and multi-platform support</li>
+                <li>Image pushing to JFrog Artifactory</li>
+                <li>Kubernetes manifest updates and deployment</li>
+                <li>Email notifications for build status</li>
+                <li>Pull request validation and comments</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>B. What You Should Know Before Starting</h2>
+            
+            <h3>Foundational Concepts</h3>
+            <ul>
+                <li><strong>CI/CD Concepts:</strong> Understanding of continuous integration and deployment</li>
+                <li><strong>YAML Syntax:</strong> Understanding of YAML structure and syntax</li>
+                <li><strong>GitHub Workflows:</strong> Understanding of GitHub Actions workflow structure</li>
+                <li><strong>Docker:</strong> Understanding of containerization and Docker commands</li>
+                <li><strong>Git Workflows:</strong> Understanding of branching, PRs, and Git operations</li>
+            </ul>
+
+            <h3>Assumptions</h3>
+                <li>You have a GitHub account and repository access</li>
+                <li>You understand basic CI/CD pipeline concepts</li>
+                <li>You have Docker installed for local testing</li>
+                <li>You have access to container registry (Artifactory)</li>
+                <li>You have Kubernetes cluster access for deployment</li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <ul>
+                <li><strong>GitHub Repository:</strong> Hosts workflows and source code</li>
+                <li><strong>Docker:</strong> For building and testing container images</li>
+                <li><strong>Artifactory:</strong> For Docker image storage</li>
+                <li><strong>Kubernetes:</strong> For deployment target</li>
+                <li><strong>Email Service:</strong> For build notifications</li>
+            </ul>
+
+            <h3>Operational Context</h3>
+            <p>The project uses three GitHub Actions workflows: code-quality-check for linting, docker-build-push-k8s for CI/CD, and argocd-gitops for Argo CD synchronization. These workflows trigger on different Git events.</p>
+
+            <h3>Production Considerations</h3>
+            <ul>
+                <li>Implement proper secret management for sensitive data</li>
+                <li>Configure workflow timeouts and resource limits</li>
+                <li>Implement proper error handling and retry logic</li>
+                <li>Set up monitoring and alerting for workflow failures</li>
+                <li>Use caching strategies to optimize workflow performance</li>
+            </ul>
+
+            <h3>Hidden Complexity</h3>
+            <ul>
+                <li>Workflow syntax and step dependencies</li>
+                <li>Secret management and environment variables</li>
+                <li>Matrix builds and strategy configuration</li>
+                <li>Artifact caching and storage</li>
+                <li>Multi-platform Docker image building</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>C. Prerequisites</h2>
+            
+            <h3>GitHub Repository Requirements</h3>
+            <ul>
+                <li><strong>Repository Access:</strong> Write access to repository for workflow creation</li>
+                <li><strong>Settings:</strong> Actions enabled in repository settings</li>
+                <li><strong>Branch Protection:</strong> Configure branch rules if needed</li>
+                <li><strong>Permissions:</strong> Ability to configure secrets and environments</li>
+            </ul>
+
+            <h3>Required GitHub Secrets</h3>
+            <table>
+                <tr>
+                    <th>Secret Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                </tr>
+                <tr>
+                    <td>ARTIFACTORY_URL</td>
+                    <td>Artifactory server URL</td>
+                    <td>http://artifactory.local:8082</td>
+                </tr>
+                <tr>
+                    <td>ARTIFACTORY_USERNAME</td>
+                    <td>Artifactory username</td>
+                    <td>admin</td>
+                </tr>
+                <tr>
+                    <td>ARTIFACTORY_PASSWORD</td>
+                    <td>Artifactory password</td>
+                    <td>password</td>
+                </tr>
+                <tr>
+                    <td>KUBECONFIG</td>
+                    <td>Base64-encoded kubeconfig</td>
+                    <td>base64-encoded-kubeconfig</td>
+                </tr>
+                <tr>
+                    <td>EMAIL_SERVER</td>
+                    <td>SMTP server for notifications</td>
+                    <td>smtp.gmail.com</td>
+                </tr>
+                <tr>
+                    <td>EMAIL_USERNAME</td>
+                    <td>Email username</td>
+                    <td>your-email@gmail.com</td>
+                </tr>
+                <tr>
+                    <td>EMAIL_PASSWORD</td>
+                    <td>Email password/app password</td>
+                    <td>your-app-password</td>
+                </tr>
+            </table>
+
+            <h3>Software Requirements</h3>
+            <table>
+                <tr>
+                    <th>Software</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Docker</td>
+                    <td>20.0+</td>
+                    <td>Building and pushing images</td>
+                </tr>
+                <tr>
+                    <td>Git</td>
+                    <td>2.0+</td>
+                    <td>Version control operations</td>
+                </tr>
+                <tr>
+                    <td>Python</td>
+                    <td>3.8+</td>
+                    <td>Code quality checks</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="installation">
+            <h2>D. Installation / Setup</h2>
+            
+            <h3>Step 1: Enable GitHub Actions</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Navigate to repository on GitHub
+# Go to Settings → Actions
+# Click "I understand my workflows, go ahead and enable them"</pre>
+            </div>
+
+            <h3>Step 2: Create Workflow Directory</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create workflow directory structure
+mkdir -p .github/workflows</pre>
+            </div>
+
+            <h3>Step 3: Configure Secrets</h3>
+                <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Navigate to repository Settings → Secrets
+# Add each required secret with its value
+# Secrets will be available in workflows via secrets context</pre>
+                </div>
+
+            <h3>Step 4: Create Workflow Files</h4>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create workflow files in .github/workflows/
+# code-quality-check.yml - For linting and quality checks
+# docker-build-push-k8s.yml - For CI/CD and deployment
+# argocd-gitops.yml - For Argo CD synchronization</pre>
+            </div>
+
+            <h3>Step 5: Commit and Push Workflows</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>git add .github/workflows/
+git commit -m "Add GitHub Actions workflows"
+git push origin master</pre>
+            </div>
+
+            <h3>Step 6: Validate Workflow Execution</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Navigate to Actions tab in GitHub
+# Monitor workflow execution
+# Check logs and results for each workflow</pre>
+            </div>
+
+            <div class="callout tip">
+                <strong>Tip:</strong> Use workflow_dispatch trigger to manually test workflows before enabling automatic triggers like push and pull_request.
+            </div>
+        </section>
+
+        <section class="section" id="configuration">
+            <h2>E. Configuration Guide</h2>
+            
+            <h3>Workflow Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td>Workflow identifier</td>
+                    <td>code-quality-check</td>
+                    <td>Yes</td>
+                    <td>When creating new workflow</td>
+                </tr>
+                <tr>
+                    <td>on</td>
+                    <td>Workflow triggers</td>
+                    <td>push, pull_request</td>
+                    <td>Yes</td>
+                  <td>Based on automation needs</td>
+                </tr>
+                <tr>
+                    <td>jobs</td>
+                    <td>Collection of jobs in workflow</td>
+                  <td>build, test, deploy</td>
+                    <td>Yes</td>
+                    <td>When defining workflow structure</td>
+                </tr>
+                <tr>
+                    <td>runs-on</td>
+                    <td>Runner environment</td>
+                    <td>ubuntu-latest</td>
+                    <td>Yes</td>
+                    <td>Based on build requirements</td>
+                </tr>
+                <tr>
+                    <td>steps</td>
+                    <td>Individual workflow steps</td>
+                    <td>actions/checkout, docker/build</td>
+                    <td>Yes</td>
+                    <td>When defining build process</td>
+                </tr>
+            </table>
+
+            <h3>Job Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>runs-on</td>
+                    <td>Runner selection</td>
+                    <td>ubuntu-latest, self-hosted</td>
+                    <td>Yes</td>
+                    <td>Based on build requirements</td>
+                </tr>
+                <tr>
+                    <td>timeout-minutes</td>
+                    <td>Maximum job duration</td>
+                    <td>30</td>
+                    <td>No</td>
+                    <td>When jobs are taking too long</td>
+                </tr>
+                <tr>
+                    <td>strategy.matrix</td>
+                    <td>Matrix build configuration</td>
+                    <td>python-version: [3.8, 3.9, 3.10]</td>
+                    <td>No</td>
+                    <td>When testing multiple configurations</td>
+                </tr>
+                <tr>
+                    <td>steps</td>
+                    <td>Job execution steps</td>
+                    <td>checkout, setup, build, test</td>
+                    <td>Yes</td>
+                    <td>When defining job process</td>
+                </tr>
+            </table>
+
+            <h3>Step Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>uses</td>
+                    <td>Action to execute</td>
+                    <td>actions/checkout@v2</td>
+                    <td>Yes</td>
+                    <td>When using GitHub actions</td>
+                </tr>
+                <tr>
+                    <td>with</td>
+                  <td>Action configuration parameters</td>
+                    <td>python-version: 3.8</td>
+                    <td>No</td>
+                    <td>Based on action requirements</td>
+                </tr>
+                <tr>
+                    <td>env</td>
+                    <td>Environment variables</td>
+                    <td>FLASK_ENV: production</td>
+                    <td>No</td>
+                    <td>When needing custom environment</td>
+                </tr>
+                <tr>
+                    <td>run</td>
+                    <td>Shell command to execute</td>
+                    <td>pytest tests/</td>
+                    <td>Yes</td>
+                    <td>When defining build step</td>
+                </tr>
+            </table>
+
+            <h3>Common Configuration Mistakes</h3>
+            <div class="callout warning">
+                <strong>Warning:</strong> Avoid hardcoding secrets in workflow files. Always use GitHub Secrets for sensitive data like credentials and API keys.
+            </div>
+            <ul>
+                <li>Hardcoding secrets in workflow YAML files</li>
+                <li>Missing checkout step causing repository access failures</li>
+                <li>Incorrect runner selection causing compatibility issues</li>
+                    <li>Not setting proper timeouts causing hanging workflows</li>
+                    <li>Missing error handling causing workflow failures</li>
+            </ul>
+
+            <h3>Environment-Specific Configuration</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Development</th>
+                    <th>Staging</th>
+                    <th>Production</th>
+                </tr>
+                <tr>
+                    <td>Triggers</td>
+                    <td>push to develop</td>
+                    <td>push to staging</td>
+                    <td>push to master</td>
+                </tr>
+                <tr>
+                    <td>Runner</td>
+                    <td>ubuntu-latest</td>
+                    <td>ubuntu-latest</td>
+                    <td>self-hosted</td>
+                </tr>
+                <tr>
+                    <td>Timeout</td>
+                    <td>30 minutes</td>
+                    <td>60 minutes</td>
+                    <td>120 minutes</td>
+                </tr>
+                <tr>
+                    <td>Artifacts</td>
+                    <td>Disabled</td>
+                    <td>Enabled</td>
+                    <td>Enabled with retention</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="recipes">
+            <h2>F. Cookbook Recipes</h2>
+            
+            <div class="recipe">
+                <h4>Recipe 1: Create Code Quality Check Workflow</h4>
+                <p><strong>Purpose:</strong> Set up automated code quality checks with linting and security scanning</p>
+                <p><strong>Ingredients:</strong> Python project, linting tools, email configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create <code>.github/workflows/code-quality-check.yml</code></li>
+                    <li>Configure triggers for push and pull_request</li>
+                    <li>Add steps for Pylint, Flake8, Black, isort</li>
+                    <li>Add Bandit for security scanning</li>
+                    <li>Configure email notifications for results</li>
+                    <li>Test workflow with sample push</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Automated quality checks on every commit and PR</p>
+                <p><strong>Verification:</strong> Check workflow results in Actions tab</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 2: Create Docker Build and Deploy Workflow</h4>
+                <p><strong>Purpose:</strong> Automate Docker image building, pushing to Artifactory, and Kubernetes deployment</p>
+                <p><strong>Ingredients:</strong> Docker, Artifactory credentials, Kubernetes access</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create <code>.github/workflows/docker-build-push-k8s.yml</code></li>
+                    <li>Configure Docker build step with multi-platform support</li>
+                    <li>Add Artifactory login and push steps</li>
+                    <li>Configure Kubernetes deployment with kubectl</li>
+                    <li>Add health check verification</li>
+                    <li>Test workflow with code push</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Automated Docker image build, push, and deployment</p>
+                <p><strong>Verification:</strong> Check Artifactory for new images, Kubernetes for new deployment</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 3: Configure Argo CD Sync Workflow</h4>
+                <p><strong>Purpose:</strong> Trigger Argo CD synchronization after deployment</p>
+                <p><strong>Ingredients:</strong> ArgoCD credentials, ArgoCD CLI</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create <code>.github/workflows/argocd-gitops.yml</code></li>
+                    <li>Install ArgoCD CLI in workflow</li>
+                    <li>Configure ArgoCD authentication</li>
+                    <li>Add step to trigger application sync</li>
+                    <li>Add health check verification</li>
+                    <li>Configure environment-specific triggers</li>
+                </ol>
+                <p><strong>Expected Result:</strong> ArgoCD automatically syncs after deployment</p>
+                <p><strong>Verification:</strong> Check ArgoCD application status</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 4: Configure Matrix Builds</h4>
+                <p><strong>Purpose:</strong> Test across multiple Python versions and platforms</p>
+                <p><strong>Ingredients:</strong> Matrix configuration, multiple Python versions</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Configure strategy matrix in workflow</li>
+                    <li>Add python-version matrix: [3.8, 3.9, 3.10]</li>
+                    <li>Add os matrix: [ubuntu-latest, windows-latest]</li>
+                    <li>Configure fail-fast strategy</li>
+                    <li>Test workflow with sample commit</li>
+                </ol>
+                <p><strong>Result:</strong> Tests run across multiple configurations in parallel</p>
+                <p><strong>Verification:</strong> Check workflow results for all matrix combinations</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 5: Configure Caching for Performance</h4>
+                <p><strong>Purpose:</strong> Speed up workflows by caching dependencies and build artifacts</p>
+                <p><strong>Ingredients:</strong> Cache configuration, dependencies to cache</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Configure cache for Python dependencies</li>
+                    <li>Set cache path to ~/.cache/pip</li>
+                    <li>Configure cache key based on requirements.txt</li>
+                    <li>Add cache step before dependency installation</li>
+                    <li>Test workflow to verify cache effectiveness</li>
+                </ol>
+                <p><strong>Result:</strong> Faster workflow execution with dependency caching</p>
+                <p><strong>Verification:</strong> Compare workflow execution times</p>
+            </div>
+        </section>
+
+        <section class="section" id="usage">
+            <h2>G. Usage in This Project</h2>
+            
+            <h3>Who Uses the Tool</h3>
+            <ul>
+                <li><strong>Developers:</strong> Commit code changes that trigger workflows</li>
+                <li><strong>CI/CD Pipeline:</strong> Automates build, test, and deployment</li>
+                <li><strong>DevOps Engineers:</strong> Configure and maintain workflows</li>
+                <li><strong>Security Team:</strong> Review workflow results and security scans</li>
+            </ul>
+
+            <h3>Event Triggers</h3>
+            <ul>
+                <li><strong>Push to master:</strong> Triggers production deployment workflow</li>
+                <li><strong>Push to develop:</strong> Triggers staging deployment workflow</li>
+                <li><strong>Pull Requests:</strong> Triggers code quality checks</li>
+                <li><strong>Manual Dispatch:</strong> Allows manual workflow triggering</li>
+            </ul>
+
+            <h3>Input/Output</h3>
+            <ul>
+                <li><strong>Input:</strong> Source code changes, Dockerfile, Kubernetes manifests</li>
+                <li><strong>Output:</strong> Built Docker images, updated manifests, deployment status, test results</li>
+            </ul>
+
+            <h3>System Integration</h3>
+            <ul>
+                <li><strong>GitHub:</strong> Hosts source code and workflows</li>
+                <li><strong>Artifactory:</strong> Stores Docker images built by workflows</li>
+                <li><strong>Kubernetes:</strong> Deployment target for workflows</li>
+                <li><strong>Argo CD:</strong> Syncs Kubernetes manifests after deployment</li>
+                <li><strong>Email:</strong> Sends build notifications to team</li>
+            </ul>
+
+            <h3>Execution Flow</h3>
+            <ol>
+                <li>Developer pushes code changes to Git repository</li>
+                <li>GitHub Actions triggers appropriate workflow based on branch</li>
+                <li>Workflow checks out code and runs quality checks</li>
+                <li>Docker image is built and pushed to Artifactory</li>
+                <li>Kubernetes manifests are updated with new image tag</li>
+                <li>Argo CD is triggered to sync changes to cluster</li>
+                <li>Deployment is rolled out with new image version</li>
+            </ol>
+        </section>
+
+        <section class="section" id="best-practices">
+            <h2>H. Best Practices</h2>
+            
+            <h3>Workflow Organization</h3>
+            <ul>
+                <li>Separate workflows by concern (quality, build, deploy)</li>
+                <li>Use descriptive workflow names and documentation</li>
+                <li>Implement proper workflow triggers for different environments</li>
+                <li>Use workflow templates for common patterns</li>
+                <li>Implement workflow composition for complex pipelines</li>
+            </ul>
+
+            <h3>Secret Management</h3>
+            <li>Never hardcode secrets in workflow files</li>
+                <li>Use GitHub Secrets for sensitive data</li>
+                <li>Use environment-specific secrets for different environments</li>
+                <li>Rotate secrets regularly</li>
+                <li>Implement principle of least privilege for secrets</li>
+            </ul>
+
+            <h3>Performance Optimization</h3>
+            <ul>
+                <li>Use caching for dependencies and build artifacts</li>
+                <li>Use matrix builds for parallel execution</li>
+                <li>Configure appropriate timeouts and resource limits</li>
+                <li>Use artifact upload for build outputs</li>
+                <li>Implement workflow cancellation for stale builds</li>
+            </ul>
+
+            <h3>Security Hardening</h3>
+            <ul>
+                <li>Use third-party actions from trusted sources</li>
+                <li>Pin action versions for reproducibility</li>
+                <li>Implement branch protection rules</li>
+                <li>Require approvals for production deployments</li>
+                <li>Regular security updates for actions and dependencies</li>
+            </ul>
+
+            <h3>Monitoring and Logging</h3>
+            <ul>
+                <li>Enable workflow run logging and artifact retention</li>
+                <li>Set up notifications for workflow failures</li>
+                <li>Monitor workflow execution time and trends</li>
+                <li>Integrate with monitoring and alerting systems</li>
+                <li>Regular review of workflow performance metrics</li>
+            </ul>
+        </section>
+
+        <section class="section" id="common-mistakes">
+            <h2>I. Common Mistakes</h2>
+            
+            <table>
+                <tr>
+                    <th>Mique</th>
+                    <th>What Happens</th>
+                    <th>Why It Happens</th>
+                    <th>How to Avoid</th>
+                </tr>
+                <tr>
+                    <td>Hardcoded secrets</td>
+                    <td>Security risk and credential exposure</td>
+                    <td>Convenience during development</td>
+                    <td>Always use GitHub Secrets</td>
+                </tr>
+                <tr>
+                    <td>Missing checkout step</td>
+                    <td>Workflow cannot access repository</td>
+                    <td>Forgot to add actions/checkout step</td>
+                    <td>Always include checkout step first</td>
+                </tr>
+                <tr>
+                    <td>Wrong runner selection</td>
+                    <td>Build failures due to incompatibility</td>
+                    <td>Runner doesn't match build requirements</td>
+                    <td>Choose appropriate runner for build needs</td>
+                </tr>
+                <tr>
+                    <td>No timeout configuration</td>
+                    <td>Workflows can hang indefinitely</td>
+                    <td>Default timeout not appropriate for long builds</td>
+                    <td>Always set appropriate timeout</td>
+                </tr>
+                <tr>
+                    <td>Missing error handling</td>
+                    <td>Workflow fails at first error</td>
+                    <td>No continue-on-error configuration</td>
+                    <td>Implement proper error handling</td>
+                </tr>
+                <tr>
+                    <td>Incorrect trigger configuration</td>
+                    <td>Workflows don't trigger when expected</td>
+                    <td>Branch names don't match trigger patterns</td>
+                    <td>Validate trigger patterns</td>
+                </tr>
+                <tr>
+                    <td>Not pinning action versions</td>
+                    <td>Unexpected behavior from action updates</td>
+                    <td>Using @main without version pinning</td>
+                    <td>Always pin action versions</td>
+                </tr>
+                <tr>
+                    <td>No artifact retention</td>
+                    <td>Build outputs lost after workflow</td>
+                    <td>Default artifact retention too short</td>
+                    <td>Configure appropriate artifact retention</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="troubleshooting">
+            <h2>J. Troubleshooting</h2>
+            
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Workflow authentication failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Workflow fails with "Resource not accessible by integration" or authentication errors</p>
+                    <p><strong>Likely Cause:</strong> Missing permissions, incorrect secret names, expired tokens</p>
+                    <p><strong>How to Diagnose:</strong> Check workflow logs, verify secret configuration, test access manually</p>
+                    <p><strong>Fix:</strong> Update secret configuration, add missing permissions, regenerate tokens</p>
+                    <p><strong>Prevention:</strong> Test access before enabling in production, use proper secret management</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Docker build failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Docker build step fails with build errors or timeout</p>
+                    <p><strong>Likely Cause:</strong> Invalid Dockerfile, missing dependencies, resource exhaustion</p>
+                    <p><strong>How to Diagnose:</strong> Check build logs, validate Dockerfile, test build locally</p>
+                    <p><strong>Fix:</strong> Fix Dockerfile, add missing dependencies, increase resources</p>
+                    <p><strong>Prevention:</strong> Test builds locally, validate Dockerfile syntax, use caching</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Kubernetes deployment failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> kubectl commands fail with connection or authentication errors</p>
+                    <p><strong>Likely Cause:</strong> Invalid kubeconfig, network issues, insufficient permissions</p>
+                    <p><strong>How to Diagnose:</strong> Test kubectl access, verify kubeconfig, check network connectivity</p>
+                    <p><strong>Fix:</strong> Update kubeconfig, fix network issues, add missing permissions</p>
+                    <p><strong>Prevention:</strong> Test kubectl access, use service accounts, configure proper RBAC</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <h2>K. Q&A / FAQ</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Why is GitHub Actions used instead of Jenkins?</div>
+                <div class="faq-answer">A>GitHub Actions provides native integration with GitHub repositories, eliminates the need for separate Jenkins infrastructure, and offers generous free tier for public repositories. It's ideal for GitOps workflows.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if workflow configuration is wrong?</div>
+                <div class="faq-answer">A>Workflows will fail to execute or produce incorrect results. Always validate workflow syntax and test workflows with manual dispatch before enabling automatic triggers.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I validate GitHub Actions configuration?</div>
+                <div class="faq-answer">A>Use workflow linting tools, test workflows with manual dispatch, check syntax with IDE validation, and review workflow logs for errors.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I debug workflow failures?</div>
+                <div class="faq-answer">A>Check workflow logs in GitHub Actions UI, review step-by-step execution, test problematic steps locally, and use re-run for debugging.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I rollback workflow changes?</div>
+                <div class="flasswer-answer">A>Revert workflow commit in Git, use workflow re-run for specific runs, or use GitHub's rollback functionality for deployments.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What logs should I inspect for troubleshooting?</div>
+                <div class="faq-answer">A>Workflow run logs, step logs, system logs, runner logs, and any external service logs (Artifactory, Kubernetes).</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I secure GitHub Actions credentials?</div>
+                <div class="faq-answer">A: Use GitHub Secrets for sensitive data, use environment-specific secrets, implement principle of least privilege, and regularly rotate secrets.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How does GitHub Actions behave in production?</div>
+                <div class="faq-answer">A>In production, workflows handle higher loads, use self-hosted runners for custom environments, implement proper security, and integrate with enterprise authentication systems.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I improve GitHub Actions performance?</div>
+                <div class="faq-answer">A>Use caching for dependencies, implement matrix builds for parallel execution, use self-hosted runners for better performance, optimize workflow steps, and use artifact caching.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What are the common limitations of GitHub Actions?</div>
+                <div="self-answer">A: Execution time limits, storage limits, runner availability issues, limited integration with external systems, and dependency on GitHub platform availability.</div>
+            </div>
+        </section>
+
+        <section class="section" id="improvements">
+            <h2>L. Improvements / Optimization Ideas</h2>
+            
+            <h3>Security Improvements</h3>
+            <ul>
+                <li>Implement branch protection rules for production</li>
+                <li>Require approvals for production deployments</li>
+                <li>Implement security scanning with third-party tools</li>
+                <li>Use self-hosted runners for sensitive workflows</li>
+                <li>Regular security audits of workflows and actions</li>
+            </ul>
+
+            <h3>Performance Improvements</h3>
+            <li>Use self-hosted runners for better performance</li>
+                <li>Implement advanced caching strategies</li>
+                <li>Use parallel job execution where possible</li>
+                <li>Optimize Docker layer caching</li>
+                <li>Implement workflow composition for complex pipelines</li>
+            </ul>
+
+            <h3>Maintainability Improvements</h3>
+            <li>Use composite actions for reusable workflow steps</li>
+                <li>Implement workflow templates for consistency</li>
+                <li>Automate workflow testing and validation</li>
+                <li>Use environment-specific workflow configurations</li>
+                <li>Implement workflow documentation and versioning</li>
+            </ul>
+
+            <h3>Production Hardening</h3>
+            <li>Use self-hosted runners for better control</li>
+                <li>Implement runner scaling and load balancing</li>
+                <li>Configure runner security and isolation</li>
+                <li>Implement backup and disaster recovery</li>
+                <li>Set up comprehensive monitoring and alerting</li>
+            </ul>
+
+            <h3>Scaling Considerations</li>
+                <li>Use self-hosted runners for horizontal scaling</li>
+                <li>Implement runner auto-scaling based on load</li>
+                <li>Use matrix builds for parallel execution</li>
+                <li>Consider geographic distribution for global teams</li>
+                <li>Implement queue management for workflow optimization</li>
+            </ul>
+
+            <h3>Developer Experience Improvements</h3>
+            <li>Create workflow templates for common patterns</li>
+                <li>Implement workflow badges and status indicators</li>
+                <li>Set up workflow dashboards and reporting</li>
+                <li>Automate common workflow operations</li>
+                <li>Provide comprehensive documentation and training</li>
+            </ul>
+        </section>
+
+        <section class="section" id="quick-reference">
+            <h2>M. Quick Reference</h2>
+            
+            <h3>Important Files</h3>
+            <ul>
+                <li><code>.github/workflows/code-quality-check.yml</code> - Code quality workflow</li>
+                <li><code>.github/workflows/docker-build-push-k8s.yml</code> - CI/CD workflow</li>
+                <li><code>.github/workflows/argocd-gitops.yml</code> - Argo CD sync workflow</li>
+                <li><code>Dockerfile</code> - Container image definition</li>
+                <li><code>k8s/</code> - Kubernetes manifests directory</li>
+            </ul>
+
+            <h3>Important Commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Workflow testing
+gh workflow list
+gh workflow run <workflow-name> --ref main
+
+# Workflow management
+gh workflow view <workflow-name>
+gh workflow enable <workflow-name>
+gh workflow disable <workflow-name>
+
+# Artifact management
+gh run view <run-id>
+gh run download <run-id></pre>
+            </div>
+
+            <h3>Critical Config Fields</h3>
+            <ul>
+                <li><code>on</code> - Workflow triggers (push, pull_request, manual)</li>
+                <li><code>runs-on</code> - Runner environment selection</li>
+                <li><code>steps</code> - Individual workflow steps</li>
+                <li><code>env</code> - Environment variables for steps</li>
+                <li><code>timeout-minutes</code> - Maximum workflow duration</li>
+            </ul>
+
+            <h3>Common Failure Checkpoints</li>
+            <ul>
+                <li>Workflow syntax validation</li>
+                <li>Secret configuration and access</li>
+                <li>Runner availability and compatibility</li>
+                <li>Docker build and push operations</li>
+                <li>Kubernetes deployment and access</li>
+            </ul>
+
+            <h3>Verification Checklist</li>
+            <ul>
+                <li>☐ GitHub Actions enabled in repository</li>
+                <li>☐ Workflows configured with proper triggers</li>
+                <li>☐ Secrets configured and accessible</li>
+                <li>☐ Code quality checks passing</li>
+                <li>☐ Docker images building successfully</li>
+                <li>☐ Images pushing to Artifactory</li>
+                <li>☐ Kubernetes deployments applying correctly</li>
+                <li>☐ Email notifications working</li>
+                <li>☐ Argo CD synchronization functioning</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const arrow = element.querySelector('.collapsible-header span:last-child');
+            if (element.classList.contains('active')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>

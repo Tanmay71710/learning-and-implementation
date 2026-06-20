@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jenkins Cookbook - Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .callout {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .callout.warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .callout.tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .callout.error {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .recipe {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recipe h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .faq-item {
+            margin: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            color: #666;
+            margin-left: 20px;
+        }
+
+        .collapsible {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapsible-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Jenkins Cookbook</h1>
+            <p>Script Execution Manager - Jenkins CI/CD Pipeline Configuration and Integration Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Documentation Index</a>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#recipes">Cookbook Recipes</a></li>
+                <li><a href="#usage">Usage in Project</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#common-mistakes">Common Mistakes</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#improvements">Improvements</a></li>
+                <li><a href="#quick-reference">Quick Reference</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="overview">
+            <h2>A. Title and Overview</h2>
+            <h3>Jenkins CI/CD Server</h3>
+            <p><strong>Role in Project:</strong> Jenkins serves as the automation server for executing scripts, managing CI/CD pipelines, and providing build artifact storage for the Script Execution Manager.</p>
+            
+            <h3>Why Jenkins is Used</h3>
+            <ul>
+                <li><strong>Mature Platform:</strong> Industry-standard with extensive plugin ecosystem</li>
+                <li><strong>Flexible Pipeline:</strong> Declarative pipeline syntax for complex workflows</li>
+                <li><strong>Extensible:</strong> Rich plugin ecosystem for integrations</li>
+                <li><strong>Proven Reliability:</strong> Battle-tested in enterprise environments</li>
+                <li><strong>Community Support:</strong> Large community and extensive documentation</li>
+            </ul>
+
+            <h3>GitOps Pipeline Position</h3>
+            <p>Jenkins works in parallel with GitHub Actions in this project. While GitHub Actions handles the primary CI/CD pipeline, Jenkins provides script execution capabilities and serves as an alternative job execution backend for the Flask application.</p>
+
+            <h3>Key Responsibilities</h3>
+            <ul>
+                <li>Execute scripts with configurable parameters</li>
+                <li>Provide job status monitoring and console output</li>
+                <li>Store build artifacts and logs</li>
+                <li>Integrate with version control systems</li>
+                <li>Support distributed builds with agents</li>
+                <li>Provide webhook integration for external triggers</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>B. What You Should Know Before Starting</h2>
+            
+            <h3>Foundational Concepts</h3>
+            <ul>
+                <li><strong>CI/CD Concepts:</strong> Understanding of continuous integration and deployment</li>
+                <li><strong>Pipeline as Code:</strong> Declarative pipeline syntax and Jenkinsfile</li>
+                <li><strong>Build Automation:</strong> Understanding of build processes and dependencies</li>
+                <li><strong>Webhooks:</strong> Understanding of webhooks and external triggers</li>
+                <li><strong>Agent Architecture:</strong> Master-agent communication and distributed builds</li>
+            </ul>
+
+            <h3>Assumptions</h3>
+            <ul>
+                <li>You have Java 8+ or Jenkins Docker image available</li>
+                <li>You understand basic Linux/Unix commands</li>
+                <li>You have Kubernetes cluster access for deployment</li>
+                <li>You're familiar with Git and version control workflows</li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <ul>
+                <li><strong>Java Runtime:</strong> Java 8+ for Jenkins master</li>
+                <li><strong>Docker:</strong> For containerized Jenkins and agent builds</li>
+                <li><strong>Kubernetes:</strong> For deployment and scaling</li>
+                <li><strong>Git:</strong> For source code integration</li>
+            </ul>
+
+            <h3>Operational Context</h3>
+            <p>Jenkins runs as a containerized application in Kubernetes with persistent storage for job configurations and build history. It integrates with the Flask application via REST API and webhooks.</p>
+
+            <h3>Production Considerations</h3>
+            <ul>
+                <li>Implement proper backup and disaster recovery</li>
+                <li>Configure distributed builds with multiple agents</li>
+                <li>Set up monitoring and alerting for Jenkins health</li>
+                <li>Implement proper security and access control</li>
+                <li>Configure resource limits and quotas</li>
+            </ul>
+
+            <h3>Hidden Complexity</h3>
+            <ul>
+                <li>Pipeline syntax and error handling</li>
+                <li>Credential management and security</li>
+                <li>Agent communication and networking</li>
+                <li>Plugin compatibility and version management</li>
+                <li>Workspace management and cleanup</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>C. Prerequisites</h2>
+            
+            <h3>Software Requirements</h3>
+            <table>
+                <tr>
+                    <th>Software</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Java</td>
+                    <td>8+</td>
+                    <td>Jenkins runtime</td>
+                </tr>
+                <tr>
+                    <td>Docker</td>
+                    <td>20.0+</td>
+                    <td>Containerization and agent builds</td>
+                </tr>
+                <tr>
+                    <td>Kubernetes</td>
+                    <td>1.20+</td>
+                    <td>Deployment platform</td>
+                </tr>
+                <tr>
+                    <td>kubectl</td>
+                    <td>Latest</td>
+                    <td>Kubernetes cluster management</td>
+                </tr>
+            </table>
+
+            <h3>Accounts and Permissions</h3>
+            <ul>
+                <li><strong>Jenkins Admin Account:</strong> For initial setup and configuration</li>
+                <li><strong>Service Account:</strong> For Flask application integration</li>
+                <li><strong>Developer Accounts:</strong> For job configuration and monitoring</li>
+                <li><strong>Kubernetes Permissions:</strong> For deploying Jenkins in cluster</li>
+            </ul>
+
+            <h3>Environment Variables Required</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>JENKINS_URL=http://jenkins-service:8080
+JENKINS_USERNAME=admin
+JENKINS_PASSWORD=admin
+JENKINS_JOB_NAME=script-execution-job
+JENKINS_API_TOKEN=your-api-token</pre>
+            </div>
+
+            <h3>Network Requirements</h3>
+            <ul>
+                <li>DNS resolution for Jenkins hostname</li>
+                <li>Network connectivity between Flask app and Jenkins</li>
+                <li>Network connectivity for agent communication</li>
+                <li>Firewall rules for required ports (8080, 50000)</li>
+            </ul>
+        </section>
+
+        <section class="section" id="installation">
+            <h2>D. Installation / Setup</h2>
+            
+            <h3>Step 1: Deploy Jenkins in Kubernetes</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create namespace
+kubectl create namespace jenkins
+
+# Deploy Jenkins using provided manifests
+kubectl apply -f k8s/jenkins-deployment.yaml
+
+# Or use Helm chart
+helm repo add jenkins https://charts.jenkins.io
+helm install jenkins jenkins/jenkins --namespace jenkins</pre>
+            </div>
+
+            <h3>Step 2: Configure Persistent Storage</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create PersistentVolumeClaim for Jenkins
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkins-data
+  namespace: jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+EOF</pre>
+            </div>
+
+            <h3>Step 3: Configure Service and Ingress</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Expose Jenkins service
+kubectl expose deployment jenkins --name=jenkins --port=8080 --namespace=jenkins --type=LoadBalancer
+
+# Create ingress for external access
+kubectl apply -f - <<EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jenkins-ingress
+  namespace: jenkins
+spec:
+  rules:
+  - host: jenkins.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jenkins
+            port:
+              number: 8080
+EOF</pre>
+            </div>
+
+            <h3>Step 4: Initialize Jenkins</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Get initial admin password
+kubectl exec -n jenkins deployment/jenkins -- cat /var/jenkins_home/secrets/initialAdminPassword
+
+# Port-forward to access Jenkins UI
+kubectl port-forward svc/jenkins -n jenkins 8080:8080
+
+# Open browser to http://localhost:8080</pre>
+            </div>
+
+            <h3>Step 5: Configure Script Execution Job</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Via Jenkins UI:
+# 1. Create new Freestyle project named "script-execution-job"
+# 2. Add string parameter "SCRIPT_NAME"
+# 3. Add build step to execute scripts from workspace
+# 4. Enable "Trigger builds remotely" with authentication token
+# 5. Configure post-build actions for artifact archiving</pre>
+            </div>
+
+            <h3>Step 6: Validate Setup</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Test Jenkins API access
+curl -u admin:password http://jenkins.local:8080/api/json
+
+# Test job triggering
+curl -X POST -u admin:password http://jenkins.local:8080/job/script-execution-job/buildWithParameters?SCRIPT_NAME=test.sh</pre>
+            </div>
+
+            <div class="callout tip">
+                <strong>Tip:</strong> For production deployments, consider using Jenkins Configuration as Code (JCasC) to manage Jenkins configuration in version control.
+            </div>
+        </section>
+
+        <section class="section" id="configuration">
+            <h2>E. Configuration Guide</h2>
+            
+            <h3>Jenkinsfile Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>pipeline</td>
+                    <td>Root declaration for pipeline</td>
+                    <td>pipeline { agent any }</td>
+                    <td>Yes</td>
+                    <td>When defining pipeline structure</td>
+                </tr>
+                <tr>
+                    <td>agent</td>
+                    <td>Where pipeline runs</td>
+                    <td>any / docker / label</td>
+                    <td>Yes</td>
+                    <td>Based on build requirements</td>
+                </tr>
+                <tr>
+                    <td>environment</td>
+                    <td>Environment variables</td>
+                    <td>PATH = "/usr/local/bin:${env.PATH}"</td>
+                    <td>No</td>
+                    <td>When needing custom environment</td>
+                </tr>
+                <tr>
+                    <td>stages</td>
+                    <td>Build stages definition</td>
+                    <td>stage('Build') { }</td>
+                    <td>Yes</td>
+                    <td>When defining build workflow</td>
+                </tr>
+                <tr>
+                    <td>steps</td>
+                    <td>Individual build steps</td>
+                    <td>sh 'make build'</td>
+                    <td>Yes</td>
+                    <td>When defining build actions</td>
+                </tr>
+            </table>
+
+            <h3>Job Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>Job Name</td>
+                    <td>Unique identifier for job</td>
+                    <td>script-execution-job</td>
+                    <td>Yes</td>
+                    <td>When creating new jobs</td>
+                </tr>
+                <tr>
+                    <td>Build Trigger</td>
+                    <td>What triggers job execution</td>
+                    <td>SCM polling / webhook</td>
+                    <td>No</td>
+                    <td>Based on automation needs</td>
+                </tr>
+                <tr>
+                    <td>Build Parameters</td>
+                    <td>Configurable job inputs</td>
+                    <td>SCRIPT_NAME (string)</td>
+                    <td>No</td>
+                    <td>When needing variable job inputs</td>
+                </tr>
+                <tr>
+                    <td>Build Steps</td>
+                    <td>Actions performed during build</td>
+                    <td>Execute shell script</td>
+                    <td>Yes</td>
+                    <td>When defining build process</td>
+                </tr>
+            </table>
+
+            <h3>Common Configuration Mistakes</h3>
+            <div class="callout warning">
+                <strong>Warning:</strong> Avoid using hardcoded credentials in Jenkinsfile or job configuration. Use Jenkins credentials store and environment injection.
+            </div>
+            <ul>
+                <li>Hardcoding credentials in pipeline scripts</li>
+                <li>Not setting up proper workspace cleanup</li>
+                <li>Missing timeout handling for long-running jobs</li>
+                <li>Incorrect agent configuration for distributed builds</li>
+                <li>Not implementing proper error handling in pipelines</li>
+            </ul>
+
+            <h3>Environment-Specific Configuration</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Development</th>
+                    <th>Staging</th>
+                    <th>Production</th>
+                </tr>
+                <tr>
+                    <td>Agent Type</td>
+                    <td>Local agent</td>
+                    <td>Docker agents</td>
+                    <td>Dedicated agents</td>
+                </tr>
+                <tr>
+                    <td>Resource Limits</td>
+                    <td>Minimal</td>
+                    <td>Moderate</td>
+                    <td>High with quotas</td>
+                </tr>
+                <tr>
+                    <td>Build Triggers</td>
+                    <td>Manual</td>
+                    <td>SCM polling</td>
+                    <td>Webhook + SCM polling</td>
+                </tr>
+                <tr>
+                    <td>Artifact Retention</td>
+                    <td>5 builds</td>
+                    <td>10 builds</td>
+                    <td>20 builds with cleanup</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="recipes">
+            <h2>F. Cookbook Recipes</h2>
+            
+            <div class="recipe">
+                <h4>Recipe 1: Create Basic Script Execution Job</h4>
+                <p><strong>Purpose:</strong> Set up a Jenkins job for executing scripts with parameters</p>
+                <p><strong>Ingredients:</strong> Jenkins admin access, script workspace</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Log in to Jenkins admin console</li>
+                    <li>Click "New Item"</li>
+                    <li>Enter job name: <code>script-execution-job</code></li>
+                    <li>Select "Freestyle project"</li>
+                    <li>Add string parameter: <code>SCRIPT_NAME</code></li>
+                    <li>Add build step: "Execute shell"</li>
+                    <li>Enter command: <code>cd /path/to/scripts && ./$SCRIPT_NAME</code></li>
+                    <li>Configure post-build actions for log archiving</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Jenkins job ready to execute scripts with parameters</p>
+                <p><strong>Verification:</strong> Run test job with sample script</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 2: Configure Webhook Integration</h4>
+                <p><strong>Purpose:</strong> Enable external triggering of Jenkins jobs via webhooks</p>
+                <p><strong>Ingredients:</strong> Jenkins job configuration, authentication token</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Navigate to job configuration</li>
+                    <li>Check "Trigger builds remotely"</li>
+                    <li>Set authentication token: <code>my-secret-token</code></li>
+                    <li>Save configuration</li>
+                    <li>Test webhook: <code>curl -X POST http://jenkins/job/script-execution-job/build?token=my-secret-token</code></li>
+                </ol>
+                <p><strong>Expected Result:</strong> Job can be triggered via HTTP POST with authentication</p>
+                <p><strong>Verification:</strong> Test webhook from Flask application</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 3: Set up Docker Agent</h4>
+                <p><strong>Purpose:</strong> Configure Jenkins to use Docker agents for isolated builds</p>
+                <p><strong>Ingredients:</strong> Docker installed on agent, Jenkins configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Install Docker on agent machine</li>
+                    <li>Add Jenkins user to docker group</li>
+                    <li>Configure Jenkins agent in Jenkins UI</li>
+                    <li>Set agent to use Docker as template</li>
+                    <li>Configure cloud settings for Docker agents</li>
+                    <li>Test agent connectivity</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Jenkins can spawn Docker agents for builds</p>
+                <p><strong>Verification:</strong> Run pipeline with Docker agent</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 4: Implement Declarative Pipeline</h4>
+                <p><strong>Purpose:</strong> Convert job to declarative pipeline with Jenkinsfile</p>
+                <p><strong>Ingredients:</strong> Jenkinsfile, pipeline syntax knowledge</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Create Jenkinsfile in repository</li>
+                    <li>Define pipeline structure with stages</li>
+                    <li>Add build steps and post-build actions</li>
+                    <li>Configure Pipeline job in Jenkins</li>
+                    <li>Set SCM to point to repository</li>
+                    <li>Test pipeline execution</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Pipeline as code with version control</p>
+                <p><strong>Verification:</strong> Trigger pipeline and check execution</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 5: Configure Credential Management</h4>
+                <p><strong>Purpose:</strong> Securely manage credentials for external services</p>
+                <p><strong>Ingredients:</strong> Jenkins credentials store, external service accounts</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Navigate to Credentials → System → Global credentials</li>
+                    <li>Click "Add Credentials"</li>
+                    <li>Select credential type (username/password, secret text)</li>
+                    <li>Enter ID and description</li>
+                    <li>Add credentials</li>
+                    <li>Use in pipeline with withCredentials block</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Credentials securely stored and injectable</p>
+                <p><strong>Verification:</strong> Use credentials in test pipeline</p>
+            </div>
+        </section>
+
+        <section class="section" id="usage">
+            <h2>G. Usage in This Project</h2>
+            
+            <h3>Who Uses the Tool</h3>
+            <ul>
+                <li><strong>Flask Application:</strong> Triggers Jenkins jobs for script execution</li>
+                <li><strong>Developers:</strong> Monitor job execution and view console output</li>
+                <li><strong>DevOps Engineers:</strong> Configure and maintain Jenkins infrastructure</li>
+                <li><strong>CI/CD Pipeline:</strong> Alternative job execution backend</li>
+            </ul>
+
+            <h3>Event Triggers</h3>
+            <ul>
+                <li><strong>Webhooks:</strong> Flask application triggers jobs via HTTP POST</li>
+                <li><strong>Manual Triggers:</strong> Developers can trigger jobs via Jenkins UI</li>
+                <li><strong>SCM Polling:</strong> Jobs can trigger on repository changes</li>
+            </ul>
+
+            <h3>Input/Output</h3>
+            <ul>
+                <li><strong>Input:</strong> Script name, parameters, execution mode</li>
+                <li><strong>Output:</strong> Job status, console output, exit code, build artifacts</li>
+            </ul>
+
+            <h3>System Integration</h3>
+            <ul>
+                <li><strong>Flask Application:</strong> REST API integration for job triggering and monitoring</li>
+                <li><strong>Kubernetes:</strong> Jenkins runs as containerized application</li>
+                <li><strong>Git:</strong> Source code integration and pipeline as code</li>
+                <li><strong>Artifactory:</strong> Optional artifact storage integration</li>
+            </ul>
+
+            <h3>Execution Flow</h3>
+            <ol>
+                <li>User submits script execution request via Flask web interface</li>
+                <li>Flask API triggers Jenkins job via webhook</li>
+                <li>Jenkins executes script in configured workspace</li>
+                <li>Job status and output are monitored by Flask application</li>
+                <li>Results are returned to user via web interface</li>
+            </ol>
+        </section>
+
+        <section class="section" id="best-practices">
+            <h2>H. Best Practices</h2>
+            
+            <h3>Naming Conventions</h3>
+            <ul>
+                <li>Use lowercase with hyphens for job names: <code>script-execution-job</code></li>
+                <li>Use descriptive names for credentials: <code>artifactory-admin</code></li>
+                <li>Use semantic versioning for Jenkins plugins</li>
+                <li>Use consistent naming for agent labels</li>
+            </ul>
+
+            <h3>Pipeline Structure</h3>
+            <ul>
+                <li>Use declarative pipeline syntax (Jenkinsfile)</li>
+                <li>Implement proper error handling and cleanup</li>
+                <li>Use stages for logical build phases</li>
+                <li>Implement parallel execution where possible</li>
+                <li>Use timeout directives to prevent hanging jobs</li>
+            </ul>
+
+            <h3>Credential Management</h3>
+            <ul>
+                <li>Never hardcode credentials in Jenkinsfile</li>
+                <li>Use Jenkins credentials store with proper IDs</li>
+                <li>Implement credential rotation policies</li>
+                <li>Use different credentials for different environments</li>
+                <li>Limit credential scope to minimum required</li>
+            </ul>
+
+            <h3>Security Hardening</h3>
+            <ul>
+                <li>Enable CSRF protection</li>
+                <li>Implement proper authentication and authorization</li>
+                <li>Use HTTPS/TLS for all communications</li>
+                <li>Regular security updates and patching</li>
+                <li>Implement network segmentation for agents</li>
+            </ul>
+
+            <h3>Resource Management</h3>
+            <ul>
+                <li>Set up resource limits for Jenkins master</li>
+                <li>Configure agent resource quotas</li>
+                <li>Implement workspace cleanup policies</li>
+                <li>Set up build discarding for old builds</li>
+                <li>Monitor resource usage and set up alerts</li>
+            </ul>
+
+            <h3>Monitoring and Logging</h3>
+            <ul>
+                <li>Enable comprehensive logging</li>
+                <li>Integrate with centralized logging systems</li>
+                <li>Monitor Jenkins master and agent health</li>
+                <li>Set up alerts for job failures</li>
+                <li>Track build metrics and trends</li>
+            </ul>
+        </section>
+
+        <section class="section" id="common-mistakes">
+            <h2>I. Common Mistakes</h2>
+            
+            <table>
+                <tr>
+                    <th>Mistake</th>
+                    <th>What Happens</th>
+                    <th>Why It Happens</th>
+                    <th>How to Avoid</th>
+                </tr>
+                <tr>
+                    <td>Hardcoded credentials</td>
+                    <td>Security risk and credential exposure</td>
+                    <td>Convenience during development</td>
+                    <td>Use Jenkins credentials store</td>
+                </tr>
+                <tr>
+                    <td>No workspace cleanup</td>
+                    <td>Disk space exhaustion</td>
+                    <td>Forgot cleanup configuration</td>
+                    <td>Implement workspace cleanup in post-build</td>
+                </tr>
+                <tr>
+                    <td>Missing timeout handling</td>
+                    <td>Hanging jobs consume resources</td>
+                    <td>Assumed jobs will complete</td>
+                    <td>Always use timeout directives</td>
+                </tr>
+                <tr>
+                    <td>Incorrect agent configuration</td>
+                    <td>Build failures and resource waste</td>
+                    <td>Agent label mismatch</td>
+                    <td>Validate agent configuration</td>
+                </tr>
+                <tr>
+                    <td>Poor error handling</td>
+                    <td>Pipeline failures unclear</td>
+                    <td>Focus on happy path</td>
+                    <td>Implement try-catch blocks</td>
+                </tr>
+                <tr>
+                    <td>No build discarding</td>
+                    <td>Unlimited disk usage</td>
+                    <td>Default Jenkins behavior</td>
+                    <td>Configure build discard policy</td>
+                </tr>
+                <tr>
+                    <td>Insecure webhook tokens</td>
+                    <td>Unauthorized job triggering</td>
+                    <td>Simple token setup</td>
+                    <td>Use strong random tokens</td>
+                </tr>
+                <tr>
+                    <td>Missing artifact archiving</td>
+                    <td>Build outputs lost</td>
+                    <td>Forgot post-build configuration</td>
+                    <td>Configure artifact archiving</td>
+                </tr>
+                <tr>
+                    <td>Plugin conflicts</td>
+                    <td>Jenkins instability</td>
+                    <td>Installing incompatible plugins</td>
+                    <td>Test plugins in staging first</td>
+                </tr>
+                <tr>
+                    <td>No backup strategy</td>
+                    <td>Configuration loss on failure</td>
+                    <td>Backup not considered</td>
+                    <td>Implement regular backup</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="troubleshooting">
+            <h2>J. Troubleshooting</h2>
+            
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Job execution failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Jobs failing without clear error messages or hanging indefinitely</p>
+                    <p><strong>Likely Cause:</strong> Script errors, agent connectivity issues, resource exhaustion</p>
+                    <p><strong>How to Diagnose:</strong> Check console output, review agent logs, monitor resource usage</p>
+                    <p><strong>Fix:</strong> Fix script errors, restart agents, increase resource limits</p>
+                    <p><strong>Prevention:</strong> Implement proper error handling and resource monitoring</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Agent connectivity issues</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Agents offline or unable to connect to master</p>
+                    <p><strong>Likely Cause:</strong> Network issues, incorrect agent configuration, firewall rules</p>
+                    <p><strong>How to Diagnose:</strong> Check agent logs, test network connectivity, verify agent configuration</p>
+                    <p><strong>Fix:</strong> Fix network issues, update agent configuration, adjust firewall rules</p>
+                    <p><strong>Prevention:</strong> Implement proper network configuration and monitoring</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Webhook authentication failures</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Webhook triggers returning 403 or 401 errors</p>
+                    <p><strong>Likely Cause:</strong> Invalid tokens, CSRF protection, incorrect URL</p>
+                    <p><strong>How to Diagnose:</strong> Check token validity, review Jenkins security settings, test webhook URL</p>
+                    <p><strong>Fix:</strong> Update token, adjust security settings, correct webhook URL</p>
+                    <p><strong>Prevention:</strong> Use proper token management and security configuration</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <h2>K. Q&A / FAQ</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Why is Jenkins used instead of only GitHub Actions?</div>
+                <div class="faq-answer">A: Jenkins provides more flexibility for complex workflows, better agent management, and integration with existing infrastructure. It serves as an alternative execution backend.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if Jenkins job configuration is wrong?</div>
+                <div class="faq-answer">A: Jobs will fail to execute or produce incorrect results. Always test job configuration with sample builds before production use.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I validate Jenkins access configuration?</div>
+                <div class="faq-answer">A: Test API access with curl: <code>curl -u username:token http://jenkins/api/json</code>, verify webhook authentication, test job triggering.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I debug Jenkins pipeline failures?</div>
+                <div class="faq-answer">A: Check pipeline logs in Jenkins UI, review console output, examine agent logs, and use pipeline replay for debugging.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I rollback Jenkins configuration changes?</div>
+                <div class="faq-answer">A: Use Jenkins configuration backup, revert changes via script, or reload previous configuration. Use JCasC for version-controlled configuration.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What logs should I inspect for troubleshooting?</div>
+                <div class="faq-answer">A: Jenkins master logs, agent logs, job console output, system logs, and application logs that interact with Jenkins.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I secure Jenkins credentials?</div>
+                <div class="faq-answer">A: Use Jenkins credentials store, environment variables, secret management systems, and implement proper access control.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How does Jenkins behave in production?</div>
+                <div class="faq-answer">A: In production, Jenkins should be configured with HA, proper security, monitoring, backup, and resource management. It handles higher load and provides reliability.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I improve Jenkins performance?</div>
+                <div class="faq-answer">A: Use distributed builds with agents, optimize pipeline steps, implement caching, increase resources, and tune JVM settings.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What are the common limitations of Jenkins?</div>
+                <div class="faq-answer">A: Configuration complexity, resource requirements, plugin compatibility issues, and maintenance overhead for large-scale deployments.</div>
+            </div>
+        </section>
+
+        <section class="section" id="improvements">
+            <h2>L. Improvements / Optimization Ideas</h2>
+            
+            <h3>Security Improvements</h3>
+            <ul>
+                <li>Implement LDAP/Active Directory integration</li>
+                <li>Enable role-based access control (RBAC)</li>
+                <li>Implement security scanning for build artifacts</li>
+                <li>Use network segmentation for agents</li>
+                <li>Regular security audits and penetration testing</li>
+            </ul>
+
+            <h3>Performance Improvements</h3>
+            <ul>
+                <li>Implement distributed builds with multiple agents</li>
+                <li>Use Docker agents for isolated builds</li>
+                <li>Implement build caching and optimization</li>
+                <li>Optimize JVM and garbage collection settings</li>
+                <li>Use Kubernetes auto-scaling for agents</li>
+            </ul>
+
+            <h3>Maintainability Improvements</h3>
+            <ul>
+                <li>Use Jenkins Configuration as Code (JCasC)</li>
+                <li>Implement pipeline templates for consistency</li>
+                <li>Automate plugin management</li>
+                <li>Implement configuration backup and versioning</li>
+                <li>Use shared libraries for common functionality</li>
+            </ul>
+
+            <h3>Production Hardening</h3>
+            <ul>
+                <li>Implement high availability with multiple masters</li>
+                <li>Configure external database for Jenkins metadata</li>
+                <li>Implement backup and disaster recovery</li>
+                <li>Set up comprehensive monitoring and alerting</li>
+                <li>Implement load balancing for Jenkins access</li>
+            </ul>
+
+            <h3>Scaling Considerations</h3>
+            <ul>
+                <li>Design for horizontal scaling with agents</li>
+                <li>Implement cloud-based agent provisioning</li>
+                <li>Use Kubernetes operators for Jenkins management</li>
+                <li>Consider multi-site deployment for global teams</li>
+                <li>Implement queue management for build optimization</li>
+            </ul>
+
+            <h3>Developer Experience Improvements</h3>
+            <ul>
+                <li>Implement blue ocean UI for better visualization</li>
+                <li>Create developer-friendly job templates</li>
+                <li>Implement self-service job creation</li>
+                <li>Set up developer portals and dashboards</li>
+                <li>Automate common development workflows</li>
+            </ul>
+        </section>
+
+        <section class="section" id="quick-reference">
+            <h2>M. Quick Reference</h2>
+            
+            <h3>Important Files</h3>
+            <ul>
+                <li><code>Jenkinsfile</code> - Declarative pipeline definition</li>
+                <li><code>k8s/jenkins-deployment.yaml</code> - Kubernetes deployment manifest</li>
+                <li><code>scripts/</code> - Executable scripts for Jenkins jobs</li>
+            </ul>
+
+            <h3>Important Commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Trigger job via webhook
+curl -X POST -u admin:token http://jenkins/job/script-execution-job/buildWithParameters?SCRIPT_NAME=test.sh
+
+# Get job status
+curl -u admin:token http://jenkins/job/script-execution-job/lastBuild/api/json
+
+# Get console output
+curl -u admin:token http://jenkins/job/script-execution-job/lastBuild/consoleText
+
+# Kubernetes management
+kubectl get pods -n jenkins
+kubectl logs deployment/jenkins -n jenkins</pre>
+            </div>
+
+            <h3>Critical Config Fields</h3>
+            <ul>
+                <li><code>JENKINS_URL</code> - Jenkins server URL for API access</li>
+                <li><code>JENKINS_JOB_NAME</code> - Name of the script execution job</li>
+                <li><code>Authentication Token</code> - Token for webhook authentication</li>
+                <li><code>Agent Configuration</code> - Agent labels and connection settings</li>
+                <li><code>Pipeline Timeout</code> - Maximum time for job execution</li>
+            </ul>
+
+            <h3>Common Failure Checkpoints</h3>
+            <ul>
+                <li>Webhook authentication and connectivity</li>
+                <li>Agent availability and connectivity</li>
+                <li>Workspace permissions and access</li>
+                <li>Script execution permissions</li>
+                <li>Resource limits and quotas</li>
+            </ul>
+
+            <h3>Verification Checklist</h3>
+            <ul>
+                <li>☐ Jenkins master running and accessible</li>
+                <li>☐ Script execution job configured</li>
+                <li>☐ Webhook authentication working</li>
+                <li>☐ Agent connectivity established</li>
+                <li>☐ Flask application can trigger jobs</li>
+                <li>☐ Job monitoring and status retrieval working</li>
+                <li>☐ Console output accessible</li>
+                <li>☐ Workspace cleanup configured</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const arrow = element.querySelector('.collapsible-header span:last-child');
+            if (element.classList.contains('active')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>

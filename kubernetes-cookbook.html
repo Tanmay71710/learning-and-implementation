@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Cookbook - Script Execution Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav a:hover {
+            background: #f0f0f0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            margin-top: 25px;
+        }
+
+        .section h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .callout {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .callout.warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+
+        .callout.tip {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .callout.error {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th, table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .recipe {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .recipe h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .faq-item {
+            margin: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            color: #666;
+            margin-left: 20px;
+        }
+
+        .collapsible {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .collapsible-header {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapsible-content {
+            padding: 15px;
+            display: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .collapsible.active .collapsible-content {
+            display: block;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                flex-direction: column;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .section {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Kubernetes Cookbook</h1>
+            <p>Script Execution Manager - Kubernetes Deployment and Orchestration Guide</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Documentation Index</a>
+
+        <div class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#prerequisites">Prerequisites</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#recipes">Cookbook Recipes</a></li>
+                <li><a href="#usage">Usage in Project</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#common-mistakes">Common Mistakes</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#improvements">Improvements</a></li>
+                <li><a href="#quick-reference">Quick Reference</a></li>
+            </ul>
+        </div>
+
+        <section class="section" id="overview">
+            <h2>A. Title and Overview</h2>
+            <h3>Kubernetes Container Orchestration</h3>
+            <p><strong>Role in Project:</strong> Kubernetes serves as the deployment platform for the Script Execution Manager, providing container orchestration, scaling, and management for the Flask application and supporting services.</p>
+            
+            <h3>Why Kubernetes is Used</h3>
+            <ul>
+                <li><strong>Container Orchestration:</strong> Automated deployment, scaling, and management of containerized applications</li>
+                <li><strong>Self-Healing:</strong> Automatic restart of failed containers and replacement of unhealthy nodes</li>
+                <li><strong>Scalability:</strong> Horizontal scaling with Horizontal Pod Autoscaler (HPA)</li>
+                <li><strong>Service Discovery:</strong> Built-in service discovery and load balancing</li>
+                <li><strong>Declarative Configuration:</strong> Infrastructure as Code with YAML manifests</li>
+            </ul>
+
+            <h3>GitOps Pipeline Position</h3>
+            <p>Kubernetes is the final destination in the GitOps pipeline. Argo CD monitors the Git repository and automatically applies Kubernetes manifests to deploy and manage the application in the cluster.</p>
+
+            <h3>Key Responsibilities</h3>
+            <ul>
+                <li>Container orchestration and scheduling</li>
+                <li>Service discovery and load balancing</li>
+                <li>Configuration management with ConfigMaps and Secrets</li>
+                <li>Storage orchestration with PersistentVolumes</li>
+                <li>Self-healing and automatic scaling</li>
+                <li>Rolling updates and rollbacks</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>B. What You Should Know Before Starting</h2>
+            
+            <h3>Foundational Concepts</h3>
+            <ul>
+                <li><strong>Container Concepts:</strong> Understanding of Docker containers and images</li>
+                <li><strong>Microservices Architecture:</strong> Understanding of distributed application design</li>
+                <li><strong>Networking:</strong> Understanding of IP addressing, DNS, and load balancing</li>
+                <li><strong>Storage:</strong> Understanding of volumes, persistent storage, and storage classes</li>
+                <li><strong>YAML:</strong> Understanding of YAML syntax and configuration management</li>
+            </ul>
+
+            <h3>Assumptions</h3>
+            <ul>
+                <li>You have Docker installed and understand container concepts</li>
+                <li>You have basic Linux/Unix command-line skills</li>
+                <li>You understand networking fundamentals</li>
+                <li>You have access to a Kubernetes cluster (EKS, AKS, GKE, or on-prem)</li>
+            </ul>
+
+            <h3>Dependencies</h3>
+            <ul>
+                <li><strong>Docker:</strong> For building and pushing container images</li>
+                <li><strong>kubectl:</strong> For cluster management and deployment</li>
+                <li><strong>Container Registry:</strong> Artifactory for Docker image storage</li>
+                <li><strong>Git:</strong> For manifest version control (via Argo CD)</li>
+            </ul>
+
+            <h3>Operational Context</h3>
+            <p>The project uses k3s (a lightweight Kubernetes distribution) running on-prem. The cluster hosts the Flask application, Jenkins, Artifactory, and Argo CD, demonstrating a complete GitOps workflow.</p>
+
+            <h3>Production Considerations</h3>
+            <ul>
+                <li>Implement proper resource limits and requests</li>
+                <li>Configure health checks and liveness probes</li>
+                <li>Set up monitoring and alerting</li>
+                <li>Implement backup and disaster recovery</li>
+                <li>Configure network policies for security</li>
+            </ul>
+
+            <h3>Hidden Complexity</h3>
+            <ul>
+                <li>Pod networking and DNS resolution</li>
+                <li>Storage class provisioning and binding</li>
+                <li>RBAC and service account configuration</li>
+                <li>Ingress controller setup and TLS termination</li>
+                <li>Cluster upgrade and maintenance procedures</li>
+            </ul>
+        </section>
+
+        <section class="section" id="prerequisites">
+            <h2>C. Prerequisites</h2>
+            
+            <h3>Software Requirements</h3>
+            <table>
+                <tr>
+                    <th>Software</th>
+                    <th>Version</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>kubectl</td>
+                    <td>1.20+</td>
+                    <td>Kubernetes cluster management</td>
+                </tr>
+                <tr>
+                    <td>Docker</td>
+                    <td>20.0+</td>
+                    <td>Container image management</td>
+                </tr>
+                <tr>
+                    <td>Helm</td>
+                    <td>3.0+</td>
+                    <td>Package management (optional)</td>
+                </tr>
+            </table>
+
+            <h3>Cluster Access</h3>
+            <ul>
+                <li><strong>Kubeconfig:</strong> Valid kubeconfig file with cluster access</li>
+                <li><strong>Cluster Permissions:</strong> Appropriate RBAC permissions for deployment</li>
+                <li><strong>Network Access:</strong> Connectivity to cluster API server</li>
+                <li><strong>Container Registry Access:</strong> Credentials for pulling images</li>
+            </ul>
+
+            <h3>Environment Variables Required</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre>KUBECONFIG=/path/to/kubeconfig
+KUBERNETES_NAMESPACE=script-execution-manager
+CONTAINER_REGISTRY=artifactory.local:8082
+IMAGE_PULL_SECRET=artifactory-registry-secret</pre>
+            </div>
+
+            <h3>Network Requirements</h3>
+            <ul>
+                <li>DNS resolution for Kubernetes services</li>
+                <li>Network connectivity between cluster and external services</li>
+                <li>Firewall rules for Kubernetes API server access</li>
+                <li>LoadBalancer/Ingress controller configuration</li>
+            </ul>
+        </section>
+
+        <section class="section" id="installation">
+            <h2>D. Installation / Setup</h2>
+            
+            <h3>Step 1: Verify Cluster Access</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Verify cluster connectivity
+kubectl cluster-info
+
+# Check cluster nodes
+kubectl get nodes
+
+# List namespaces
+kubectl get namespaces</pre>
+            </div>
+
+            <h3>Step 2: Create Namespace</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create namespace for application
+kubectl create namespace script-execution-manager
+
+# Verify namespace creation
+kubectl get namespace script-execution-manager</pre>
+            </div>
+
+            <h3>Step 3: Create ConfigMap</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Apply ConfigMap from k8s directory
+kubectl apply -f k8s/configmap.yaml -n script-execution-manager
+
+# Verify ConfigMap
+kubectl get configmap -n script-execution-manager</pre>
+            </div>
+
+            <h3>Step 4: Create Secrets</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Apply Secrets from k8s directory
+kubectl apply -f k8s/secrets.yaml -n script-execution-manager
+
+# Verify Secrets
+kubectl get secrets -n script-execution-manager</pre>
+            </div>
+
+            <h3>Step 5: Create Docker Registry Secret</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Create Docker registry secret for Artifactory
+kubectl create secret docker-registry artifactory-registry-secret \
+  --docker-server=artifactory.local:8082 \
+  --docker-username=admin \
+  --docker-password=password \
+  -n script-execution-manager</pre>
+            </div>
+
+            <h3>Step 6: Deploy Application</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Apply Deployment
+kubectl apply -f k8s/deployment.yaml -n script-execution-manager
+
+# Apply Service
+kubectl apply -f k8s/service.yaml -n script-execution-manager</pre>
+            </div>
+
+            <h3>Step 7: Validate Deployment</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Check pods
+kubectl get pods -n script-execution-manager
+
+# Check services
+kubectl get svc -n script-execution-manager
+
+# Check deployment status
+kubectl get deployment -n script-execution-manager
+
+# View pod logs
+kubectl logs -n script-execution-manager deployment/script-execution-manager</pre>
+            </div>
+
+            <div class="callout tip">
+                <strong>Tip:</strong> Use kubectl's --watch flag to monitor pod status in real-time: <code>kubectl get pods -n script-execution-manager --watch</code>
+            </div>
+        </section>
+
+        <section class="section" id="configuration">
+            <h2>E. Configuration Guide</h2>
+            
+            <h3>Deployment Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>replicas</td>
+                    <td>Number of pod replicas</td>
+                    <td>3</td>
+                    <td>Yes</td>
+                    <td>When scaling application</td>
+                </tr>
+                <tr>
+                    <td>image</td>
+                    <td>Container image to deploy</td>
+                    <td>nginx:latest</td>
+                    <td>Yes</td>
+                    <td>When updating application version</td>
+                </tr>
+                <tr>
+                    <td>imagePullPolicy</td>
+                    <td>When to pull image</td>
+                    <td>Always</td>
+                    <td>Yes</td>
+                    <td>Based on update strategy</td>
+                </tr>
+                <tr>
+                    <td>resources.requests</td>
+                    <td>Minimum resource requirements</td>
+                    <td>memory: 256Mi, cpu: 250m</td>
+                    <td>No</td>
+                    <td>When setting resource limits</td>
+                </tr>
+                <tr>
+                    <td>resources.limits</td>
+                    <td>Maximum resource limits</td>
+                    <td>memory: 512Mi, cpu: 500m</td>
+                    <td>No</td>
+                    <td>When setting resource constraints</td>
+                </tr>
+            </table>
+
+            <h3>Service Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>type</td>
+                    <td>Service type (ClusterIP, NodePort, LoadBalancer)</td>
+                    <td>LoadBalancer</td>
+                    <td>Yes</td>
+                    <td>Based on access requirements</td>
+                </tr>
+                <tr>
+                    <td>ports.port</td>
+                    <td>Service port</td>
+                    <td>80</td>
+                    <td>Yes</td>
+                    <td>When changing application port</td>
+                </tr>
+                <tr>
+                    <td>ports.targetPort</td>
+                    <td>Container port to forward to</td>
+                    <td>80</td>
+                    <td>Yes</td>
+                    <td>When changing container port</td>
+                </tr>
+                <tr>
+                    <td>selector</td>
+                    <td>Label selector for pods</td>
+                    <td>app: script-execution-manager</td>
+                    <td>Yes</td>
+                    <td>When changing pod labels</td>
+                </tr>
+            </table>
+
+            <h3>Health Check Configuration</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Purpose</th>
+                    <th>Example Value</th>
+                    <th>Required</th>
+                    <th>When to Modify</th>
+                </tr>
+                <tr>
+                    <td>livenessProbe.httpGet.path</td>
+                    <td>Health check endpoint path</td>
+                    <td>/</td>
+                    <td>Yes</td>
+                    <td>When changing health endpoint</td>
+                </tr>
+                <tr>
+                    <td>livenessProbe.httpGet.port</td>
+                    <td>Health check port</td>
+                    <td>80</td>
+                    <td>Yes</td>
+                    <td>When changing application port</td>
+                </tr>
+                <tr>
+                    <td>livenessProbe.initialDelaySeconds</td>
+                    <td>Delay before first check</td>
+                    <td>30</td>
+                    <td>No</td>
+                    <td>Based on application startup time</td>
+                </tr>
+                <tr>
+                    <td>readinessProbe.periodSeconds</td>
+                    <td>Check interval</td>
+                    <td>5</td>
+                    <td>No</td>
+                    <td>Based on application requirements</td>
+                </tr>
+            </table>
+
+            <h3>Common Configuration Mistakes</h3>
+            <div class="callout warning">
+                <strong>Warning:</strong> Avoid using imagePullPolicy: Always in production without proper image caching, as it can cause unnecessary network traffic and slow deployments.
+            </div>
+            <ul>
+                <li>Setting incorrect resource limits causing pod eviction</li>
+                <li>Missing health checks causing unhealthy pods to remain in service</li>
+                <li>Incorrect selector causing service to not find pods</li>
+                <li>Using wrong port numbers in service configuration</li>
+                <li>Not setting appropriate restart policies</li>
+            </ul>
+
+            <h3>Environment-Specific Configuration</h3>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Development</th>
+                    <th>Staging</th>
+                    <th>Production</th>
+                </tr>
+                <tr>
+                    <td>replicas</td>
+                    <td>1-2</td>
+                    <td>2-3</td>
+                    <td>3+</td>
+                </tr>
+                <tr>
+                    <td>resource limits</td>
+                    <td>Minimal</td>
+                    <td>Moderate</td>
+                    <td>High with HPA</td>
+                </tr>
+                <tr>
+                    <td>imagePullPolicy</td>
+                    <td>Always</td>
+                    <td>IfNotPresent</td>
+                    <td>IfNotPresent</td>
+                </tr>
+                <tr>
+                    <td>service type</td>
+                    <td>NodePort</td>
+                    <td>LoadBalancer</td>
+                    <td>LoadBalancer + Ingress</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="recipes">
+            <h2>F. Cookbook Recipes</h2>
+            
+            <div class="recipe">
+                <h4>Recipe 1: Basic Application Deployment</h4>
+                <p><strong>Purpose:</strong> Deploy a basic Flask application to Kubernetes</p>
+                <p><strong>Ingredients:</strong> Docker image, Kubernetes manifests, kubectl access</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Build and push Docker image to registry</li>
+                    <li>Create namespace: <code>kubectl create namespace app</code></li>
+                    <li>Create ConfigMap with environment variables</li>
+                    <li>Create Secret with sensitive data</li>
+                    <li>Apply Deployment manifest</li>
+                    <li>Apply Service manifest</li>
+                    <li>Verify pod status and connectivity</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application running with 3 replicas and load-balanced service</p>
+                <p><strong>Verification:</strong> <code>kubectl get pods -n app</code> and test service access</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 2: Configure Horizontal Pod Autoscaler</h4>
+                <p><strong>Purpose:</strong> Enable automatic scaling based on CPU/memory usage</p>
+                <p><strong>Ingredients:</strong> Metrics Server, HPA configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Ensure Metrics Server is installed in cluster</li>
+                    <li>Set resource requests on Deployment (required for HPA)</li>
+                    <li>Create HPA YAML manifest</li>
+                    <li>Configure target CPU utilization (e.g., 70%)</li>
+                    <li>Set min/max replica limits</li>
+                    <li>Apply HPA: <code>kubectl apply -f hpa.yaml</code></li>
+                    <li>Test scaling by increasing load</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Pods automatically scale based on CPU utilization</p>
+                <p><strong>Verification:</strong> <code>kubectl get hpa</code> and monitor replica changes</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 3: Set up Ingress for External Access</h4>
+                <p><strong>Purpose:</strong> Configure external access via Ingress controller</p>
+                <p><strong>Ingredients:</strong> Ingress controller, Ingress resource, DNS configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Ensure Ingress controller is running (Traefik, NGINX)</li>
+                    <li>Create Ingress resource YAML</li>
+                    <li>Configure host rules and paths</li>
+                    <li>Set up TLS certificate if using HTTPS</li>
+                    <li>Configure DNS to point to Ingress IP</li>
+                    <li>Apply Ingress: <code>kubectl apply -f ingress.yaml</code></li>
+                    <li>Test external access via configured hostname</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application accessible via external hostname</p>
+                <p><strong>Verification:</strong> Test access from external network</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 4: Configure Persistent Storage</h4>
+                <p><strong>Purpose:</strong> Add persistent storage for application data</p>
+                <p><strong>Ingredients:</strong> StorageClass, PersistentVolumeClaim, Pod configuration</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Check available StorageClasses in cluster</li>
+                    <li>Create PersistentVolumeClaim YAML</li>
+                    <li>Set storage size and access mode</li>
+                    <li>Configure volumeMounts in Deployment</li>
+                    <li>Apply PVC: <code>kubectl apply -f pvc.yaml</code></li>
+                    <li>Apply updated Deployment with volume mounts</li>
+                    <li>Verify storage is mounted and accessible</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application has persistent storage that survives pod restarts</p>
+                <p><strong>Verification:</strong> <code>kubectl exec -it pod -- df -h</code> to check mounted storage</p>
+            </div>
+
+            <div class="recipe">
+                <h4>Recipe 5: Perform Rolling Update</h4>
+                <p><strong>Purpose:</strong> Update application with zero downtime</p>
+                <p><strong>Ingredients:</strong> New Docker image, Deployment manifest</p>
+                <p><strong>Steps:</strong></p>
+                <ol>
+                    <li>Build and push new Docker image version</li>
+                    <li>Update image tag in Deployment manifest</li>
+                    <li>Apply updated manifest: <code>kubectl apply -f deployment.yaml</code></li>
+                    <li>Monitor rollout status: <code>kubectl rollout status deployment/app</code></li>
+                    <li>Verify new pods are running and healthy</li>
+                    <li>Test application functionality</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Application updated with zero downtime using rolling strategy</p>
+                <p><strong>Verification:</strong> <code>kubectl get pods</code> shows new pod versions</p>
+            </div>
+        </section>
+
+        <section class="section" id="usage">
+            <h2>G. Usage in This Project</h2>
+            
+            <h3>Who Uses the Tool</h3>
+            <ul>
+                <li><strong>Argo CD:</strong> Applies Kubernetes manifests automatically from Git</li>
+                <li><strong>DevOps Engineers:</strong> Manage cluster resources and deployments</li>
+                <li><strong>Developers:</strong> Monitor application health and logs</li>
+                <li><strong>CI/CD Pipeline:</strong> Deploys updated application versions</li>
+            </ul>
+
+            <h3>Event Triggers</h3>
+            <ul>
+                <li><strong>Git Changes:</strong> Argo CD detects manifest changes in Git repository</li>
+                <li><strong>Manual Deployment:</strong> Developers can manually apply manifests with kubectl</li>
+                <li><strong>Scaling Events:</strong> HPA automatically scales based on metrics</li>
+            </ul>
+
+            <h3>Input/Output</h3>
+            <ul>
+                <li><strong>Input:</strong> Kubernetes manifests (YAML), Docker images, configuration data</li>
+                <li><strong>Output:</strong> Running pods, services, load-balanced endpoints, application logs</li>
+            </ul>
+
+            <h3>System Integration</h3>
+            <ul>
+                <li><strong>Argo CD:</strong> GitOps operator that applies manifests to cluster</li>
+                <li><strong>Artifactory:</strong> Provides Docker images for deployment</li>
+                <li><strong>Jenkins:</strong> Runs as containerized application in cluster</li>
+                <li><strong>Flask Application:</strong> Main application deployed and managed</li>
+            </ul>
+
+            <h3>GitOps Flow</h3>
+            <ol>
+                <li>Developer updates Kubernetes manifests in Git repository</li>
+                <li>Argo CD detects changes in Git repository</li>
+                <li>Argo CD applies updated manifests to Kubernetes cluster</li>
+                <li>Kubernetes performs rolling update of application pods</li>
+                <li>New pods pull latest Docker image from Artifactory</li>
+                <li>Application is updated with zero downtime</li>
+            </ol>
+        </section>
+
+        <section class="section" id="best-practices">
+            <h2>H. Best Practices</h2>
+            
+            <h3>Naming Conventions</h3>
+            <ul>
+                <li>Use lowercase with hyphens for resource names: <code>script-execution-manager</code></li>
+                <li>Use descriptive labels: <code>app: script-execution-manager, version: v1.0.0</code></li>
+                <li>Use semantic versioning for image tags: <code>v1.0.0, v1.1.0</code></li>
+                <li>Use consistent naming across environments: <code>script-execution-manager-dev, script-execution-manager-prod</code></li>
+            </ul>
+
+            <h3>Resource Management</h3>
+            <ul>
+                <li>Always set resource requests and limits for pods</li>
+                <li>Use appropriate resource limits based on application requirements</li>
+                <li>Configure Horizontal Pod Autoscaler for production workloads</li>
+                <li>Implement resource quotas at namespace level</li>
+                <li>Monitor resource usage and optimize accordingly</li>
+            </ul>
+
+            <h3>Configuration Management</h3>
+            <ul>
+                <li>Use ConfigMaps for non-sensitive configuration data</li>
+                <li>Use Secrets for sensitive data (credentials, API keys)</li>
+                <li>Never commit Secrets to version control</li>
+                <li>Use environment-specific ConfigMaps and Secrets</li>
+                <li>Implement configuration versioning with Git</li>
+            </ul>
+
+            <h3>Security Hardening</h3>
+            <ul>
+                <li>Implement Network Policies to restrict pod communication</li>
+                <li>Use RBAC for access control and permissions</li>
+                <li>Run containers as non-root users when possible</li>
+                <li>Implement pod security policies</li>
+                <li>Regular security updates and patching</li>
+            </ul>
+
+            <h3>Monitoring and Logging</h3>
+            <ul>
+                <li>Implement comprehensive logging with centralized aggregation</li>
+                <li>Set up health checks and liveness probes</li>
+                <li>Monitor resource usage and set up alerts</li>
+                <li>Implement distributed tracing for microservices</li>
+                <li>Set up dashboards for cluster and application monitoring</li>
+            </ul>
+
+            <h3>Deployment Strategies</h3>
+            <ul>
+                <li>Use rolling updates for zero-downtime deployments</li>
+                <li>Implement proper rollback procedures</li>
+                <li>Use canary deployments for major version changes</li>
+                <li>Implement blue-green deployments for critical applications</li>
+                <li>Test deployments in staging before production</li>
+            </ul>
+        </section>
+
+        <section class="section" id="common-mistakes">
+            <h2>I. Common Mistakes</h2>
+            
+            <table>
+                <tr>
+                    <th>Mistake</th>
+                    <th>What Happens</th>
+                    <th>Why It Happens</th>
+                    <th>How to Avoid</th>
+                </tr>
+                <tr>
+                    <td>Wrong image reference</td>
+                    <td>Pod fails to start with ImagePullBackOff error</td>
+                    <td>Incorrect image name, tag, or registry URL</td>
+                    <td>Validate image references before deployment</td>
+                </tr>
+                <tr>
+                    <td>Missing resource limits</td>
+                    <td>Pods can consume unlimited cluster resources</td>
+                    <td>Forgot to set resource constraints</td>
+                    <td>Always set resource requests and limits</td>
+                </tr>
+                <tr>
+                    <td>Incorrect health check path</td>
+                    <td>Pods marked unhealthy and restarted unnecessarily</td>
+                    <td>Wrong endpoint path or port configuration</td>
+                    <td>Test health endpoints before configuring probes</td>
+                </tr>
+                <tr>
+                    <td>Missing imagePullSecrets</td>
+                    <td>Pods cannot pull images from private registry</td>
+                    <td>Forgot to configure registry credentials</td>
+                    <td>Create imagePullSecrets for private registries</td>
+                </tr>
+                <tr>
+                    <td>Incorrect selector in Service</td>
+                    <td>Service cannot find pods to route traffic</td>
+                    <td>Label selector doesn't match pod labels</td>
+                    <td>Ensure selector matches pod labels exactly</td>
+                </tr>
+                <tr>
+                    <td>Using wrong namespace</td>
+                    <td>Resources created in wrong environment</td>
+                    <td>Forgot to specify namespace in commands</td>
+                    <td>Always specify namespace explicitly</td>
+                </tr>
+                <tr>
+                    <td>No restart policy</td>
+                    <td>Pods don't restart on failure</td>
+                    <td>Default policy not appropriate for use case</td>
+                    <td>Configure appropriate restart policy</td>
+                </tr>
+                <tr>
+                    <td>Incorrect YAML indentation</th>
+                    <td>Manifests fail to apply with parsing errors</td>
+                    <td>YAML indentation errors are common</td>
+                    <td>Use YAML linter and validate syntax</td>
+                </tr>
+                <tr>
+                    <td>Missing RBAC permissions</td>
+                    <td>Deployment fails with forbidden errors</td>
+                    <td>Insufficient permissions for operations</td>
+                    <td>Configure proper RBAC and service accounts</td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" id="troubleshooting">
+            <h2>J. Troubleshooting</h2>
+            
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Pods stuck in ImagePullBackOff state</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Pods show ImagePullBackOff status, container never starts</p>
+                    <p><strong>Likely Cause:</strong> Invalid image reference, missing imagePullSecrets, registry authentication issues</p>
+                    <p><strong>How to Diagnose:</strong> <code>kubectl describe pod</code>, check image reference, verify registry access</p>
+                    <p><strong>Fix:</strong> Correct image reference, create imagePullSecrets, update registry credentials</p>
+                    <p><strong>Prevention:</strong> Validate image references, test registry access, configure proper secrets</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Pods stuck in CrashLoopBackOff state</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Pods repeatedly start and crash, never become healthy</p>
+                    <p><strong>Likely Cause:</strong> Application errors, missing dependencies, incorrect configuration</p>
+                    <p><strong>How to Diagnose:</strong> Check pod logs, examine application errors, verify configuration</p>
+                    <p><strong>Fix:</strong> Fix application errors, add missing dependencies, correct configuration</p>
+                    <p><strong>Prevention:</strong> Implement proper startup validation, use health checks, test locally first</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: Service cannot reach pods</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Service shows no endpoints, traffic not reaching pods</p>
+                    <p><strong>Likely Cause:</strong> Incorrect selector, pod labels mismatch, network policies blocking traffic</p>
+                    <p><strong>How to Diagnose:</strong> Check service endpoints, verify pod labels, examine network policies</p>
+                    <p><strong>Fix:</strong> Correct service selector, update pod labels, adjust network policies</p>
+                    <p><strong>Prevention:</strong> Validate label matching, test connectivity, review network policies</p>
+                </div>
+            </div>
+
+            <div class="collapsible" onclick="toggleCollapsible(this)">
+                <div class="collapsible-header">
+                    <span>Problem: High memory usage causing pod eviction</span>
+                    <span>▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>Symptoms:</strong> Pods evicted due to memory pressure, application instability</p>
+                    <p><strong>Likely Cause:</strong> Memory leaks, insufficient resource limits, over-provisioning</p>
+                    <p><strong>How to Diagnose:</strong> Monitor memory usage, check resource limits, analyze application memory patterns</p>
+                    <p><strong>Fix:</strong> Fix memory leaks, increase resource limits, optimize application memory usage</p>
+                    <p><strong>Prevention:</strong> Set appropriate resource limits, monitor usage, implement memory profiling</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="faq">
+            <h2>K. Q&A / FAQ</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: Why is Kubernetes used instead of traditional deployment methods?</div>
+                <div class="faq-answer">A: Kubernetes provides automated scaling, self-healing, and declarative configuration management that traditional methods cannot match. It enables GitOps workflows and provides enterprise-grade reliability.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What happens if Kubernetes configuration is wrong?</div>
+                <div class="faq-answer">A: Deployments may fail, pods may not start, or applications may be inaccessible. Always validate configuration with dry-run and test in non-production environments first.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I validate Kubernetes deployment configuration?</div>
+                <div class="faq-answer">A: Use <code>kubectl apply --dry-run</code> to test configuration, <code>kubectl explain</code> to check field documentation, and <code>kubectl validate</code> for schema validation.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I debug Kubernetes deployment failures?</div>
+                <div class="faq-answer">A> Check pod status with <code>kubectl get pods</code>, view logs with <code>kubectl logs</code>, describe pods with <code>kubectl describe pod</code>, and check events with <code>kubectl get events</code>.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I rollback Kubernetes deployment changes?</div>
+                <div class="faq-answer">A: Use <code>kubectl rollout undo deployment/app</code> to rollback to previous version, or <code>kubectl rollout undo deployment/app --to-revision=2</code> for specific revision.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What logs should I inspect for troubleshooting?</div>
+                <div class="faq-answer">A: Pod logs, kubelet logs, Kubernetes control plane logs, application logs, and any sidecar container logs. Use <code>kubectl logs</code> and cluster logging systems.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I secure Kubernetes credentials?</div>
+                <div class="faq-answer">A: Use RBAC for access control, rotate certificates regularly, use service accounts for automation, and integrate with secret management systems like HashiCorp Vault.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How does Kubernetes behave in production?</div>
+                <div class="faq-answer">A: In production, Kubernetes handles high-traffic loads, provides self-healing, enables horizontal scaling, and integrates with monitoring and logging systems for enterprise-grade reliability.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: How do I improve Kubernetes performance?</div>
+                <div class="faq-answer">A: Optimize resource requests/limits, use horizontal pod autoscaling, implement cluster autoscaling, use node affinity rules, and tune kubelet and cluster settings.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Q: What are the common limitations of Kubernetes?</div>
+                <div class="faq-answer">A: Complexity of setup and management, resource overhead, learning curve, networking complexity, and potential cost for cloud-hosted clusters.</div>
+            </div>
+        </section>
+
+        <section class="section" id="improvements">
+            <h2>L. Improvements / Optimization Ideas</h2>
+            
+            <h3>Security Improvements</h3>
+            <ul>
+                <li>Implement network policies for pod-to-pod communication control</li>
+                <li>Use pod security policies to enforce security standards</li>
+                <li>Implement service mesh (Istio, Linkerd) for advanced security</li>
+                <li>Regular security scanning of images and configurations</li>
+                <li>Implement admission controllers for security validation</li>
+            </ul>
+
+            <h3>Performance Improvements</h3>
+            <ul>
+                <li>Implement cluster autoscaling for dynamic resource management</li>
+                <li>Use node affinity and anti-affinity for optimal placement</li>
+                <li>Implement request batching and connection pooling</li>
+                <li>Use efficient storage classes and volume types</li>
+                <li>Optimize kubelet and cluster-level settings</li>
+            </ul>
+
+            <h3>Maintainability Improvements</h3>
+            <ul>
+                <li>Use Helm charts for complex application deployments</li>
+                <li>Implement GitOps with Argo CD for declarative configuration</li>
+                <li>Use operators for application lifecycle management</li>
+                <li>Implement configuration drift detection and remediation</li>
+                <li>Automate cluster upgrades and maintenance procedures</li>
+            </ul>
+
+            <h3>Production Hardening</h3>
+            <ul>
+                <li>Implement multi-cluster or multi-region deployment</li>
+                <li>Configure cluster backup and disaster recovery</li>
+                <li>Implement comprehensive monitoring and alerting</li>
+                <li>Set up log aggregation and analysis</li>
+                <li>Implement cluster-wide security policies</li>
+            </ul>
+
+            <h3>Scaling Considerations</h3>
+            <ul>
+                <li>Design for horizontal scaling at all layers</li>
+                <li>Implement cluster autoscaling for dynamic node management</li>
+                <li>Consider multi-zone or multi-region deployment for HA</li>
+                <li>Use Kubernetes operators for complex applications</li>
+                <li>Implement traffic management and load balancing strategies</li>
+            </ul>
+
+            <h3>Developer Experience Improvements</h3>
+            <ul>
+                <li>Implement Kubernetes dashboards and developer portals</li>
+                <li>Use kubectl plugins for enhanced functionality</li>
+                <li>Implement developer-friendly debugging tools</li>
+                <li>Automate common deployment workflows</li>
+                <li>Provide comprehensive documentation and training</li>
+            </ul>
+        </section>
+
+        <section class="section" id="quick-reference">
+            <h2>M. Quick Reference</h2>
+            
+            <h3>Important Files</h3>
+            <ul>
+                <li><code>k8s/deployment.yaml</code> - Application deployment manifest</li>
+                <li><code>k8s/service.yaml</code> - Service configuration</li>
+                <li><code>k8s/configmap.yaml</code> - Configuration data</li>
+                <li><code>k8s/secrets.yaml</code> - Sensitive data</li>
+                <li><code>k8s/artifactory-deployment.yaml</code> - Artifactory deployment</li>
+                <li><code>k8s/jenkins-deployment.yaml</code> - Jenkins deployment</li>
+            </ul>
+
+            <h3>Important Commands</h3>
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre># Cluster management
+kubectl cluster-info
+kubectl get nodes
+kubectl get namespaces
+
+# Resource management
+kubectl get pods -n namespace
+kubectl get services -n namespace
+kubectl get deployments -n namespace
+kubectl get configmaps -n namespace
+kubectl get secrets -n namespace
+
+# Deployment operations
+kubectl apply -f deployment.yaml -n namespace
+kubectl rollout status deployment/app -n namespace
+kubectl rollout undo deployment/app -n namespace
+kubectl scale deployment/app --replicas=3 -n namespace
+
+# Debugging
+kubectl describe pod/pod-name -n namespace
+kubectl logs pod/pod-name -n namespace
+kubectl exec -it pod/pod-name -n namespace -- /bin/bash
+kubectl get events -n namespace --sort-by='.lastTimestamp'</pre>
+            </div>
+
+            <h3>Critical Config Fields</h3>
+            <ul>
+                <li><code>replicas</code> - Number of pod replicas for deployment</li>
+                <li><code>image</code> - Container image reference</li>
+                <li><code>resources.requests/limits</code> - Resource constraints</li>
+                <li><code>livenessProbe/readinessProbe</code> - Health check configuration</li>
+                <li><code>selector</code> - Label selector for pod discovery</li>
+            </ul>
+
+            <h3>Common Failure Checkpoints</h3>
+            <ul>
+                <li>Image pull and registry access</li>
+                <li>Resource limits and pod scheduling</li>
+                <li>Health check configuration and application startup</li>
+                <li>Service discovery and pod connectivity</li>
+                <li>DNS resolution and network policies</li>
+            </ul>
+
+            <h3>Verification Checklist</h3>
+            <ul>
+                <li>☐ Cluster is accessible and nodes are healthy</li>
+                <li>☐ Namespace is created and accessible</li>
+                <li>☐ ConfigMaps and Secrets are applied correctly</li>
+                <li>☐ Deployment is running with desired replicas</li>
+                <li>☐ Pods are healthy and passing health checks</li>
+                <li>☐ Service is accessible and routing traffic</li>
+                <li>☐ Application is responding to requests</li>
+                <li>☐ Resource usage is within expected limits</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('pre');
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const arrow = element.querySelector('.collapsible-header span:last-child');
+            if (element.classList.contains('active')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+    </script>
+</body>
+</html>
